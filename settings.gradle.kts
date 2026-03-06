@@ -20,4 +20,4 @@ plugins {
 }
 
 rootProject.name = "filesystem"
-include("lib")
+include("filesystem")

@@ -4,6 +4,8 @@
  * This generated file contains a sample Kotlin library project to get you started.
  * For more details on building Java & JVM projects, please refer to https://docs.gradle.org/9.2.1/userguide/building_java_projects.html in the Gradle documentation.
  */
+import com.vanniktech.maven.publish.JavadocJar
+import com.vanniktech.maven.publish.SourcesJar
 
 plugins {
     // Apply the org.jetbrains.kotlin.jvm Plugin to add support for Kotlin.
@@ -11,7 +13,7 @@ plugins {
 
     // Apply the java-library plugin for API and implementation separation.
     `java-library`
-    id("maven-publish")
+    id("com.vanniktech.maven.publish") version "0.36.0"
     signing
 }
 
@@ -39,10 +41,21 @@ dependencies {
 //    compileOnly("androidx.documentfile:documentfile:1.1.0")
 }
 
-publishing  {
-    publications    {
-        create<MavenPublication>("mavenJava") {
-            from(components["java"])
+val groupId = "io.github.sifisofakude"
+val artifactId = "filesystem"
+val version = "0.1.0"
+
+
+        mavenPublishing {
+            configureBasedOnAppliedPlugins(
+                javadocJar = JavadocJar.Javadoc(),
+                sourcesJar = SourcesJar.Sources()
+            )
+            publishToMavenCentral()
+
+            signAllPublications()
+
+            coordinates(groupId.toString(),artifactId,version)
 
             pom    {
                 name.set("FileSystem Utility")
@@ -51,8 +64,9 @@ publishing  {
 
                 licenses    {
                     license     {
-                        name = "MIT License"
-                        url = "https://opensource.org/license/mit"
+                        name = "The MIT License"
+                        url = "https://opensource.org"
+                        distribution.set("repo")
                     }
                 }
 
@@ -71,31 +85,29 @@ publishing  {
                 }
             }
         }
-    }
 
-    repositories  {
-        maven   {
-          name = "MavenCentral"
-          url = uri("https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/")
-          credentials {
-            username = project.findProperty("centralPortalUsername")?.toString()
-            password = project.findProperty("centralPortalPassword")?.toString()
-          }
-        }
-    }
-}
+    // repositories  {
+    //     maven   {
+    //       name = "MavenCentral"
+    //       url = uri("https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/")
+    //       credentials {
+    //         username = project.findProperty("centralPortalUsername")?.toString()
+    //         password = project.findProperty("centralPortalPassword")?.toString()
+    //       }
+    //     }
+    // }
 
-signing {
-    sign(publishing.publications["mavenJava"])
-}
+// signing {
+//     sign(publishing.publications["mavenJava"])
+// }
 
 // Apply a specific Java toolchain to ease working on different environments.
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(21)
     }
-    withSourcesJar()
-    withJavadocJar()
+    // withSourcesJar()
+    // withJavadocJar()
 }
 
 tasks.named<Test>("test") {

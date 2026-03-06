@@ -111,17 +111,18 @@ class JvmFileSystem : FileSystemUtil	{
 								stream = doc.inputStream()
 							)
 						)
-					}catch(e: IOException)	{}
+					}catch(e: Exception)	{}
 				}else if(doc.exists() && doc.isDirectory)	{
 					findFiles(doc.absolutePath,extensions).forEach	{
 						val relativePath = it.replace("${doc.absolutePath}${File.separator}","")
-
-						results.add(
-							FileSource(
-								stream = File(it).inputStream(),
-								relativePath = relativePath
+						try	{
+							results.add(
+								FileSource(
+									stream = File(it).inputStream(),
+									relativePath = relativePath
+								)
 							)
-						)
+						}catch(e: Exception) {}
 					}
 				}
 			}

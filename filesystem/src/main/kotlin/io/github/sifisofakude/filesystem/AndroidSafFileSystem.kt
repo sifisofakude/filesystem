@@ -15,12 +15,28 @@ import java.io.OutputStream
  * Android Storage Access Framework (SAF) implementation of [FileSystemUtil].
  *
  * <p>
- * This class provides access to files and directories using Android's
- * SAF APIs. It requires that the user has granted access to the desired
- * directories via SAF.
+ * **Important:** This class is **Android-only**. It depends on:
+ * <ul>
+ *     <li>The Android SDK (`android.content.Context`, `android.net.Uri`)</li>
+ *     <li>`androidx.documentfile:documentfile` library</li>
+ * </ul>
+ * It will **not work on JVM/desktop environments**.
  * </p>
  *
  * <p>
+ * To use this class, your app must include the DocumentFile library dependency:
+ * ```gradle
+ * dependencies {
+ *     implementation("androidx.documentfile:documentfile:1.0.1")
+ * }
+ * ```
+ * </p>
+ *
+ * <p>
+ * Provides access to files and directories using Android SAF. Requires the user
+ * to grant access to the desired directories via SAF.
+ * </p>
+ *
  * Features:
  * <ul>
  *     <li>Maintain a selected root directory via [changeSelectedDirectory]</li>
@@ -29,15 +45,12 @@ import java.io.OutputStream
  *     <li>Directory creation inside SAF-accessible locations</li>
  *     <li>Opening output streams for writing files</li>
  * </ul>
- * </p>
  *
- * <p>
  * Permissions:
  * <ul>
  *     <li>The app must have access to the chosen SAF directory</li>
  *     <li>Files that cannot be opened due to revoked permissions will be skipped</li>
  * </ul>
- * </p>
  *
  * Example usage:
  * ```kotlin
@@ -111,34 +124,33 @@ class AndroidSafFileSystem(context: Context) : FileSystemUtil	{
 
 			if(doc != null)	{
 				if(doc.exists() && doc.isFile)	{
-					try	{
-						val inputStream = contentResolver.openInputStream(doc.getUri())
+					val inputStream = contentResolver.openInputStream(doc.getUri())
 
+					if(inputStream != null)	{
 						results.add(
 							FileSource(
-								stream = inputStream,
-								relativePath = doc.getName()
+								stream = inputStream!!,
+								relativePath = doc.getName()!!
 							)
 						)
-					}catch(e: Exception) {}
+					}
 				}else if(doc.exists() && doc.isDirectory)	{
 					findFiles(doc.getUri().toString(),extensions).forEach	{
 						val fileUri = Uri.parse(it)
 						val filePath = fileUri.getPath()
 						val rootPath = doc.getUri().getPath()
 
-						try	{
-							val relativePath = filePath!!.replace("$rootPath/","")
+						val relativePath = filePath!!.replace("$rootPath/","")
 
-							val inputStream = contentResolver.openInputStream(fileUri)
-
+						val inputStream = contentResolver.openInputStream(fileUri)
+						if(inputStream != null)	{
 							results.add(
 								FileSource(
-									stream = inputStream,
+									stream = inputStream!!,
 									relativePath = relativePath
 								)
 							)
-						}catch(e: Exception)	{}
+						}
 					}
 				}
 			}

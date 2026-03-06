@@ -5,7 +5,7 @@
   
   <modelVersion>4.0.0</modelVersion>
   <groupId>io.github.sifisofakude</groupId>
-  <artifactId>filesystem-util</artifactId>
+  <artifactId>filesystem</artifactId>
   <version>0.1.0</version>
   <packaging>jar</packaging>
   <dependencies></dependencies>
