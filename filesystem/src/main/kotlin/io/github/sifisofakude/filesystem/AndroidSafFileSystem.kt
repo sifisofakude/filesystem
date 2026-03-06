@@ -1,4 +1,4 @@
-package com.slambyte.util.filesystem
+package io.github.sifisofakude.filesystem
 
 import android.net.Uri
 import android.content.Context
@@ -6,25 +6,91 @@ import android.provider.DocumentsContract
 
 import androidx.documentfile.provider.DocumentFile
 
-// import java.util.Set
 import java.util.Stack
 
 import java.io.File
 import java.io.OutputStream
 
+/**
+ * Android Storage Access Framework (SAF) implementation of [FileSystemUtil].
+ *
+ * <p>
+ * This class provides access to files and directories using Android's
+ * SAF APIs. It requires that the user has granted access to the desired
+ * directories via SAF.
+ * </p>
+ *
+ * <p>
+ * Features:
+ * <ul>
+ *     <li>Maintain a selected root directory via [changeSelectedDirectory]</li>
+ *     <li>Resolve files into readable [FileSource] streams</li>
+ *     <li>Recursive file discovery with extension filtering</li>
+ *     <li>Directory creation inside SAF-accessible locations</li>
+ *     <li>Opening output streams for writing files</li>
+ * </ul>
+ * </p>
+ *
+ * <p>
+ * Permissions:
+ * <ul>
+ *     <li>The app must have access to the chosen SAF directory</li>
+ *     <li>Files that cannot be opened due to revoked permissions will be skipped</li>
+ * </ul>
+ * </p>
+ *
+ * Example usage:
+ * ```kotlin
+ * val safFs = AndroidSafFileSystem(context)
+ * safFs.changeSelectedDirectory(userSelectedUri)
+ * val files = safFs.resolveFiles(listOf(userSelectedUri), setOf("txt"))
+ * ```
+ *
+ * @param context Android context used for content resolution
+ * @since 0.1.0
+ */
 class AndroidSafFileSystem(context: Context) : FileSystemUtil	{
 	private val context = context
 	private var selectedParentUri: Uri? = null
 	private val contentResolver = context.contentResolver
 
+	/**
+   * Changes the currently selected parent directory.
+   *
+   * All directory operations (creation, relative resolution) will be
+   * based on this selected directory.
+   *
+   * @param newParentUri the URI of the new parent directory
+   */
 	fun changeSelectedDirectory(newParentUri: Uri)	{
 		selectedParentUri = newParentUri
 	}
 
+	/**
+   * Returns the currently selected directory URI as a string.
+   *
+   * @return the URI string of the selected directory, or null if none selected
+   */
 	override fun getCurrentDirectory(): String?	{
 		return selectedParentUri?.toString()
 	}
 
+	/**
+   * Resolves a collection of inputs into readable [FileSource] objects.
+   *
+   * Supported input types include:
+   * - [DocumentFile]
+   * - [Uri]
+   * - String representations of URIs
+   *
+   * If a directory is provided, all files matching the given extensions
+   * are recursively discovered. Files that cannot be opened due to revoked
+   * permissions or I/O errors are skipped.
+   *
+   * @param inputFiles files, URIs, or paths to resolve
+   * @param extensions allowed file extensions (empty set means all)
+   * @return a list of readable [FileSource] objects
+   */
 	override fun resolveFiles(inputFiles: List<Any>,extensions: Set<String>): List<FileSource>	{
 		val results = mutableListOf<FileSource>()
 		
@@ -45,30 +111,34 @@ class AndroidSafFileSystem(context: Context) : FileSystemUtil	{
 
 			if(doc != null)	{
 				if(doc.exists() && doc.isFile)	{
-					val inputStream = contentResolver.openInputStream(doc.getUri())
+					try	{
+						val inputStream = contentResolver.openInputStream(doc.getUri())
 
-					results.add(
-						FileSource(
-							stream = inputStream,
-							relativePath = doc.getName()
+						results.add(
+							FileSource(
+								stream = inputStream,
+								relativePath = doc.getName()
+							)
 						)
-					)
+					}catch(e: Exception) {}
 				}else if(doc.exists() && doc.isDirectory)	{
 					findFiles(doc.getUri().toString(),extensions).forEach	{
 						val fileUri = Uri.parse(it)
 						val filePath = fileUri.getPath()
 						val rootPath = doc.getUri().getPath()
 
-						val relativePath = filePath?.replace("$rootPath/","")
+						try	{
+							val relativePath = filePath!!.replace("$rootPath/","")
 
-						val inputStream = contentResolver.openInputStream(fileUri)
+							val inputStream = contentResolver.openInputStream(fileUri)
 
-						results.add(
-							FileSource(
-								stream = inputStream,
-								relativePath = relativePath
+							results.add(
+								FileSource(
+									stream = inputStream,
+									relativePath = relativePath
+								)
 							)
-						)
+						}catch(e: Exception)	{}
 					}
 				}
 			}
@@ -76,6 +146,15 @@ class AndroidSafFileSystem(context: Context) : FileSystemUtil	{
 		return results
 	}
 
+	/**
+   * Recursively finds files inside a SAF directory.
+   *
+   * Only files matching the specified extensions are returned.
+   *
+   * @param directory URI string of the directory to search
+   * @param extensions allowed file extensions (empty set means all)
+   * @return list of URI strings for discovered files
+   */
 	override fun findFiles(directory: String, extensions: Set<String>): List<String>	{
 		val results = mutableListOf<String>()
 
@@ -122,6 +201,12 @@ class AndroidSafFileSystem(context: Context) : FileSystemUtil	{
 		return results
 	}
 
+	/**
+   * Creates a directory in the currently selected SAF parent.
+   *
+   * @param path relative path segments separated by '/'
+   * @return URI string of the created directory, or null if creation failed
+   */
 	override fun createDirectory(path: String): String?	{
 		var currentParentUri = selectedParentUri ?: return null
 		var currentParent: DocumentFile? = DocumentFile.fromTreeUri(context,currentParentUri)
@@ -149,6 +234,12 @@ class AndroidSafFileSystem(context: Context) : FileSystemUtil	{
 		return currentParentUri.toString()
 	}
 
+	/**
+   * Opens an [OutputStream] for writing to a file at the given URI.
+   *
+   * @param path URI string of the target file
+   * @return output stream, or null if the file cannot be opened
+   */
 	override fun openOutputStream(path: String): OutputStream?	{
 		val uri = Uri.parse(path)
 
