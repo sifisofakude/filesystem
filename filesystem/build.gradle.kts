@@ -37,8 +37,10 @@ dependencies {
     // This dependency is used internally, and not exposed to consumers on their own compile classpath.
     implementation(libs.guava)
     
-    compileOnly(files("libs/android.jar","libs/df.jar"))
-//    compileOnly("androidx.documentfile:documentfile:1.1.0")
+    compileOnly(files(
+        "libs/android.jar",
+        "libs/documentfile-1.1.0.jar"
+    ))
 }
 
 val groupId = "io.github.sifisofakude"
@@ -46,68 +48,51 @@ val artifactId = "filesystem"
 val version = "0.1.0"
 
 
-        mavenPublishing {
-            configureBasedOnAppliedPlugins(
-                javadocJar = JavadocJar.Javadoc(),
-                sourcesJar = SourcesJar.Sources()
-            )
-            publishToMavenCentral()
+mavenPublishing {
+    configureBasedOnAppliedPlugins(
+        javadocJar = JavadocJar.Javadoc(),
+        sourcesJar = SourcesJar.Sources()
+    )
+    publishToMavenCentral()
 
-            signAllPublications()
+    signAllPublications()
 
-            coordinates(groupId.toString(),artifactId,version)
+    coordinates(groupId.toString(),artifactId,version)
 
-            pom    {
-                name.set("FileSystem Utility")
-                description.set("Minimal file/folder access for reading and writing on desktop/Android platform")
-                url.set("https://github.com")
+    pom    {
+        name.set("FileSystem Utility")
+        description.set("Minimal file/folder access for reading and writing on desktop/Android platform")
+        url.set("https://github.com")
 
-                licenses    {
-                    license     {
-                        name = "The MIT License"
-                        url = "https://opensource.org"
-                        distribution.set("repo")
-                    }
-                }
-
-                developers  {
-                    developer   {
-                        id = "sifisofakude"
-                        name = "Sifiso Fakude"
-                        email = "sifisofakude404@gmail.com"
-                    }
-                }
-
-                scm {
-                    connection = "scm:git:git://://github.com"
-                    developerConnection = "scm:git:ssh://github.com:sifisofakude/filesystem.git"
-                    url = "https://github.com"
-                }
+        licenses    {
+            license     {
+                name = "The MIT License"
+                url = "https://opensource.org"
+                distribution.set("repo")
             }
         }
 
-    // repositories  {
-    //     maven   {
-    //       name = "MavenCentral"
-    //       url = uri("https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/")
-    //       credentials {
-    //         username = project.findProperty("centralPortalUsername")?.toString()
-    //         password = project.findProperty("centralPortalPassword")?.toString()
-    //       }
-    //     }
-    // }
+        developers  {
+            developer   {
+                id = "sifisofakude"
+                name = "Sifiso Fakude"
+                email = "sifisofakude404@gmail.com"
+            }
+        }
 
-// signing {
-//     sign(publishing.publications["mavenJava"])
-// }
+        scm {
+            connection = "scm:git:git://://github.com"
+            developerConnection = "scm:git:ssh://github.com:sifisofakude/filesystem.git"
+            url = "https://github.com"
+        }
+    }
+}
 
 // Apply a specific Java toolchain to ease working on different environments.
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(21)
     }
-    // withSourcesJar()
-    // withJavadocJar()
 }
 
 tasks.named<Test>("test") {
