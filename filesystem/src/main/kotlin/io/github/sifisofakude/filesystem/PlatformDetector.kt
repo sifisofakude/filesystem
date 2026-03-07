@@ -61,7 +61,7 @@ class PlatformDetector	{
    * @return true if the platform is desktop, false otherwise
    */
 	fun isDesktop(): Boolean	{
-		return when(platform.lowercase())	{
+		return when(platform?.lowercase())	{
 			"windows","mac","linux" -> true
 			else -> false
 		}
