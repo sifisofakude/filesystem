@@ -58,10 +58,9 @@ class PlatformDetector	{
    *
    * Desktop OSes include Windows, Mac, and Linux (excluding Termux/Android).
    *
-   * @param platform platform string to check
    * @return true if the platform is desktop, false otherwise
    */
-	fun isDesktop(platform: String): Boolean	{
+	fun isDesktop(): Boolean	{
 		return when(platform.lowercase())	{
 			"windows","mac","linux" -> true
 			else -> false

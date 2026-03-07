@@ -151,7 +151,7 @@ if (detector.isAndroid()) {
     println("Running on Android")
 }
 
-if (detector.isDesktop("Linux")) {
+if (detector.isDesktop()) {
     println("Desktop environment")
 }
 ```
