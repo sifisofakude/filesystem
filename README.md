@@ -58,20 +58,8 @@ Key principles:
 ## Installation
 **Maven Central**
 ```gradle
-implementation("io.github.sifisofakude:filesystem:0.1.0")
+implementation("io.github.sifisofakude:filesystem-common:0.1.1")
 ```
-
----
-
-## Android SAF dependency
-
-If you use **AndroidSafFileSystem**, you must also include:
-
-```gradle
-implementation("androidx.documentfile:documentfile:1.0.1")
-```
-
-This dependency is required for Android's **Storage Access Framework**.
 
 ---
 
