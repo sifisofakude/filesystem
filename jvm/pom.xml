@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://apache.org"
+         xmlns:xsi="http://w3.org"
+         xsi:schemaLocation="http://apache.org http://apache.org">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- INHERIT DIRECTLY FROM THE APPS PARENT -->
+    <parent>
+        <groupId>io.github.sifisofakude</groupId>
+        <artifactId>filesystem</artifactId>
+        <version>0.3.0</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>filesystem-jvm</artifactId>
+    <packaging>jar</packaging>
+
+    <dependencies>
+        <!-- Module dependencies go here -->
+        <dependency>
+        	<groupId>${project.groupId}</groupId>
+        	<artifactId>filesystem-common-jvm</artifactId>
+        	<version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.jetbrains.kotlin</groupId>
+            <artifactId>kotlin-stdlib</artifactId>
+            <version>2.3.20-LOCAL</version>
+        </dependency>
+        
+    </dependencies>
+</project>
