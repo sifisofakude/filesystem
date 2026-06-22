@@ -1,0 +1,26 @@
+$dokka.format:html-v1
+$dokka.linkExtension:html
+$dokka.location:io.github.sifisofakude.filesystem////PointingToDeclaration/android/io.github.sifisofakude.filesystem/index.html
+$dokka.location:io.github.sifisofakude.filesystem/AndroidSafFileSystem///PointingToDeclaration/android/io.github.sifisofakude.filesystem/-android-saf-file-system/index.html
+$dokka.location:io.github.sifisofakude.filesystem/AndroidSafFileSystem/AndroidSafFileSystem/#[Error type: Unresolved type for Context]/PointingToDeclaration/android/io.github.sifisofakude.filesystem/-android-saf-file-system/-android-saf-file-system.html
+$dokka.location:io.github.sifisofakude.filesystem/AndroidSafFileSystem/changeSelectedDirectory/#[Error type: Unresolved type for Uri]/PointingToDeclaration/android/io.github.sifisofakude.filesystem/-android-saf-file-system/change-selected-directory.html
+$dokka.location:io.github.sifisofakude.filesystem/AndroidSafFileSystem/copy/#kotlin.collections.List[kotlin.String]#kotlin.String#kotlin.Boolean/PointingToDeclaration/android/io.github.sifisofakude.filesystem/-android-saf-file-system/copy.html
+$dokka.location:io.github.sifisofakude.filesystem/AndroidSafFileSystem/createDirectory/#kotlin.String/PointingToDeclaration/android/io.github.sifisofakude.filesystem/-android-saf-file-system/create-directory.html
+$dokka.location:io.github.sifisofakude.filesystem/AndroidSafFileSystem/createFile/#kotlin.String/PointingToDeclaration/android/io.github.sifisofakude.filesystem/-android-saf-file-system/create-file.html
+$dokka.location:io.github.sifisofakude.filesystem/AndroidSafFileSystem/delete/#kotlin.String/PointingToDeclaration/android/io.github.sifisofakude.filesystem/-android-saf-file-system/delete.html
+$dokka.location:io.github.sifisofakude.filesystem/AndroidSafFileSystem/exists/#kotlin.String/PointingToDeclaration/android/io.github.sifisofakude.filesystem/-android-saf-file-system/exists.html
+$dokka.location:io.github.sifisofakude.filesystem/AndroidSafFileSystem/findFiles/#kotlin.String#kotlin.collections.Set[kotlin.String]/PointingToDeclaration/android/io.github.sifisofakude.filesystem/-android-saf-file-system/find-files.html
+$dokka.location:io.github.sifisofakude.filesystem/AndroidSafFileSystem/getCurrentDirectory/#/PointingToDeclaration/android/io.github.sifisofakude.filesystem/-android-saf-file-system/get-current-directory.html
+$dokka.location:io.github.sifisofakude.filesystem/AndroidSafFileSystem/isDirectory/#kotlin.String/PointingToDeclaration/android/io.github.sifisofakude.filesystem/-android-saf-file-system/is-directory.html
+$dokka.location:io.github.sifisofakude.filesystem/AndroidSafFileSystem/isFile/#kotlin.String/PointingToDeclaration/android/io.github.sifisofakude.filesystem/-android-saf-file-system/is-file.html
+$dokka.location:io.github.sifisofakude.filesystem/AndroidSafFileSystem/lastModified/#kotlin.String/PointingToDeclaration/android/io.github.sifisofakude.filesystem/-android-saf-file-system/last-modified.html
+$dokka.location:io.github.sifisofakude.filesystem/AndroidSafFileSystem/listFiles/#kotlin.String/PointingToDeclaration/android/io.github.sifisofakude.filesystem/-android-saf-file-system/list-files.html
+$dokka.location:io.github.sifisofakude.filesystem/AndroidSafFileSystem/move/#kotlin.String#kotlin.String/PointingToDeclaration/android/io.github.sifisofakude.filesystem/-android-saf-file-system/move.html
+$dokka.location:io.github.sifisofakude.filesystem/AndroidSafFileSystem/openInputStream/#kotlin.String/PointingToDeclaration/android/io.github.sifisofakude.filesystem/-android-saf-file-system/open-input-stream.html
+$dokka.location:io.github.sifisofakude.filesystem/AndroidSafFileSystem/openOutputStream/#kotlin.String/PointingToDeclaration/android/io.github.sifisofakude.filesystem/-android-saf-file-system/open-output-stream.html
+$dokka.location:io.github.sifisofakude.filesystem/AndroidSafFileSystem/readText/#kotlin.String/PointingToDeclaration/android/io.github.sifisofakude.filesystem/-android-saf-file-system/read-text.html
+$dokka.location:io.github.sifisofakude.filesystem/AndroidSafFileSystem/rename/#kotlin.String#kotlin.String/PointingToDeclaration/android/io.github.sifisofakude.filesystem/-android-saf-file-system/rename.html
+$dokka.location:io.github.sifisofakude.filesystem/AndroidSafFileSystem/resolveFiles/#kotlin.collections.List[kotlin.Any]#kotlin.collections.Set[kotlin.String]/PointingToDeclaration/android/io.github.sifisofakude.filesystem/-android-saf-file-system/resolve-files.html
+$dokka.location:io.github.sifisofakude.filesystem/AndroidSafFileSystem/resolvePath/#kotlin.String/PointingToDeclaration/android/io.github.sifisofakude.filesystem/-android-saf-file-system/resolve-path.html
+$dokka.location:io.github.sifisofakude.filesystem/AndroidSafFileSystem/size/#kotlin.String/PointingToDeclaration/android/io.github.sifisofakude.filesystem/-android-saf-file-system/size.html
+io.github.sifisofakude.filesystem

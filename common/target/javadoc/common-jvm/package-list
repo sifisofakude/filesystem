@@ -1,0 +1,37 @@
+$dokka.format:html-v1
+$dokka.linkExtension:html
+$dokka.location:io.github.sifisofakude.filesystem////PointingToDeclaration/common-jvm/io.github.sifisofakude.filesystem/index.html
+$dokka.location:io.github.sifisofakude.filesystem/FileSource///PointingToDeclaration/common-jvm/io.github.sifisofakude.filesystem/-file-source/index.html
+$dokka.location:io.github.sifisofakude.filesystem/FileSource/FileSource/#kotlin.String#kotlin.String/PointingToDeclaration/common-jvm/io.github.sifisofakude.filesystem/-file-source/-file-source.html
+$dokka.location:io.github.sifisofakude.filesystem/FileSource/absolutePath/#/PointingToDeclaration/common-jvm/io.github.sifisofakude.filesystem/-file-source/absolute-path.html
+$dokka.location:io.github.sifisofakude.filesystem/FileSource/relativePath/#/PointingToDeclaration/common-jvm/io.github.sifisofakude.filesystem/-file-source/relative-path.html
+$dokka.location:io.github.sifisofakude.filesystem/FileSystemUtil///PointingToDeclaration/common-jvm/io.github.sifisofakude.filesystem/-file-system-util/index.html
+$dokka.location:io.github.sifisofakude.filesystem/FileSystemUtil/copy/#kotlin.collections.List[kotlin.String]#kotlin.String#kotlin.Boolean/PointingToDeclaration/common-jvm/io.github.sifisofakude.filesystem/-file-system-util/copy.html
+$dokka.location:io.github.sifisofakude.filesystem/FileSystemUtil/createDirectory/#kotlin.String/PointingToDeclaration/common-jvm/io.github.sifisofakude.filesystem/-file-system-util/create-directory.html
+$dokka.location:io.github.sifisofakude.filesystem/FileSystemUtil/createFile/#kotlin.String/PointingToDeclaration/common-jvm/io.github.sifisofakude.filesystem/-file-system-util/create-file.html
+$dokka.location:io.github.sifisofakude.filesystem/FileSystemUtil/delete/#kotlin.String/PointingToDeclaration/common-jvm/io.github.sifisofakude.filesystem/-file-system-util/delete.html
+$dokka.location:io.github.sifisofakude.filesystem/FileSystemUtil/exists/#kotlin.String/PointingToDeclaration/common-jvm/io.github.sifisofakude.filesystem/-file-system-util/exists.html
+$dokka.location:io.github.sifisofakude.filesystem/FileSystemUtil/findFiles/#kotlin.String#kotlin.collections.Set[kotlin.String]/PointingToDeclaration/common-jvm/io.github.sifisofakude.filesystem/-file-system-util/find-files.html
+$dokka.location:io.github.sifisofakude.filesystem/FileSystemUtil/getCurrentDirectory/#/PointingToDeclaration/common-jvm/io.github.sifisofakude.filesystem/-file-system-util/get-current-directory.html
+$dokka.location:io.github.sifisofakude.filesystem/FileSystemUtil/isDirectory/#kotlin.String/PointingToDeclaration/common-jvm/io.github.sifisofakude.filesystem/-file-system-util/is-directory.html
+$dokka.location:io.github.sifisofakude.filesystem/FileSystemUtil/isFile/#kotlin.String/PointingToDeclaration/common-jvm/io.github.sifisofakude.filesystem/-file-system-util/is-file.html
+$dokka.location:io.github.sifisofakude.filesystem/FileSystemUtil/lastModified/#kotlin.String/PointingToDeclaration/common-jvm/io.github.sifisofakude.filesystem/-file-system-util/last-modified.html
+$dokka.location:io.github.sifisofakude.filesystem/FileSystemUtil/listFiles/#kotlin.String/PointingToDeclaration/common-jvm/io.github.sifisofakude.filesystem/-file-system-util/list-files.html
+$dokka.location:io.github.sifisofakude.filesystem/FileSystemUtil/move/#kotlin.String#kotlin.String/PointingToDeclaration/common-jvm/io.github.sifisofakude.filesystem/-file-system-util/move.html
+$dokka.location:io.github.sifisofakude.filesystem/FileSystemUtil/openInputStream/#kotlin.String/PointingToDeclaration/common-jvm/io.github.sifisofakude.filesystem/-file-system-util/open-input-stream.html
+$dokka.location:io.github.sifisofakude.filesystem/FileSystemUtil/openOutputStream/#kotlin.String/PointingToDeclaration/common-jvm/io.github.sifisofakude.filesystem/-file-system-util/open-output-stream.html
+$dokka.location:io.github.sifisofakude.filesystem/FileSystemUtil/readText/#kotlin.String/PointingToDeclaration/common-jvm/io.github.sifisofakude.filesystem/-file-system-util/read-text.html
+$dokka.location:io.github.sifisofakude.filesystem/FileSystemUtil/rename/#kotlin.String#kotlin.String/PointingToDeclaration/common-jvm/io.github.sifisofakude.filesystem/-file-system-util/rename.html
+$dokka.location:io.github.sifisofakude.filesystem/FileSystemUtil/resolveFiles/#kotlin.collections.List[kotlin.Any]#kotlin.collections.Set[kotlin.String]/PointingToDeclaration/common-jvm/io.github.sifisofakude.filesystem/-file-system-util/resolve-files.html
+$dokka.location:io.github.sifisofakude.filesystem/FileSystemUtil/resolvePath/#kotlin.String/PointingToDeclaration/common-jvm/io.github.sifisofakude.filesystem/-file-system-util/resolve-path.html
+$dokka.location:io.github.sifisofakude.filesystem/FileSystemUtil/size/#kotlin.String/PointingToDeclaration/common-jvm/io.github.sifisofakude.filesystem/-file-system-util/size.html
+$dokka.location:io.github.sifisofakude.filesystem/PlatformDetector///PointingToDeclaration/common-jvm/io.github.sifisofakude.filesystem/-platform-detector/index.html
+$dokka.location:io.github.sifisofakude.filesystem/PlatformDetector/PlatformDetector/#/PointingToDeclaration/common-jvm/io.github.sifisofakude.filesystem/-platform-detector/-platform-detector.html
+$dokka.location:io.github.sifisofakude.filesystem/PlatformDetector/detectPlatform/#/PointingToDeclaration/common-jvm/io.github.sifisofakude.filesystem/-platform-detector/detect-platform.html
+$dokka.location:io.github.sifisofakude.filesystem/PlatformDetector/isAndroid/#/PointingToDeclaration/common-jvm/io.github.sifisofakude.filesystem/-platform-detector/is-android.html
+$dokka.location:io.github.sifisofakude.filesystem/PlatformDetector/isDesktop/#/PointingToDeclaration/common-jvm/io.github.sifisofakude.filesystem/-platform-detector/is-desktop.html
+$dokka.location:io.github.sifisofakude.filesystem/PlatformDetector/isLinux/#/PointingToDeclaration/common-jvm/io.github.sifisofakude.filesystem/-platform-detector/is-linux.html
+$dokka.location:io.github.sifisofakude.filesystem/PlatformDetector/isMac/#/PointingToDeclaration/common-jvm/io.github.sifisofakude.filesystem/-platform-detector/is-mac.html
+$dokka.location:io.github.sifisofakude.filesystem/PlatformDetector/isTermux/#/PointingToDeclaration/common-jvm/io.github.sifisofakude.filesystem/-platform-detector/is-termux.html
+$dokka.location:io.github.sifisofakude.filesystem/PlatformDetector/isWindows/#/PointingToDeclaration/common-jvm/io.github.sifisofakude.filesystem/-platform-detector/is-windows.html
+io.github.sifisofakude.filesystem

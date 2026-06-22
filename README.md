@@ -101,7 +101,7 @@ files.forEach {
 
 ---
 
-## Core API
+## Core API(Updated)
 
 The library revolves around the FileSystemUtil interface.
 
@@ -110,16 +110,44 @@ interface FileSystemUtil {
 
     fun getCurrentDirectory(): String?
 
+    fun resolvePath(path: String): String
+
     fun createDirectory(path: String): String?
+
+    fun createFile(path: String): String?
+
+    fun openInputStream(path: String): InputStream?
 
     fun openOutputStream(path: String): OutputStream?
 
+    fun readText(path: String): String?
+
+    fun listFiles(path: String): List<String>
+
     fun findFiles(directory: String, extensions: Set<String>): List<String>
 
-    fun resolveFiles(inputFiles: List<Any>, extensions: Set<String>): List<FileSource>
+    fun resolveFiles(
+        inputFiles: List<Any>,
+        extensions: Set<String>
+    ): List<FileSource>
+
+    fun exists(path: String): Boolean
+
+    fun delete(path: String): Boolean
+
+    fun rename(src: String, target: String): String?
+
+    fun move(src: String, dst: String): String?
+
+    fun isFile(path: String): Boolean
+
+    fun isDirectory(path: String): Boolean
+
+    fun lastModified(path: String): Long
+
+    fun size(path: String): Long
 }
 ```
-
 Implementations:
 
 - JvmFileSystem → Desktop environments

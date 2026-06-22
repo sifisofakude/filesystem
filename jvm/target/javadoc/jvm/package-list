@@ -1,0 +1,26 @@
+$dokka.format:html-v1
+$dokka.linkExtension:html
+$dokka.location:io.github.sifisofakude.filesystem////PointingToDeclaration/jvm/io.github.sifisofakude.filesystem/index.html
+$dokka.location:io.github.sifisofakude.filesystem//main/#/PointingToDeclaration/jvm/io.github.sifisofakude.filesystem/main.html
+$dokka.location:io.github.sifisofakude.filesystem/JvmFileSystem///PointingToDeclaration/jvm/io.github.sifisofakude.filesystem/-jvm-file-system/index.html
+$dokka.location:io.github.sifisofakude.filesystem/JvmFileSystem/JvmFileSystem/#/PointingToDeclaration/jvm/io.github.sifisofakude.filesystem/-jvm-file-system/-jvm-file-system.html
+$dokka.location:io.github.sifisofakude.filesystem/JvmFileSystem/copy/#kotlin.collections.List[kotlin.String]#kotlin.String#kotlin.Boolean/PointingToDeclaration/jvm/io.github.sifisofakude.filesystem/-jvm-file-system/copy.html
+$dokka.location:io.github.sifisofakude.filesystem/JvmFileSystem/createDirectory/#kotlin.String/PointingToDeclaration/jvm/io.github.sifisofakude.filesystem/-jvm-file-system/create-directory.html
+$dokka.location:io.github.sifisofakude.filesystem/JvmFileSystem/createFile/#kotlin.String/PointingToDeclaration/jvm/io.github.sifisofakude.filesystem/-jvm-file-system/create-file.html
+$dokka.location:io.github.sifisofakude.filesystem/JvmFileSystem/delete/#kotlin.String/PointingToDeclaration/jvm/io.github.sifisofakude.filesystem/-jvm-file-system/delete.html
+$dokka.location:io.github.sifisofakude.filesystem/JvmFileSystem/exists/#kotlin.String/PointingToDeclaration/jvm/io.github.sifisofakude.filesystem/-jvm-file-system/exists.html
+$dokka.location:io.github.sifisofakude.filesystem/JvmFileSystem/findFiles/#kotlin.String#kotlin.collections.Set[kotlin.String]/PointingToDeclaration/jvm/io.github.sifisofakude.filesystem/-jvm-file-system/find-files.html
+$dokka.location:io.github.sifisofakude.filesystem/JvmFileSystem/getCurrentDirectory/#/PointingToDeclaration/jvm/io.github.sifisofakude.filesystem/-jvm-file-system/get-current-directory.html
+$dokka.location:io.github.sifisofakude.filesystem/JvmFileSystem/isDirectory/#kotlin.String/PointingToDeclaration/jvm/io.github.sifisofakude.filesystem/-jvm-file-system/is-directory.html
+$dokka.location:io.github.sifisofakude.filesystem/JvmFileSystem/isFile/#kotlin.String/PointingToDeclaration/jvm/io.github.sifisofakude.filesystem/-jvm-file-system/is-file.html
+$dokka.location:io.github.sifisofakude.filesystem/JvmFileSystem/lastModified/#kotlin.String/PointingToDeclaration/jvm/io.github.sifisofakude.filesystem/-jvm-file-system/last-modified.html
+$dokka.location:io.github.sifisofakude.filesystem/JvmFileSystem/listFiles/#kotlin.String/PointingToDeclaration/jvm/io.github.sifisofakude.filesystem/-jvm-file-system/list-files.html
+$dokka.location:io.github.sifisofakude.filesystem/JvmFileSystem/move/#kotlin.String#kotlin.String/PointingToDeclaration/jvm/io.github.sifisofakude.filesystem/-jvm-file-system/move.html
+$dokka.location:io.github.sifisofakude.filesystem/JvmFileSystem/openInputStream/#kotlin.String/PointingToDeclaration/jvm/io.github.sifisofakude.filesystem/-jvm-file-system/open-input-stream.html
+$dokka.location:io.github.sifisofakude.filesystem/JvmFileSystem/openOutputStream/#kotlin.String/PointingToDeclaration/jvm/io.github.sifisofakude.filesystem/-jvm-file-system/open-output-stream.html
+$dokka.location:io.github.sifisofakude.filesystem/JvmFileSystem/readText/#kotlin.String/PointingToDeclaration/jvm/io.github.sifisofakude.filesystem/-jvm-file-system/read-text.html
+$dokka.location:io.github.sifisofakude.filesystem/JvmFileSystem/rename/#kotlin.String#kotlin.String/PointingToDeclaration/jvm/io.github.sifisofakude.filesystem/-jvm-file-system/rename.html
+$dokka.location:io.github.sifisofakude.filesystem/JvmFileSystem/resolveFiles/#kotlin.collections.List[kotlin.Any]#kotlin.collections.Set[kotlin.String]/PointingToDeclaration/jvm/io.github.sifisofakude.filesystem/-jvm-file-system/resolve-files.html
+$dokka.location:io.github.sifisofakude.filesystem/JvmFileSystem/resolvePath/#kotlin.String/PointingToDeclaration/jvm/io.github.sifisofakude.filesystem/-jvm-file-system/resolve-path.html
+$dokka.location:io.github.sifisofakude.filesystem/JvmFileSystem/size/#kotlin.String/PointingToDeclaration/jvm/io.github.sifisofakude.filesystem/-jvm-file-system/size.html
+io.github.sifisofakude.filesystem

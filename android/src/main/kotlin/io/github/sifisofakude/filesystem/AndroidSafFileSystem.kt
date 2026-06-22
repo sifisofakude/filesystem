@@ -8,395 +8,660 @@ import androidx.documentfile.provider.DocumentFile
 
 import java.util.Stack
 
+import java.io.File
 import java.io.OutputStream
 import java.io.InputStream
 import java.io.InputStreamReader
 import java.io.BufferedReader
+import java.nio.file.Paths
+import kotlin.io.normalize
 
 /**
  * Android Storage Access Framework (SAF) implementation of [FileSystemUtil].
  *
- * <p>
- * **Important:** This class is **Android-only**. It depends on:
- * <ul>
- *     <li>The Android SDK (`android.content.Context`, `android.net.Uri`)</li>
- *     <li>`androidx.documentfile:documentfile` library</li>
- * </ul>
- * It will **not work on JVM/desktop environments**.
- * </p>
+ * This implementation extends [JvmFileSystem] and adds support for
+ * Android Storage Access Framework (SAF) URIs (`content://`).
  *
- * <p>
- * To use this class, your app must include the DocumentFile library dependency:
- * ```gradle
- * dependencies {
- *     implementation("androidx.documentfile:documentfile:1.0.1")
- * }
- * ```
- * </p>
+ * Operations automatically route to either:
  *
- * <p>
- * Provides access to files and directories using Android SAF. Requires the user
- * to grant access to the desired directories via SAF.
- * </p>
+ * - JVM filesystem APIs for regular file paths
+ * - SAF APIs for `content://` document URIs
  *
- * Features:
- * <ul>
- *     <li>Maintain a selected root directory via [changeSelectedDirectory]</li>
- *     <li>Resolve files into readable [FileSource] streams</li>
- *     <li>Recursive file discovery with extension filtering</li>
- *     <li>Directory creation inside SAF-accessible locations</li>
- *     <li>Opening output streams for writing files</li>
- * </ul>
+ * This allows the same API to work with both storage models while
+ * preserving compatibility with the default JVM implementation.
  *
- * Permissions:
- * <ul>
- *     <li>The app must have access to the chosen SAF directory</li>
- *     <li>Files that cannot be opened due to revoked permissions will be skipped</li>
- * </ul>
+ * ## Cross-filesystem operations
  *
- * Example usage:
+ * Since high-level operations such as [copy], [move], [readText],
+ * and directory traversal are inherited from [FileSystemUtil],
+ * files can be transferred between SAF and regular filesystem paths
+ * without additional code.
+ *
+ * Examples:
+ *
  * ```kotlin
- * val safFs = AndroidSafFileSystem(context)
- * safFs.changeSelectedDirectory(userSelectedUri)
- * val files = safFs.resolveFiles(listOf(userSelectedUri), setOf("txt"))
+ * fs.copy(
+ *     "/storage/emulated/0/source.txt",
+ *     "content://..."
+ * )
+ *
+ * fs.copy(
+ *     "content://...",
+ *     "/storage/emulated/0/output"
+ * )
  * ```
  *
- * @param context Android context used for content resolution
- * @since 0.1.0
+ * Supported combinations:
+ *
+ * - JVM → JVM
+ * - SAF → SAF
+ * - JVM → SAF
+ * - SAF → JVM
+ *
+ * ## Implementation details
+ *
+ * This implementation uses:
+ *
+ * - [DocumentFile] for directory traversal and metadata access
+ * - [DocumentsContract] for document operations such as rename
+ *
+ * ## Materialization support
+ *
+ * SAF documents can be materialized into the application's internal
+ * storage using [materialize]. This is useful when a library or tool
+ * requires a real filesystem path instead of a SAF URI.
+ *
+ * Materialized content can later be removed using
+ * [clearMaterialized].
+ *
+ * ## Requirements
+ *
+ * - User-granted SAF permissions
+ * - Valid tree or document URIs
+ *
+ * @param context Android context used to access SAF providers
  */
-class AndroidSafFileSystem(context: Context) : FileSystemUtil	{
+class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	private val context = context
 	private var selectedParentUri: Uri? = null
 	private val contentResolver = context.contentResolver
 
+	private var materializedDir: File? = null
+
 	/**
-   * Changes the currently selected parent directory.
-   *
-   * All directory operations (creation, relative resolution) will be
-   * based on this selected directory.
-   *
-   * @param newParentUri the URI of the new parent directory
-   */
+	 * Sets the active SAF root directory used for all relative file operations.
+	 *
+	 * All directory creation and relative resolution operations will be
+	 * anchored to this URI.
+	 *
+	 * @param newParentUri SAF tree URI representing a user-granted directory
+	 */
 	fun changeSelectedDirectory(newParentUri: Uri)	{
 		selectedParentUri = newParentUri
 	}
 
 	/**
-   * Returns the currently selected directory URI as a string.
-   *
-   * @return the URI string of the selected directory, or null if none selected
-   */
+	 * Returns the currently selected SAF root directory.
+	 *
+	 * @return URI string of the selected directory, or null if none is set
+	 */
 	override fun getCurrentDirectory(): String?	{
 		return selectedParentUri?.toString()
 	}
 
 	/**
-   * Resolves a collection of inputs into readable [FileSource] objects.
-   *
-   * Supported input types include:
-   * - [DocumentFile]
-   * - [Uri]
-   * - String representations of URIs
-   *
-   * If a directory is provided, all files matching the given extensions
-   * are recursively discovered. Files that cannot be opened due to revoked
-   * permissions or I/O errors are skipped.
-   *
-   * @param inputFiles files, URIs, or paths to resolve
-   * @param extensions allowed file extensions (empty set means all)
-   * @return a list of readable [FileSource] objects
-   */
-	override fun resolveFiles(inputFiles: List<Any>,extensions: Set<String>): List<FileSource>	{
-		val results = mutableListOf<FileSource>()
-		
-		inputFiles.forEach	{ file ->
-			var doc: DocumentFile? = null
+	 * Resolves a list of SAF inputs into structured [FileSource] entries.
+	 *
+	 * Supports:
+	 * - [DocumentFile]
+	 * - [Uri]
+	 * - String URIs
+	 *
+	 * If a directory is provided, all nested files are recursively discovered.
+	 * Files that do not match the provided extensions are excluded.
+	 *
+	 * @param inputFiles list of files, directories, or URIs
+	 * @param extensions allowed file extensions (empty = all files)
+	 * @return list of resolved file entries with relative and absolute URIs
+	 */
+	override fun resolveFiles(
+    inputFiles: List<Any>,
+    extensions: Set<String>
+	): List<FileSource> {
+	
+    val results = mutableListOf<FileSource>()
 
-			if(file is DocumentFile)	{
-				doc = file
-			}
+    for (input in inputFiles) {
 
-			if(file is Uri)	{
-				doc = DocumentFile.fromTreeUri(context,file)
-			}
+      val root = when (input) {
+        is DocumentFile -> input
+        is Uri -> DocumentFile.fromTreeUri(context, input)
+        is String ->	{
+        	if(input.startsWith("content://"))	{
+        		DocumentFile.fromTreeUri(context, Uri.parse(input))
+        	}else	{
+        		results += super.resolveFiles(listOf(input),extensions)
+        		continue
+        	}
+        }
+        else -> null
+      } ?: continue
 
-			if(file is String)	{
-				doc = DocumentFile.fromTreeUri(context,Uri.parse(file))
-			}
+      if (root.isFile) {
+        val name = root.name ?: continue
 
-			if(doc != null)	{
-				if(doc.exists() && doc.isFile)	{
-					val inputStream = contentResolver.openInputStream(doc.getUri())
+        if (extensions.isNotEmpty()) {
+          val ext = name.substringAfterLast('.', "")
+          if (ext !in extensions) continue
+        }
 
-					if(inputStream != null)	{
-						results.add(
-							FileSource(
-								stream = inputStream,
-								relativePath = doc.getName()!!
-							)
-						)
-					}
-				}else if(doc.exists() && doc.isDirectory)	{
-					findFiles(doc.getUri().toString(),extensions).forEach	{
-						val fileUri = Uri.parse(it)
-						val filePath = fileUri.getPath()
-						val rootPath = doc.getUri().getPath()
+        results.add(
+          FileSource(
+            relativePath = name,
+            absolutePath = root.uri.toString()
+          )
+        )
+        continue
+      }
 
-						val relativePath = filePath!!.replace("$rootPath/","")
+      if (root.isDirectory) {
+        walkSaf(root, "", extensions, results)
+      }
+    }
 
-						val inputStream = contentResolver.openInputStream(fileUri)
-						if(inputStream != null)	{
-							results.add(
-								FileSource(
-									stream = inputStream,
-									relativePath = relativePath
-								)
-							)
-						}
-					}
-				}
-			}
-		}
-		return results
+    return results
 	}
 
 	/**
-   * Recursively finds files inside a SAF directory.
-   *
-   * Only files matching the specified extensions are returned.
-   *
-   * @param directory URI string of the directory to search
-   * @param extensions allowed file extensions (empty set means all)
-   * @return list of URI strings for discovered files
-   */
-	override fun findFiles(directory: String, extensions: Set<String>): List<String>	{
-		val results = mutableListOf<String>()
+	 * Recursively traverses a SAF directory tree.
+	 *
+	 * Builds a flat list of [FileSource] objects using a depth-first traversal.
+	 *
+	 * @param dir starting directory
+	 * @param basePath relative path accumulator
+	 * @param extensions allowed file extensions filter
+	 * @param out output list accumulator
+	 */
+	private fun walkSaf(
+	    dir: DocumentFile,
+	    basePath: String,
+	    extensions: Set<String>,
+	    out: MutableList<FileSource>
+	) {
+    dir.listFiles().forEach { file ->
 
-		val dirStack = Stack<String>()
-		val treeUri = Uri.parse(directory)
+      val name = file.name ?: return@forEach
 
-		val rootId = DocumentsContract.getTreeDocumentId(treeUri)
-		dirStack.push(rootId)
+      val rel = if (basePath.isEmpty()) name else "$basePath/$name"
 
-		val projection = arrayOf(
-		  DocumentsContract.Document.COLUMN_DOCUMENT_ID,
-		  DocumentsContract.Document.COLUMN_MIME_TYPE,
-		  DocumentsContract.Document.COLUMN_DISPLAY_NAME
-		)
-
-		val contentResolver = context.contentResolver
-
-		while(dirStack.isNotEmpty())	{
-			val currentDirId = dirStack.pop()
-			val childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(treeUri,currentDirId)
-
-			contentResolver.query(childrenUri,projection,null,null,null)?.use	{ cursor ->
-				val idIndex = cursor.getColumnIndexOrThrow(DocumentsContract.Document.COLUMN_DOCUMENT_ID)
-				val mimeIndex = cursor.getColumnIndexOrThrow(DocumentsContract.Document.COLUMN_MIME_TYPE)
-				val nameIndex = cursor.getColumnIndexOrThrow(DocumentsContract.Document.COLUMN_DISPLAY_NAME)
-
-				while(cursor.moveToNext())	{
-					val docId = cursor.getString(idIndex)
-					val mime = cursor.getString(mimeIndex)
-					val name = cursor.getString(nameIndex)
-
-					if(mime == DocumentsContract.Document.MIME_TYPE_DIR)	{
-						dirStack.push(docId)
-					}else	{
-						val ext = name.substringAfterLast('.',"").lowercase()
-						if(extensions.isEmpty() || extensions.contains(ext))	{
-							val fileUri = DocumentsContract.buildDocumentUriUsingTree(treeUri,docId)
-							results.add(fileUri.toString())
-						}
-					}
-				}
-			}
-		}
-		return results
+      if (file.isDirectory) {
+          walkSaf(file, rel, extensions, out)
+      } else {
+        if (extensions.isEmpty() ||
+          name.substringAfterLast('.') in extensions
+        ) {
+          out.add(
+            FileSource(
+              relativePath = rel,
+              absolutePath = file.uri.toString()
+            )
+          )
+        }
+      }
+    }
 	}
 
 	/**
-   * Creates a directory in the currently selected SAF parent.
-   *
-   * @param path relative path segments separated by '/'
-   * @return URI string of the created directory, or null if creation failed
-   */
-	override fun createDirectory(path: String): String?	{
-		var currentParentUri = selectedParentUri ?: return null
-		var currentParent: DocumentFile? = DocumentFile.fromTreeUri(context,currentParentUri)
+	 * Recursively searches for files in a SAF directory using URI traversal.
+	 *
+	 * Only files matching the given extensions are returned.
+	 *
+	 * @param directory SAF tree URI string
+	 * @param extensions allowed file extensions (empty = all files)
+	 * @return list of file URIs as strings
+	 */
+	override fun findFiles(directory: String, extensions: Set<String>): List<String> {
+    if(directory.startsWith("content://"))	{
+	    val rootUri = Uri.parse(directory)
+	    val root = DocumentFile.fromTreeUri(context, rootUri) ?: return emptyList()
 
-		val segments = path.split('/')
-		segments.forEach	{ segment ->
-			currentParent = currentParent?.findFile(segment)
+   		val results = mutableListOf<String>()
 
-			if(currentParent == null)	{
-				val mimeType = DocumentsContract.Document.MIME_TYPE_DIR
+	    fun walk(dir: DocumentFile) {
+	      val children = dir.listFiles()
 
-				val newUri = DocumentsContract.createDocument(
-					context.contentResolver,
-					currentParentUri,
-					mimeType,segment
-				) ?: return null
+	      for (file in children) {
 
-				currentParentUri = newUri
-				currentParent = DocumentFile.fromTreeUri(context,newUri)
-			}else if(currentParent.isDirectory)	{
-				currentParentUri = currentParent.getUri()
-			}
-		}
-		
-		return currentParentUri.toString()
-	}
+	        if (file.isDirectory) {
+	          walk(file)
+	          continue
+	        }
 
-	override fun createFile(path: String): String?	{
-		var currentUri = selectedParentUri ?: return null
-		var currentDocumentFile = DocumentFile
-			.fromTreeUri(context,currentUri) 
-			?: return null
-		
-		var directory: String? = null
-		var fileName: String? = null
+	        if (!file.isFile) continue
 
-		val lastIndex = path.lastIndexOf('/')
-		if(lastIndex < 1) return null
+	        val name = file.name ?: continue
 
-		directory = path.substring(0,lastIndex)
-		directory = createDirectory(directory) ?: return null
-			
-		fileName = path.substring(lastIndex+1)
+	        val ext = name.substringAfterLast('.', "")
 
-		currentUri = Uri.parse(directory)
-			
-		currentDocumentFile = DocumentFile.fromTreeUri(context,currentUri) 
-			?: return null
-		
-		return currentDocumentFile.createFile("text/plain",fileName)
-			?.getUri().toString()
+	        if (extensions.isNotEmpty() && ext !in extensions) {
+	          continue
+	        }
 
-	}
+	        results.add(file.uri.toString())
+	      }
+	    }
 
-	override fun copy(
-		src: List<String>,
-		dst: String,
-		overwrite: Boolean
-	)	{
-		val targetUri = Uri.parse(dst)
-		for(path in src)	{
-			val sourceUri = Uri.parse(path)
-
-			val lastSlash = path.lastIndexOf('/')
-			if(lastSlash == -1) continue
-
-			val currentDocument = path.substring(lastSlash+1) 
-
-			if(!overwrite)	{
-				val tmpUri = Uri.parse("$dst/$currentDocument")
-				val tmpDocument = DocumentFile.fromTreeUri(context,tmpUri)
-				if(tmpDocument?.exists() ?: false) continue
-			}
-
-			DocumentsContract.copyDocument(
-				contentResolver,
-				sourceUri,
-				targetUri
-			)
+	    walk(root)
+	    
+    	return results
+		}else	{
+			return super.findFiles(directory,extensions)
 		}
 	}
 
 	/**
-   * Opens an [OutputStream] for writing to a file at the given URI.
-   *
-   * @param path URI string of the target file
-   * @return output stream, or null if the file cannot be opened
-   */
+	 * Creates a directory structure inside the selected SAF root.
+	 *
+	 * The provided path is treated as a relative path, and all missing
+	 * intermediate directories will be created.
+	 *
+	 * If a file exists with the same name as a required directory segment,
+	 * creation fails.
+	 *
+	 * @param path relative directory path (e.g. "a/b/c")
+	 * @return URI string of the final directory, or null if creation failed
+	 */
+	override fun createDirectory(path: String): String? {
+		if(path.startsWith("content://"))	{
+	    val baseUri = selectedParentUri ?: return null
+
+	    var parent = DocumentFile.fromTreeUri(context, baseUri) ?: return null
+
+	    val segments = path.split("/")
+	        .filter { it.isNotBlank() }
+
+	    for (segment in segments) {
+
+	      val existing = parent.findFile(segment)
+
+	      parent = when {
+	        existing != null && existing.isDirectory -> existing
+	        existing != null && existing.isFile -> return null
+	        else -> parent.createDirectory(segment) ?: return null
+	      }
+	    }
+	    return parent.uri.toString()
+    }else	{
+    	return super.createDirectory(path)
+    }
+	}
+
+	/**
+	 * Creates a file inside the selected SAF root directory.
+	 *
+	 * Missing parent directories are automatically created.
+	 * If a file already exists, its URI is returned instead of creating a new one.
+	 *
+	 * @param path relative file path (e.g. "a/b/file.txt")
+	 * @return URI string of the file, or null if creation failed
+	 */
+	override fun createFile(path: String): String? {
+		if(path.startsWith("content://"))	{
+	    val lastSlash = path.lastIndexOf('/')
+	    if (lastSlash <= 0) return null
+
+	    val dirPath = path.substring(0, lastSlash)
+	    val fileName = path.substring(lastSlash + 1)
+
+	    val baseUri = selectedParentUri ?: return null
+	    var parent = DocumentFile.fromTreeUri(context, baseUri) ?: return null
+
+	    val segments = dirPath.split("/").filter { it.isNotBlank() }
+
+	    for (segment in segments) {
+	      val next = parent.findFile(segment)
+
+	      parent = when {
+	        next != null && next.isDirectory -> next
+	        next == null -> parent.createDirectory(segment) ?: return null
+	        else -> return null
+	      }
+	    }
+
+	    parent.findFile(fileName)?.let {
+	      if (it.isFile) return it.uri.toString()
+	    }
+
+	    val created = parent.createFile("application/octet-stream", fileName)
+	      ?: return null
+
+	    return created.uri.toString()
+    }else	{
+    	return super.createFile(path)
+    }
+	}
+
+	/**
+	 * Opens an output stream for writing to a SAF file.
+	 *
+	 * @param path file URI string
+	 * @return output stream or null if the file cannot be opened
+	 */
 	override fun openOutputStream(path: String): OutputStream?	{
-		val uri = Uri.parse(path)
-
-		return contentResolver.openOutputStream(uri)
-	}
-
-	override fun openInputStream(path: String): InputStream?	{
-		val fileUri = Uri.parse(path)
-		
-		return contentResolver.openInputStream(fileUri)
-	}
-
-	override fun readText(path: String): String?	{
-		val stream = openInputStream(path) ?: return null
-
-		var result: String? = null
-		
-		stream.use 	{
-			val buffer = ByteArray(8*1024)
-			var byteCount = -1
-
-			val br = BufferedReader(
-				InputStreamReader(it)
-			)
-
-			var line: String? = null
-			line = br.readLine()
-
-			while(line != null)	{
-				result += line
-
-				line = br.readLine()
-			}
+		return if(path.startsWith("content://"))	{
+			contentResolver.openOutputStream(Uri.parse(path))
+		}else	{
+			super.openOutputStream(path)
 		}
-		return result
 	}
 
+	/**
+	 * Opens an input stream for reading from a SAF file.
+	 *
+	 * @param path file URI string
+	 * @return input stream or null if inaccessible
+	 */
+	override fun openInputStream(path: String): InputStream?	{
+		return if(path.startsWith("content://"))	{
+			contentResolver.openInputStream(Uri.parse(path))
+		}else	{
+			super.openInputStream(path)
+		}
+	}
+
+	/**
+	 * Lists immediate children of a SAF directory.
+	 *
+	 * @param path directory URI string
+	 * @return list of child file URIs
+	 */
 	override fun listFiles(path: String): List<String>	{
-		val document = DocumentFile.fromTreeUri(context,Uri.parse(path))
+		if(path.startsWith("content://"))	{
+			val document = DocumentFile.fromTreeUri(context,Uri.parse(path))
 
-		return document?.listFiles()
-			?.map	{ it.getUri().toString() }
-			?.toList()
-			?: emptyList()
+			return document?.listFiles()
+				?.map	{ it.getUri().toString() }
+				?.toList()
+				?: emptyList()
+		}else	{
+			return super.listFiles(path)
+		}
 	}
 
+	/**
+	 * Checks whether a SAF file or directory exists.
+	 *
+	 * @param path URI string
+	 * @return true if accessible and exists, false otherwise
+	 */
 	override fun exists(path: String): Boolean	{
-		val document = DocumentFile.fromTreeUri(context,Uri.parse(path))
+		if(path.startsWith("content://"))	{
+			val document = DocumentFile.fromTreeUri(context,Uri.parse(path))
 
-		return document?.exists() ?: false
+			return document?.exists() ?: false
+		}else	{
+			return super.exists(path)
+		}
 	}
 
+	/**
+	 * Deletes a SAF file or directory.
+	 *
+	 * @param path URI string
+	 * @return true if deletion succeeded
+	 */
 	override fun delete(path: String): Boolean	{
-		val document = DocumentFile.fromTreeUri(context,Uri.parse(path))
+		if(path.startsWith("content://"))	{
+			val document = DocumentFile.fromTreeUri(context,Uri.parse(path))
 
-		return document?.delete() ?: false
+			return document?.delete() ?: false
+		}else	{
+			return super.delete(path)
+		}
 	}
 
+	/**
+	 * Renames a SAF document.
+	 *
+	 * @param src source file URI
+	 * @param target new display name
+	 * @return URI string of renamed document, or null if failed
+	 */
 	override fun rename(src: String, target: String): String?	{
-		return DocumentsContract
-			.renameDocument(contentResolver,Uri.parse(src),target)
-			?.toString()
+		if(src.startsWith("content://"))	{
+			return DocumentsContract
+				.renameDocument(contentResolver,Uri.parse(src),target)
+				?.toString()
+		}else	{
+			return super.rename(src,target)
+		}
 	}
 
-	override fun move(src: String, dst: String): String?	{
-		val sourceUri = Uri.parse(src)
-		val targetParentUri = Uri.parse(dst)
-
-		val sourceDocument = DocumentFile
-			.fromTreeUri(context, sourceUri) ?: return null
-
-		DocumentFile.fromTreeUri(context,targetParentUri)
-			?: return null
-
-		val sourceParentUri = sourceDocument
-			.getParentFile()
-			?.getUri()
-		 	?: return null
-
-		return DocumentsContract.moveDocument(
-			contentResolver,
-			sourceUri,
-			sourceParentUri,
-			targetParentUri
-		)?.toString()
+	/**
+	 * Checks whether the given URI points to a file.
+	 *
+	 * @param path file URI string
+	 * @return true if file
+	 */
+	override fun isFile(path: String): Boolean	{
+		if(path.startsWith("content://"))	{
+			DocumentFile.fromTreeUri(context,Uri.parse(path))?.let	{
+				return it.isFile
+			}
+		}else	{
+			return File(path).isFile
+		}
+		return false
 	}
 
-	override fun remove(path: String): Boolean	{
-		return true
+	/**
+	 * Checks whether the given URI points to a directory.
+	 *
+	 * @param path directory URI string
+	 * @return true if directory
+	 */
+	override fun isDirectory(path: String): Boolean	{
+		if(path.startsWith("content://"))	{
+			DocumentFile.fromTreeUri(context,Uri.parse(path))?.let	{
+				return it.isDirectory
+			}
+		}else	{
+			return File(path).isDirectory
+		}
+		return false
+	}
+
+	/**
+	 * Returns last modified timestamp of a SAF file.
+	 *
+	 * @param path file URI string
+	 * @return timestamp in millis, or -1 if unavailable
+	 */
+	override fun lastModified(path: String): Long	{
+		if(path.startsWith("content://"))	{
+			DocumentFile.fromTreeUri(context,Uri.parse(path))?.let	{
+				return it.lastModified()
+			}
+		}else	{
+			return File(path).lastModified()
+		}
+		return -1
+	}
+
+	/**
+	 * Normalizes and reconstructs a SAF tree URI.
+	 *
+	 * Attempts to resolve and clean up relative segments such as ".."
+	 * inside SAF document IDs.
+	 *
+	 * @param path SAF URI string
+	 * @return normalized SAF URI string
+	 */
+	override fun resolvePath(path: String): String {
+		if(path.startsWith("content://"))	{
+	    val uri = Uri.parse(path)
+
+	    val docId = runCatching {
+	      DocumentsContract.getTreeDocumentId(uri)
+	    }.getOrNull() ?: return path
+
+	    val parts = docId.split(":")
+
+	    val root = parts.getOrNull(0) ?: return path
+	    val rest = parts.getOrNull(1) ?: ""
+
+	    val normalized = Paths.get(rest).normalize().toString()
+
+	    val resolvedDocId = "$root:$normalized"
+
+	    return DocumentsContract.buildTreeDocumentUri(
+	      uri.authority,
+	      resolvedDocId
+	    ).toString()
+    }else	{
+    	return super.resolvePath(path)
+    }
+	}
+
+	/**
+	 * Returns the size of a SAF file in bytes.
+	 *
+	 * @param path file URI string
+	 * @return file size or 0 if unavailable
+	 */
+	override fun size(path: String): Long	{
+		if(path.startsWith("content://"))	{
+			return DocumentFile.fromSingleUri(context,Uri.parse(path))
+				?.length() ?: 0L
+		}else	{
+			return super.size(path)
+		}
+	}
+
+	/**
+	 * Returns the display name of a file or directory.
+	 *
+	 * For SAF documents this is the provider-reported document name.
+	 * For regular filesystem paths this is equivalent to
+	 * `File(path).name`.
+	 *
+	 * @param path filesystem path or SAF URI
+	 * @return file or directory name, or an empty string if unavailable
+	 */
+	override fun getName(path: String): String	{
+		if(path.startsWith("content://"))	{
+			val doc = DocumentFile.fromTreeUri(context,Uri.parse(path))
+
+			return doc?.getName() ?: ""
+		}else	{
+			return File(path).name
+		}
+	}
+
+	/**
+	 * Returns the application's internal files directory.
+	 *
+	 * This directory is typically used as the destination for
+	 * materialized SAF documents.
+	 *
+	 * @return internal application files directory
+	 */
+	override fun getAndroidFilesDir(): File?	{
+		return context.getFilesDir()
+	}
+
+	/**
+	 * Converts a SAF document or directory into a real filesystem path
+	 * located inside the application's internal storage.
+	 *
+	 * Files are copied into the specified output directory.
+	 * Directories are recursively materialized while preserving their
+	 * structure.
+	 *
+	 * If the supplied path is already a regular filesystem path,
+	 * the original path is returned unchanged.
+	 *
+	 * Materialization is useful when working with tools or libraries
+	 * that require direct filesystem access and cannot consume
+	 * `content://` URIs.
+	 *
+	 * @param path filesystem path or SAF URI
+	 * @param outDir internal output directory name
+	 * @return path to the materialized file or directory
+	 */
+	override fun materialize(path: String, outDir: String): String {
+		if(path.startsWith("content://"))	{
+	    val baseDir = getAndroidFilesDir()
+	        ?: throw IllegalStateException("Missing internal dir")
+
+	    val outRoot = File(baseDir, outDir).apply { mkdirs() }
+
+	    return if (isDirectory(path)) {
+	      materializeDirectory(path, outRoot)
+	    } else {
+	      materializeFile(path, outRoot)
+	    }
+    }else	{
+    	return path
+    }
+	}
+
+	
+	private fun materializeFile(path: String, outRoot: File): String {
+    val name = File(path).nameWithoutExtension
+    val ext = File(path).extension
+
+    var fileName =	"${name}_${System.currentTimeMillis()}"
+    if(ext.isNotEmpty()) fileName = "$fileName.$ext"
+    
+    val outFile = File(outRoot, fileName)
+
+    if (!outFile.exists()) {
+    	outFile.createNewFile()
+    	
+      openInputStream(path)!!.use { input ->
+        outFile.outputStream().use { output ->
+          input.copyTo(output)
+        }
+      }
+    }
+    return outFile.absolutePath
+	}
+
+	private fun materializeDirectory(path: String, outRoot: File): String {
+    val dirName = getName(path)
+    val targetDir = File(outRoot, dirName).apply { mkdirs() }
+
+    listFiles(path).forEach { child ->
+      if (isDirectory(child)) {
+          materializeDirectory(child, targetDir)
+      } else {
+        val outFile = File(targetDir, getName(child))
+
+        if (!outFile.exists()) {
+        	outFile.createNewFile()
+        	
+          openInputStream(child)!!.use { input ->
+            outFile.outputStream().use { output ->
+              input.copyTo(output)
+            }
+          }
+        }
+      }
+    }
+    return targetDir.absolutePath
+	}
+
+	/**
+	 * Removes files previously created by [materialize].
+	 *
+	 * The specified target is resolved relative to the application's
+	 * internal files directory and deleted recursively.
+	 *
+	 * @param target materialized directory name
+	 */
+	override fun clearMaterialized(target: String) {
+    val baseDir = getAndroidFilesDir() ?: return
+    File(baseDir, target).deleteRecursively()
 	}
 }

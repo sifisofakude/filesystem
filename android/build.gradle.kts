@@ -1,4 +1,4 @@
-import com.vanniktech.maven.publish.JavadocJar
+;r4import com.vanniktech.maven.publish.JavadocJar
 import com.vanniktech.maven.publish.SourcesJar
 
 plugins	{
