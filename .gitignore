@@ -6,3 +6,6 @@
 build
 lib/build
 gradle.properties
+android/target
+jvm/target
+common/target

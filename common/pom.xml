@@ -11,9 +11,9 @@
     </description>
     
     <groupId>io.github.sifisofakude</groupId>
-    <artifactId>filesystem-common-jvm</artifactId>
+    <artifactId>filesystem-common</artifactId>
     <packaging>jar</packaging>
-    <version>0.2.0</version>
+    <version>0.3.1</version>
     
     <dependencies>
         <!-- Module dependencies go here -->

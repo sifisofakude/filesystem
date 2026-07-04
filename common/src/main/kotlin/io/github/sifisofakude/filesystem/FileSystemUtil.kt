@@ -2,6 +2,7 @@ package io.github.sifisofakude.filesystem
 
 import java.io.InputStream
 import java.io.OutputStream
+import java.io.ByteArrayInputStream
 
 import java.io.File
 import java.nio.file.Files
@@ -373,4 +374,31 @@ interface FileSystemUtil	{
 	 * @param path materialized target identifier
 	 */
 	fun clearMaterialized(path: String) {}
+
+	fun write(input: InputStream, output: OutputStream): Boolean	{
+		try	{
+			val buffer = ByteArray(8*1024)
+			var bytesRead = input.read(buffer)
+			while(bytesRead != -1)	{
+				output.write(buffer,0,bytesRead)
+				bytesRead = input.read(buffer)
+			}
+			output.flush()
+			output.close()
+			
+			input.close()
+
+			return true
+		}catch(e: Exception) {}
+		return false
+	}
+	
+	fun writeText(outputFile: String, text: String): Boolean	{
+		if(!exists(outputFile)) createFile(outputFile)
+		
+		val input = ByteArrayInputStream(text.toByteArray())
+		val output = openOutputStream(outputFile) ?: return false
+		
+		return write(input,output)
+	}
 }
