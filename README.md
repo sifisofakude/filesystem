@@ -3,7 +3,7 @@
 ![Kotlin](https://img.shields.io/badge/Kotlin-2.4-blue)
 ![Platform](https://img.shields.io/badge/platform-JVM%20%7C%20Android-green)
 ![License](https://img.shields.io/badge/license-MIT-orange)
-[![Maven Central](https://shields.io)](https://repo1.maven.org/maven2/io/github/sifisofakude/filesystem/filesystem-common/)
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.sifisofakude.filesystem/filesystem-common)](https://central.sonatype.com/artifact/io.github.sifisofakude.filesystem/filesystem-common)
 
 A lightweight cross-platform file system abstraction library for JVM desktop and Android SAF.
 
