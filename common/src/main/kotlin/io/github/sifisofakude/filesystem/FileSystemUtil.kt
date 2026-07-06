@@ -375,30 +375,49 @@ interface FileSystemUtil	{
 	 */
 	fun clearMaterialized(path: String) {}
 
+	/**
+	 * Copies all bytes from an input stream to an output stream.
+	 *
+	 * Neither stream is closed by this method. The caller remains
+	 * responsible for closing both streams.
+	 *
+	 * Data is transferred using an 8 KiB buffer until the end of
+	 * the input stream is reached.
+	 *
+	 * @param input the source stream
+	 * @param output the destination stream
+	 * @return true if the copy completed successfully, false if an
+	 *         I/O error occurred
+	 */
 	fun write(input: InputStream, output: OutputStream): Boolean	{
 		try	{
-			val buffer = ByteArray(8*1024)
-			var bytesRead = input.read(buffer)
-			while(bytesRead != -1)	{
-				output.write(buffer,0,bytesRead)
-				bytesRead = input.read(buffer)
-			}
+			input.copyTo(output)
 			output.flush()
-			output.close()
-			
-			input.close()
-
 			return true
 		}catch(e: Exception) {}
 		return false
 	}
-	
+
+	/**
+	 * Writes text to a file.
+	 *
+	 * If the target file does not already exist, it is created
+	 * automatically.
+	 *
+	 * Existing file contents are replaced unless the underlying
+	 * implementation behaves differently.
+	 *
+	 * @param outputFile the destination file path or URI
+	 * @param text the text to write
+	 * @return true if the write completed successfully, false otherwise
+	 */
 	fun writeText(outputFile: String, text: String): Boolean	{
 		if(!exists(outputFile)) createFile(outputFile)
 		
 		val input = ByteArrayInputStream(text.toByteArray())
-		val output = openOutputStream(outputFile) ?: return false
-		
-		return write(input,output)
+		openOutputStream(outputFile)?.use 	{ output ->
+			return write(input,output)
+		}
+		return false
 	}
 }

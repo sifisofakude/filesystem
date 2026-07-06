@@ -3,7 +3,7 @@
 ![Kotlin](https://img.shields.io/badge/Kotlin-2.2-blue)
 ![Platform](https://img.shields.io/badge/platform-JVM%20%7C%20Android-green)
 ![License](https://img.shields.io/badge/license-MIT-orange)
-![Maven Central](https://img.shields.io/maven-central/v/io.github.sifisofakude/filesystem)
+![Maven Central](https://img.shields.io/maven-central/v/io.github.sifisofakude.filesystem/filesystem)
 
 A lightweight cross-platform file system abstraction library for JVM desktop and Android SAF.
 
@@ -58,7 +58,8 @@ Key principles:
 ## Installation
 **Maven Central**
 ```gradle
-implementation("io.github.sifisofakude:filesystem-common:0.1.1")
+implementation("io.github.sifisofakude.filesystem:filesystem-android:0.3.1")
+implementation("io.github.sifisofakude.filesystem:filesystem-jvm:0.3.1")
 ```
 
 ---
@@ -146,6 +147,16 @@ interface FileSystemUtil {
     fun lastModified(path: String): Long
 
     fun size(path: String): Long
+
+    fun write(
+    	input: InputStream, 
+    	output: OutputStream
+    ): Boolean
+
+    fun writeText(
+    	outputFile: String,
+    	text: String
+    ): Boolean
 }
 ```
 Implementations:

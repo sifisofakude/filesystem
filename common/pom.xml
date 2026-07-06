@@ -10,7 +10,7 @@
         Lightweight multiplatform filesystem library for JVM and Android.
     </description>
     
-    <groupId>io.github.sifisofakude</groupId>
+    <groupId>io.github.sifisofakude.filesystem</groupId>
     <artifactId>filesystem-common</artifactId>
     <packaging>jar</packaging>
     <version>0.3.1</version>

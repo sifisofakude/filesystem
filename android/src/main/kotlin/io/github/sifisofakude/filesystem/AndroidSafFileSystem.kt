@@ -660,8 +660,8 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 *
 	 * @param target materialized directory name
 	 */
-	override fun clearMaterialized(target: String) {
+	override fun clearMaterialized(path: String) {
     val baseDir = getAndroidFilesDir() ?: return
-    File(baseDir, target).deleteRecursively()
+    File(baseDir, path).deleteRecursively()
 	}
 }
