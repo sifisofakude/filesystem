@@ -13,15 +13,10 @@
     <groupId>io.github.sifisofakude.filesystem</groupId>
     <artifactId>filesystem-android</artifactId>
     <packaging>aar</packaging>
-    <version>0.3.1</version>
+    <version>0.4.0</version>
     
     <dependencies>
         <!-- Module dependencies go here -->
-        <dependency>
-            <groupId>io.github.sifisofakude</groupId>
-            <artifactId>filesystem-common</artifactId>
-            <version>0.3.1</version>
-        </dependency>
         
         <dependency>
             <groupId>androidx.documentfile</groupId>

@@ -3,96 +3,172 @@
 ![Kotlin](https://img.shields.io/badge/Kotlin-2.4-blue)
 ![Platform](https://img.shields.io/badge/platform-JVM%20%7C%20Android-green)
 ![License](https://img.shields.io/badge/license-MIT-orange)
-[![Maven Central](https://img.shields.io/maven-central/v/io.github.sifisofakude.filesystem/filesystem-common)](https://central.sonatype.com/artifact/io.github.sifisofakude.filesystem/filesystem-common)
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.sifisofakude.filesystem/filesystem-jvm)](https://central.sonatype.com/artifact/io.github.sifisofakude.filesystem/filesystem-jvm)
 
-A lightweight cross-platform file system abstraction library for JVM desktop and Android SAF.
+A lightweight cross-platform filesystem abstraction library for JVM desktop and Android Storage Access Framework (SAF).
 
-filesystem provides a unified API for discovering, reading, and writing files across different environments while hiding platform-specific implementations.
-
-It allows developers to work with files using the same interface whether running on **Windows, Linux, Mac, Android, or Termux**.
+`filesystem` provides a consistent, object-oriented API for working with files and directories while hiding platform-specific implementations. The same application code can be used across **Windows, Linux, macOS, Android, and Termux**, with only the filesystem implementation changing.
 
 ---
 
-## Features
+# Features
 
-- Cross-platform file access abstraction
-
-- JVM desktop file system support
-
-- Android Storage Access Framework (SAF) support
-
-- Recursive file discovery with extension filtering
-
+- Cross-platform filesystem abstraction
+- Object-oriented `FileOperation` API
+- File metadata (`name`, `nameWithoutExtension`, `extension`, `length`, `lastModified`, `absolutePath`)
+- JVM filesystem implementation
+- Android Storage Access Framework (SAF) implementation
+- Recursive file discovery with relative path preservation
 - Stream-based file processing
-
+- Text file utilities
 - Platform detection utilities
-
-- Designed for library integration and automation tools
-
----
-
-## Design Philosophy
-
-The goal of `filesystem` is to provide a **minimal and predictable abstraction** for file system access across platforms.
-
-Key principles:
-
-- **Platform separation** – JVM and Android implementations remain independent
-- **Stream-first design** – files are exposed as streams to support large data processing
-- **Minimal dependencies** – avoids heavy frameworks
-- **Developer control** – does not hide platform limitations
+- Materialization support for Android SAF resources
+- Lightweight with minimal dependencies
 
 ---
 
-## Supported Platforms
-| Platform |   Support |
-|---|---|
-| Windows |  ✅ |
+# Design Philosophy
+
+The goal of `filesystem` is to provide a lightweight and predictable abstraction over multiple filesystem implementations.
+
+Core principles:
+
+- **Platform independence** – write the same code for JVM and Android.
+- **Object-oriented API** – interact with files through `FileOperation`.
+- **Stream-first design** – efficiently process files of any size.
+- **Minimal dependencies** – avoid unnecessary frameworks.
+- **Developer control** – platform limitations remain explicit.
+
+---
+
+# Supported Platforms
+
+| Platform | Support |
+|----------|:-------:|
+| Windows | ✅ |
 | Linux | ✅ |
-| macOS |  ✅ |
-| Android (SAF) |  ✅ |
-| Termux |   ✅ |
+| macOS | ✅ |
+| Android (SAF) | ✅ |
+| Termux | ✅ |
 
 ---
 
-## Installation
-**Maven Central**
+# Installation
+
+## JVM
+
 ```gradle
-implementation("io.github.sifisofakude.filesystem:filesystem-android:0.3.1")
-implementation("io.github.sifisofakude.filesystem:filesystem-jvm:0.3.1")
+implementation("io.github.sifisofakude.filesystem:filesystem-jvm:0.4.0")
+```
+
+## Android
+
+```gradle
+implementation("io.github.sifisofakude.filesystem:filesystem-android:0.4.0")
+```
+
+Each platform artifact is self-contained and includes the common filesystem API.
+
+---
+
+# Quick Start (JVM)
+
+```kotlin
+import io.github.sifisofakude.filesystem.*
+
+FileSystems.current = JvmFileSystem()
+
+val file = FileOperation("notes.txt")
+
+if (!file.exists()) {
+    file.createNewFile()
+}
+
+file.writeText("Hello, World!")
+
+println(file.readText())
+
+println(file.name)
+println(file.nameWithoutExtension)
+println(file.extension)
+println(file.length)
+println(file.lastModified)
+println(file.absolutePath)
 ```
 
 ---
 
-## Quick Example (JVM)
+# File Operations
 
 ```kotlin
-import io.github.sifisofakude.filesystem.JvmFileSystem
+import io.github.sifisofakude.filesystem.*
 
+FileSystems.current = JvmFileSystem()
+
+val file = FileOperation("src/Main.kt")
+
+println(file.name)
+println(file.nameWithoutExtension)
+println(file.extension)
+println(file.absolutePath)
+
+if (file.exists()) {
+    println(file.readText())
+}
+
+file.copy("backup")
+
+file.copy("backup/MainCopy.kt")
+
+file.move("archive")
+
+file.delete()
+```
+
+## Copying Files
+
+`copy()` accepts either a directory or a file path.
+
+```kotlin
+val file = FileOperation("notes.txt")
+
+// Copies to backup/notes.txt
+file.copy("backup")
+
+// Copies to backup/copy.txt
+file.copy("backup/copy.txt")
+```
+
+---
+
+# Working with Directories
+
+```kotlin
+val directory = FileOperation("src")
+
+directory.listFiles().forEach {
+    println(it.name)
+}
+```
+
+Create directories recursively:
+
+```kotlin
+FileOperation("build/output").mkdirs()
+```
+
+---
+
+# Resolving Source Files
+
+`resolveFiles()` recursively discovers files while preserving their relative paths.
+
+```kotlin
 val fs = JvmFileSystem()
 
 val files = fs.resolveFiles(
     listOf("src"),
     setOf("kt", "java")
-)
-
-files.forEach { file ->
-    println(file.relativePath)
-}
-```
-
----
-
-## Android Example
-
-```kotlin
-val fs = AndroidSafFileSystem(context)
-
-fs.changeSelectedDirectory(userSelectedUri)
-
-val files = fs.resolveFiles(
-    listOf(userSelectedUri),
-    setOf("txt")
 )
 
 files.forEach {
@@ -102,74 +178,27 @@ files.forEach {
 
 ---
 
-## Core API(Updated)
-
-The library revolves around the FileSystemUtil interface.
+# Android Example
 
 ```kotlin
-interface FileSystemUtil {
+import io.github.sifisofakude.filesystem.*
 
-    fun getCurrentDirectory(): String?
+val fs = AndroidSafFileSystem(context)
 
-    fun resolvePath(path: String): String
+FileSystems.current = fs
 
-    fun createDirectory(path: String): String?
+fs.changeSelectedDirectory(userSelectedUri)
 
-    fun createFile(path: String): String?
+val root = FileOperation(userSelectedUri.toString())
 
-    fun openInputStream(path: String): InputStream?
-
-    fun openOutputStream(path: String): OutputStream?
-
-    fun readText(path: String): String?
-
-    fun listFiles(path: String): List<String>
-
-    fun findFiles(directory: String, extensions: Set<String>): List<String>
-
-    fun resolveFiles(
-        inputFiles: List<Any>,
-        extensions: Set<String>
-    ): List<FileSource>
-
-    fun exists(path: String): Boolean
-
-    fun delete(path: String): Boolean
-
-    fun rename(src: String, target: String): String?
-
-    fun move(src: String, dst: String): String?
-
-    fun isFile(path: String): Boolean
-
-    fun isDirectory(path: String): Boolean
-
-    fun lastModified(path: String): Long
-
-    fun size(path: String): Long
-
-    fun write(
-    	input: InputStream, 
-    	output: OutputStream
-    ): Boolean
-
-    fun writeText(
-    	outputFile: String,
-    	text: String
-    ): Boolean
+root.listFiles().forEach {
+    println(it.name)
 }
 ```
-Implementations:
-
-- JvmFileSystem → Desktop environments
-
-- AndroidSafFileSystem → Android SAF environments
 
 ---
 
-## Platform Detection
-
-The library includes a lightweight **PlatformDetector** utility.
+# Platform Detection
 
 ```kotlin
 val detector = PlatformDetector()
@@ -179,58 +208,86 @@ if (detector.isAndroid()) {
 }
 
 if (detector.isDesktop()) {
-    println("Desktop environment")
+    println("Running on Desktop")
 }
 ```
 
 ---
 
-## Engineering Highlights
+# Architecture
 
-This project demonstrates several software engineering concepts:
+The library consists of two primary APIs.
 
-- Cross-platform abstraction layer separating platform APIs from application logic
+## FileOperation
 
-- SAF directory traversal without recursion using stack-based iteration
+The high-level object-oriented API used by applications.
 
-- Stream-first file pipeline for efficient file processing
+```kotlin
+val file = FileOperation("example.txt")
 
-- Extension-filtered recursive file discovery
+file.exists()
 
-- Minimal dependency design
+file.readText()
 
-- Maven Central publishing
+file.writeText("Hello")
 
-- Clean, documented Kotlin API design
+file.copy("backup")
+
+file.move("archive")
+
+file.delete()
+```
+
+## FileSystemUtil
+
+The low-level filesystem abstraction implemented by platform-specific providers.
+
+Available implementations:
+
+- `JvmFileSystem`
+- `AndroidSafFileSystem`
+
+Most applications will only need `FileOperation`, while library authors can work directly with `FileSystemUtil`.
 
 ---
 
-## Use Cases
+# Engineering Highlights
 
-`filesystem` is useful for:
+- Cross-platform filesystem abstraction
+- Object-oriented file API
+- JVM and Android SAF implementations
+- Recursive file discovery
+- Relative path preservation
+- Stream-first file processing
+- Android SAF materialization
+- Platform detection
+- Clean, documented Kotlin API
+- Maven Central distribution
+
+---
+
+# Use Cases
+
+`filesystem` is suitable for:
 
 - Build tools
-
+- Compilers
 - Code generators
-
 - Static analyzers
-
-- File processing pipelines
-
+- Archive utilities
 - Android storage tools
-
-- CLI utilities
-
-- Cross-platform automation tools
+- CLI applications
+- Automation tools
+- Cross-platform libraries
 
 ---
 
-## License
+# License
 
 MIT License
 
 ---
 
-## Author
+# Author
 
-Sifiso Fakude
+**Sifiso Fakude**

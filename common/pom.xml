@@ -13,7 +13,7 @@
     <groupId>io.github.sifisofakude.filesystem</groupId>
     <artifactId>filesystem-common</artifactId>
     <packaging>jar</packaging>
-    <version>0.3.1</version>
+    <version>0.4.0</version>
     
     <dependencies>
         <!-- Module dependencies go here -->

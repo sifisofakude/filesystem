@@ -4,7 +4,7 @@ plugins	{
 }
 
 android	{
-  namespace = "com.example.filesystem.android"
+  namespace = "io.github.sifisofakude.filesystem"
 	compileSdk = 36
 	
 	defaultConfig {

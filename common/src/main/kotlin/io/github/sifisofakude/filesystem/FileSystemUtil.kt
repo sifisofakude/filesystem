@@ -95,51 +95,62 @@ interface FileSystemUtil	{
     src: String,
     dst: String,
     overwrite: Boolean = true
-	) {
-    if(isDirectory(src))	{
-    	for(file in listFiles(src))	{
-    		if(isDirectory(file))	{
-    			val dir = "$dst${File.separator}${getName(file)}"
-    			
-    			createDirectory(dir)
-    			copy(file,dir)
-    		}else	{
-    			var parentFile = getParentFile(file) ?: ""
-    			if(parentFile.isNotEmpty()) parentFile = "$parentFile${File.separator}"
-    			
-    			val destinationFile = "$dst${File.separator}${getName(file)}"
-
-    			if(exists(destinationFile) && !overwrite)	{
-    				continue
-    			}
-
-					createFile(destinationFile) ?: continue
-					
-    			openInputStream(file)?.use { input ->
-    				openOutputStream(destinationFile)?.use { output ->
-    					input.copyTo(output)
-    				}
-    			}
-    		}
-    	}
-    }else	{
-    	createDirectory(dst)
-    	
-    	val destinationFile = "$dst${File.separator}${getName(src)}"
-
-
- 			if(exists(destinationFile) && !overwrite)	{
- 				return
- 			}
-
- 			createFile(destinationFile) ?: return
-
- 			openInputStream(src)?.use { input ->
- 				openOutputStream(destinationFile)?.use { output ->
- 					input.copyTo(output)
- 				}
- 			}
+	): String? {
+	
+    if (!exists(src)) {
+    	return null
     }
+
+    if (isDirectory(src)) {
+	    val destinationDir = if (exists(dst) && isDirectory(dst)) {
+        "$dst${File.separator}${getName(src)}"
+	    } else {
+        dst
+	    }
+
+	    createDirectory(destinationDir) ?: return null
+
+	    for (child in listFiles(src)) {
+        copy(child, destinationDir, overwrite)
+	    }
+
+	    return destinationDir
+    }
+
+    val destinationFile = if (exists(dst) && isDirectory(dst)) {
+    	"$dst${File.separator}${getName(src)}"
+    } else {
+      dst
+    }
+
+    val parent = getParentFile(destinationFile)
+    if (parent != null && !exists(parent)) {
+      createDirectory(parent) ?: return null
+    }
+
+    if (exists(destinationFile)) {
+      if (!overwrite) {
+        return destinationFile
+      }
+      delete(destinationFile)
+    }
+
+    createFile(destinationFile) ?: return null
+
+    openInputStream(src)?.use { input ->
+      openOutputStream(destinationFile)?.use { output ->
+        input.copyTo(output)
+      }
+    } ?: return null
+
+    return destinationFile
+	}
+
+	fun copy(
+		input: InputStream,
+		output: OutputStream
+	)	{
+		input.copyTo(output)
 	}
 
 	/**
@@ -248,14 +259,9 @@ interface FileSystemUtil	{
 	 * @return the resulting path, or null if the operation failed
 	 */
 	fun move(src: String, dst: String): String?	{
-		var destination = "$dst${File.separator}${File(src).name}"
-
-		if(exists(src))	{
-			copy(src,destination)
-			if(exists(destination)) delete(src)
-			return destination
-		}
-		return null
+		val destination = copy(src,dst) ?: return null
+		delete(src)
+		return destination
 	}
 
 	/**
@@ -421,3 +427,40 @@ interface FileSystemUtil	{
 		return false
 	}
 }
+
+// class AppendableOutputStream(
+// 	private val path: String,
+// 	private val fs: FileSystemUtil
+// ) : AutoCloseable	{
+// 	private val outputStream: OutputStream
+// 	
+// 	init {		
+// 		val byteArrayOutputStream = ByteArrayOutputSteam()
+// 
+// 		if(!fs.isFile(path)) throw FileNotFoundException("File Not Found")
+// 		
+// 		fs.openInputStream(path)?.use { tmpStream ->
+// 			// tmpStream.copyTo(byteArrayOutputStream)
+// 			val bytes = ByteArray(8*1024)
+// 			var byteRead = tmpStream.read(bytes)
+// 
+// 			while(byteRead != -1)	{
+// 				byteArrayOutputStream.write(bytes,0,byteRead)
+// 				byteRead = tmpStream.read(bytes)
+// 			}
+// 		}
+// 
+// 		outputStream
+// 	}
+// 	
+// 	fun append(
+// 		inputStream: InputStream
+// 	)	{
+// 		if(fs.isFile(path))	{
+// 			
+// 
+// 			
+// 		}
+// 	}
+// }
+
