@@ -82,9 +82,11 @@ import kotlin.io.normalize
  * @param context Android context used to access SAF providers
  */
 class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
-	private val context = context
-	private var selectedParentUri: Uri? = null
+	private val context = context.applicationContext
 	private val contentResolver = context.contentResolver
+
+	@Volatile
+	private var selectedParentUri: Uri? = null
 
 	private var materializedDir: File? = null
 
@@ -96,7 +98,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 *
 	 * @param newParentUri SAF tree URI representing a user-granted directory
 	 */
-	fun changeSelectedDirectory(newParentUri: Uri)	{
+	fun changeSelectedDirectory(newParentUri: Uri?)	{
 		selectedParentUri = newParentUri
 	}
 
@@ -107,6 +109,51 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 */
 	override fun getCurrentDirectory(): String?	{
 		return selectedParentUri?.toString()
+	}
+
+	fun isSafUri(path: String): Boolean = path.startsWith("content://")
+
+	fun isRelative(path: String): Boolean	{
+		if(isSafUri(path))	{
+			return false
+		}
+		return !File(path).isAbsolute
+	}
+
+	fun resolveRelativeUri(rootTreeUri: Uri, relativePath: String): String? {
+    val treeDocumentId = DocumentsContract.getTreeDocumentId(rootTreeUri) ?: return null
+    
+    val segments = relativePath.split("/").filter { it.isNotEmpty() }
+    if (segments.isEmpty()) {
+        // If the path is empty, return a document URI pointing directly to the root
+      return DocumentsContract
+      	.buildDocumentUriUsingTree(rootTreeUri, treeDocumentId)
+      	.toString()
+    }
+    
+    val combinedIdBuilder = StringBuilder(treeDocumentId)
+    for (segment in segments) {
+      combinedIdBuilder.append("/").append(segment)
+    }
+    val targetDocumentId = combinedIdBuilder.toString()
+    
+    val finalUri = DocumentsContract.buildDocumentUriUsingTree(rootTreeUri, targetDocumentId)
+    
+    // val correctedUriString = finalUri.toString()
+        // .replace("%3A", ":")
+        // .replace("%2F", "/")
+        
+    return finalUri.toString()
+	}
+
+	private fun tempPath(path: String): String?	{
+		return if(isSafUri(path))	{
+			path
+		}else	{
+			selectedParentUri?.let	{ currentUri ->
+				resolveRelativeUri(currentUri,path)
+			}
+		}
 	}
 
 	/**
@@ -137,8 +184,12 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
         is DocumentFile -> input
         is Uri -> DocumentFile.fromTreeUri(context, input)
         is String ->	{
-        	if(input.startsWith("content://"))	{
-        		DocumentFile.fromTreeUri(context, Uri.parse(input))
+        	if(selectedParentUri != null || isSafUri(input))	{
+        		var path: String? = input
+        		selectedParentUri?.let	{
+        			if(isRelative(path)) path = resolveRelativeUri(it,path)
+        		}
+        		DocumentFile.fromTreeUri(context, Uri.parse(path))
         	}else	{
         		results += super.resolveFiles(listOf(input),extensions)
         		continue
@@ -221,8 +272,10 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 * @return list of file URIs as strings
 	 */
 	override fun findFiles(directory: String, extensions: Set<String>): List<String> {
-    if(directory.startsWith("content://"))	{
-	    val rootUri = Uri.parse(directory)
+    if(selectedParentUri != null || isSafUri(directory))	{
+    	val tmpDir = tempPath(directory) ?: return emptyList()
+    	
+	    val rootUri = Uri.parse(tmpDir)
 	    val root = DocumentFile.fromTreeUri(context, rootUri) ?: return emptyList()
 
    		val results = mutableListOf<String>()
@@ -254,9 +307,8 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	    walk(root)
 	    
     	return results
-		}else	{
-			return super.findFiles(directory,extensions)
 		}
+		return super.findFiles(directory,extensions)
 	}
 
 	/**
@@ -272,28 +324,43 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 * @return URI string of the final directory, or null if creation failed
 	 */
 	override fun createDirectory(path: String): String? {
-		if(path.startsWith("content://"))	{
-	    val baseUri = selectedParentUri ?: return null
+		if(isSafUri(path) || selectedParentUri != null)	{
+			val currentUri = tempPath(path)?.let	{
+				Uri.parse(it)
+			} ?: return null
 
-	    var parent = DocumentFile.fromTreeUri(context, baseUri) ?: return null
+	    val docId = DocumentsContract.getDocumentId(currentUri)
+	    val mainSplit = docId.split(':')
+	    if(mainSplit.size < 2) return null
 
-	    val segments = path.split("/")
-	        .filter { it.isNotBlank() }
+	    val volumeId = mainSplit[0]
+	    val pathParts = mainSplit[1].split('/')
 
-	    for (segment in segments) {
+	    if(pathParts.size < 2) return null
 
-	      val existing = parent.findFile(segment)
+    	val uri = DocumentsContract.buildTreeDocumentUri(
+    		currentUri.getAuthority(),"${volumeId}:${pathParts[0]}"
+    	)
 
-	      parent = when {
-	        existing != null && existing.isDirectory -> existing
-	        existing != null && existing.isFile -> return null
-	        else -> parent.createDirectory(segment) ?: return null
-	      }
-	    }
-	    return parent.uri.toString()
-    }else	{
-    	return super.createDirectory(path)
+    	DocumentFile.fromTreeUri(context,uri)?.let	{
+    		var rootFolder = it
+    		var currentFolder: DocumentFile? = null
+    		
+    		for(i in 1 until pathParts.size)	{
+    			currentFolder = rootFolder.findFile(pathParts[i])
+
+    			if(currentFolder == null)	{
+    				currentFolder =	rootFolder.createDirectory(pathParts[i]) ?: return null
+    			}else if(currentFolder.isFile)	{
+    				return null
+    			}
+    			rootFolder = currentFolder
+    		}
+    		return rootFolder.uri.toString()
+    	}
+    	return null
     }
+    return super.createDirectory(path)
 	}
 
 	/**
@@ -306,39 +373,24 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 * @return URI string of the file, or null if creation failed
 	 */
 	override fun createFile(path: String): String? {
-		if(path.startsWith("content://"))	{
-	    val lastSlash = path.lastIndexOf('/')
-	    if (lastSlash <= 0) return null
+		if(isSafUri(path) || selectedParentUri != null)	{
+			val currentUri = tempPath(path) ?: return null
 
-	    val dirPath = path.substring(0, lastSlash)
-	    val fileName = path.substring(lastSlash + 1)
+			val parentUri = getParentFile(currentUri) ?: return null
+			if(!exists(parentUri)) createDirectory(parentUri) ?: return null
+			
+	    var parent = DocumentFile.fromTreeUri(context, Uri.parse(parentUri)) ?: return null
 
-	    val baseUri = selectedParentUri ?: return null
-	    var parent = DocumentFile.fromTreeUri(context, baseUri) ?: return null
-
-	    val segments = dirPath.split("/").filter { it.isNotBlank() }
-
-	    for (segment in segments) {
-	      val next = parent.findFile(segment)
-
-	      parent = when {
-	        next != null && next.isDirectory -> next
-	        next == null -> parent.createDirectory(segment) ?: return null
-	        else -> return null
-	      }
-	    }
+	    val fileName = getName(path)
 
 	    parent.findFile(fileName)?.let {
 	      if (it.isFile) return it.uri.toString()
+	      else if(it.isDirectory) return null
 	    }
 
-	    val created = parent.createFile("application/octet-stream", fileName)
-	      ?: return null
-
-	    return created.uri.toString()
-    }else	{
-    	return super.createFile(path)
+	    return parent.createFile("application/octet-stream", fileName)?.uri?.toString()
     }
+    return super.createFile(path)
 	}
 
 	/**
@@ -348,8 +400,9 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 * @return output stream or null if the file cannot be opened
 	 */
 	override fun openOutputStream(path: String): OutputStream?	{
-		return if(path.startsWith("content://"))	{
-			contentResolver.openOutputStream(Uri.parse(path))
+		return if(isSafUri(path) || selectedParentUri != null)	{
+			val tmpPath = tempPath(path) ?: return null
+			contentResolver.openOutputStream(Uri.parse(tmpPath))
 		}else	{
 			super.openOutputStream(path)
 		}
@@ -362,8 +415,9 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 * @return input stream or null if inaccessible
 	 */
 	override fun openInputStream(path: String): InputStream?	{
-		return if(path.startsWith("content://"))	{
-			contentResolver.openInputStream(Uri.parse(path))
+		return if(isSafUri(path) || selectedParentUri != null)	{
+			val tmpPath = tempPath(path) ?: return null
+			contentResolver.openInputStream(Uri.parse(tmpPath))
 		}else	{
 			super.openInputStream(path)
 		}
@@ -376,16 +430,17 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 * @return list of child file URIs
 	 */
 	override fun listFiles(path: String): List<String>	{
-		if(path.startsWith("content://"))	{
-			val document = DocumentFile.fromTreeUri(context,Uri.parse(path))
+		if(isSafUri(path) || selectedParentUri != null)	{
+			val tmpPath = tempPath(path) ?: return emptyList()
+			
+			val document = DocumentFile.fromTreeUri(context,Uri.parse(tmpPath))
 
 			return document?.listFiles()
 				?.map	{ it.getUri().toString() }
 				?.toList()
 				?: emptyList()
-		}else	{
-			return super.listFiles(path)
 		}
+		return super.listFiles(path)
 	}
 
 	/**
@@ -395,13 +450,34 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 * @return true if accessible and exists, false otherwise
 	 */
 	override fun exists(path: String): Boolean	{
-		if(path.startsWith("content://"))	{
-			val document = DocumentFile.fromTreeUri(context,Uri.parse(path))
+		if(isSafUri(path) || selectedParentUri != null)	{
+			val tmpPath = tempPath(path) ?: return false
+			
+			val document = DocumentFile.fromTreeUri(context,Uri.parse(tmpPath))
 
 			return document?.exists() ?: false
-		}else	{
-			return super.exists(path)
 		}
+		return super.exists(path)
+	}
+
+	override fun getParentFile(path: String): String?	{
+		if(isSafUri(path) || selectedParentUri != null)	{
+			val tmpPath = tempPath(path) ?: return null
+
+			val uri = Uri.parse(tmpPath)
+			val docId = DocumentsContract.getTreeDocumentId(uri)
+
+			val lastSlashIndex = docId.lastIndexOf("/")
+			if(lastSlashIndex == -1) return null
+
+			return DocumentsContract
+				.buildTreeDocumentUri(
+					uri.getAuthority(),
+					docId.substring(0,lastSlashIndex)
+				)
+				.toString()
+		}
+		return super.getParentFile(path)
 	}
 
 	/**
@@ -411,8 +487,9 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 * @return true if deletion succeeded
 	 */
 	override fun delete(path: String): Boolean	{
-		if(path.startsWith("content://"))	{
-			val document = DocumentFile.fromTreeUri(context,Uri.parse(path))
+		if(isSafUri(path) || selectedParentUri != null)	{
+			val tmpPath = tempPath(path) ?: return false
+			val document = DocumentFile.fromTreeUri(context,Uri.parse(tmpPath))
 
 			return document?.delete() ?: false
 		}else	{
@@ -428,9 +505,11 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 * @return URI string of renamed document, or null if failed
 	 */
 	override fun rename(src: String, target: String): String?	{
-		if(src.startsWith("content://"))	{
+		if(isSafUri(src) || selectedParentUri != null)	{
+			val tmpPath = tempPath(src) ?: return null
+			
 			return DocumentsContract
-				.renameDocument(contentResolver,Uri.parse(src),target)
+				.renameDocument(contentResolver,Uri.parse(tmpPath),target)
 				?.toString()
 		}else	{
 			return super.rename(src,target)
@@ -444,8 +523,9 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 * @return true if file
 	 */
 	override fun isFile(path: String): Boolean	{
-		if(path.startsWith("content://"))	{
-			DocumentFile.fromTreeUri(context,Uri.parse(path))?.let	{
+		if(isSafUri(path) || selectedParentUri != null)	{
+			val tmpPath = tempPath(path) ?: return false
+			DocumentFile.fromSingleUri(context,Uri.parse(tmpPath))?.let	{
 				return it.isFile
 			}
 		}else	{
@@ -461,8 +541,10 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 * @return true if directory
 	 */
 	override fun isDirectory(path: String): Boolean	{
-		if(path.startsWith("content://"))	{
-			DocumentFile.fromTreeUri(context,Uri.parse(path))?.let	{
+		if(isSafUri(path) || selectedParentUri != null)	{
+			val tmpPath = tempPath(path) ?: return false
+			
+			DocumentFile.fromSingleUri(context,Uri.parse(tmpPath))?.let	{
 				return it.isDirectory
 			}
 		}else	{
@@ -478,8 +560,10 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 * @return timestamp in millis, or -1 if unavailable
 	 */
 	override fun lastModified(path: String): Long	{
-		if(path.startsWith("content://"))	{
-			DocumentFile.fromTreeUri(context,Uri.parse(path))?.let	{
+		if(isSafUri(path) || selectedParentUri != null)	{
+			val tmpPath = tempPath(path) ?: return -1
+			
+			DocumentFile.fromSingleUri(context,Uri.parse(tmpPath))?.let	{
 				return it.lastModified()
 			}
 		}else	{
@@ -498,8 +582,9 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 * @return normalized SAF URI string
 	 */
 	override fun resolvePath(path: String): String {
-		if(path.startsWith("content://"))	{
-	    val uri = Uri.parse(path)
+		if(isSafUri(path) || selectedParentUri != null)	{
+			val tmpPath = tempPath(path) ?: return path
+	    val uri = Uri.parse(tmpPath)
 
 	    val docId = runCatching {
 	      DocumentsContract.getTreeDocumentId(uri)
@@ -530,8 +615,10 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 * @return file size or 0 if unavailable
 	 */
 	override fun size(path: String): Long	{
-		if(path.startsWith("content://"))	{
-			return DocumentFile.fromSingleUri(context,Uri.parse(path))
+		if(isSafUri(path) || selectedParentUri != null)	{
+			val tmpPath = tempPath(path) ?: return 0L
+			
+			return DocumentFile.fromSingleUri(context,Uri.parse(tmpPath))
 				?.length() ?: 0L
 		}else	{
 			return super.size(path)
@@ -549,13 +636,15 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 * @return file or directory name, or an empty string if unavailable
 	 */
 	override fun getName(path: String): String	{
-		if(path.startsWith("content://"))	{
-			val doc = DocumentFile.fromTreeUri(context,Uri.parse(path))
-
-			return doc?.getName() ?: ""
-		}else	{
-			return File(path).name
+		if(isSafUri(path))	{
+			val docId = DocumentsContract.getTreeDocumentId(Uri.parse(path))
+			
+			val lastSlashIndex = docId.lastIndexOf('/')
+			if(lastSlashIndex == -1) return ""
+			
+			return docId.substring(lastSlashIndex+1)
 		}
+		return File(path).name
 	}
 
 	/**
@@ -590,16 +679,18 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 * @return path to the materialized file or directory
 	 */
 	override fun materialize(path: String, outDir: String): String {
-		if(path.startsWith("content://"))	{
+		if(isSafUri(path) || selectedParentUri != null)	{
+			val tmpPath = tempPath(path) ?: return path
+			
 	    val baseDir = getAndroidFilesDir()
 	        ?: throw IllegalStateException("Missing internal dir")
 
 	    val outRoot = File(baseDir, outDir).apply { mkdirs() }
 
-	    return if (isDirectory(path)) {
-	      materializeDirectory(path, outRoot)
+	    return if (isDirectory(tmpPath)) {
+	      materializeDirectory(tmpPath, outRoot)
 	    } else {
-	      materializeFile(path, outRoot)
+	      materializeFile(tmpPath, outRoot)
 	    }
     }else	{
     	return path
@@ -641,7 +732,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
         if (!outFile.exists()) {
         	outFile.createNewFile()
         	
-          openInputStream(child)!!.use { input ->
+          openInputStream(child)?.use { input ->
             outFile.outputStream().use { output ->
               input.copyTo(output)
             }
