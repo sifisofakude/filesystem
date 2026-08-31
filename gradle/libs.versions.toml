@@ -13,8 +13,8 @@ androidx-documentfile = {module = "androidx.documentfile:documentfile",version.r
 androidx-startup = {module = "androidx.startup:startup-runtime",version.ref = "startup"}
 
 [plugins]
-kotlin-multiplatform = {id = "org.jetbrains.kotlin.multiplatform.library",version.ref = "agp"}
+kotlin-multiplatform = {id = "org.jetbrains.kotlin.multiplatform",version.ref = "kotlin"}
 
-android-kmp = {id = "com.android.kotlin.multiplatform",version.ref = "kotlin"}
+android-kmp = {id = "com.android.kotlin.multiplatform.library",version.ref = "agp"}
 
 maven-publish = {id = "maven-publish"}
