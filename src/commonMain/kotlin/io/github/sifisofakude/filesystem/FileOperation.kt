@@ -3,23 +3,6 @@ package io.github.sifisofakude.filesystem
 import kotlinx.io.Sink
 import kotlinx.io.Source
 
-
-/**
- * Provides access to the active filesystem implementation.
- *
- * Applications must assign a [FileSystemUtil] implementation before using
- * [FileOperation].
- *
- * Example:
- *
- * ```kotlin
- * FileSystems.current = JvmFileSystem()
- * ```
- */
-object FileSystems	{
-	lateinit var current: FileSystemUtil
-}
-
 /**
  * Represents a file or directory in the active filesystem.
  *
