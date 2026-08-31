@@ -21,10 +21,18 @@ jobs:
           distribution: temurin
           java-version: '21'
 
+      - name: Install Gradle
+        run: |
+          brew install gradle
+          gradle --version
+
+      - name: Generate Gradle Wrapper
+        run: |
+          gradle wrapper --gradle-version 9.4.1
+          ./gradlew --version
+
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v5
-        with:
-          gradle-version: '9.4.1'
 
       - name: Build
         run: ./gradlew build
