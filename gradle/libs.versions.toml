@@ -10,7 +10,7 @@ kotlinx-io-core = {module = "org.jetbrains.kotlinx:kotlinx-io-core", version.ref
 
 androidx-documentfile = {module = "androidx.documentfile:documentfile",version.ref = "documentfile"}
 
-androidx-statup = {module = "androidx.startup:startup-runtime",version.ref = "startup"}
+androidx-startup = {module = "androidx.startup:startup-runtime",version.ref = "startup"}
 
 [plugins]
 kotlin-multiplatform = {id = "org.jetbrains.kotlin.multiplatform",version.ref = "kotlin"}
