@@ -6,7 +6,6 @@ import kotlinx.io.Buffer
 import kotlinx.io.buffered
 import kotlinx.io.readString
 import kotlinx.io.writeString
-import kotlinx.io.asSource
 
 /**
  * Represents a resolved file together with its logical and resolved paths.
