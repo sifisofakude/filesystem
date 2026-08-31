@@ -6,32 +6,15 @@ kotlin = "2.4.10"
 agp = "9.2.0"
 
 [libraries]
-kotlinx-io-core = {
-	module = "org.jetbrains.kotlinx:kotlinx-io-core", 
-	versionRef = "kotlinxIo"
-}
+kotlinx-io-core = {module = "org.jetbrains.kotlinx:kotlinx-io-core", versionRef = "kotlinxIo"}
 
-androidx-documentfile = {
-	module = "androidx.documentfile:documentfile",
-	versionRef = "documentfile"
-}
+androidx-documentfile = {module = "androidx.documentfile:documentfile",versionRef = "documentfile"}
 
-androidx-statup = {
-	module = "androidx.statup:statup-runtime",
-	versionRef = "statup"
-}
+androidx-statup = {module = "androidx.statup:statup-runtime",versionRef = "statup"}
 
 [plugins]
-kotlin-multiplatform = {
-	id = "org.jetbrains.kotlin.multiplatform",
-	versionRef = "kotlin"
-}
+kotlin-multiplatform = {id = "org.jetbrains.kotlin.multiplatform",versionRef = "kotlin"}
 
-android-kmp = {
-	id = "com.android.kotlin.multiplatform",
-	versionRef = "agp"
-}
+android-kmp = {id = "com.android.kotlin.multiplatform",versionRef = "agp"}
 
-maven-publish = {
-	id = "maven-publish"
-}
+maven-publish = {id = "maven-publish"}
