@@ -13,7 +13,7 @@ kotlin {
 
     jvmToolchain(21)
 
-    android {
+    androidLibrary {
         namespace = "io.github.sifisofakude.filesystem"
         compileSdk = 36
         minSdk = 24
@@ -26,10 +26,10 @@ kotlin {
             }
         }
 
-        val commonMainSourceSet = named("commonMain")
+        val commonMainSourceSet = named("commonMain").get()
 
         val jvmAndAndroidMain = create("jvmAndAndroidMain") {
-            dependsOn(commonMainSourceSet.get())
+            dependsOn(commonMainSourceSet)
         }
 
         named("jvmMain") {
@@ -43,6 +43,10 @@ kotlin {
                 implementation(libs.androidx.documentfile)
                 implementation(libs.androidx.startup)
             }
+        }
+
+        named("iosMain") {
+            dependsOn(commonMainSourceSet)
         }
     }
 }
