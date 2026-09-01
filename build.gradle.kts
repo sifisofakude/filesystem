@@ -1,32 +1,44 @@
-plugins	{
-	alias(libs.plugins.kotlin.multiplatform)
-	alias(libs.plugins.android.kmp)
-	alias(libs.plugins.maven.publish)
+plugins {
+    alias(libs.plugins.kotlin.multiplatform)
+    alias(libs.plugins.android.kmp)
+    alias(libs.plugins.maven.publish)
 }
 
-kotlin	{
-	jvm()
+kotlin {
+  jvm()
 
-	iosArm64()
-	iosSimulatorArm64()
-	iosX64()
+  iosArm64()
+  iosSimulatorArm64()
+  iosX64()
 
-	jvmToolchain(21)
+  jvmToolchain(21)
 
-	androidLibrary	{
-		namespace = "io.github.sifisofakude.filesystem"
-		compileSdk = 36
-		minSdk = 24
-	}
+  androidLibrary {
+    namespace = "io.github.sifisofakude.filesystem"
+    compileSdk = 36
+    minSdk = 24
+  }
 
-	sourceSets	{
-		commonMain.dependencies	{
-			implementation(libs.kotlinx.io.core)
-		}
+  sourceSets {
+    commonMain.dependencies {
+      implementation(libs.kotlinx.io.core)
+    }
 
-		androidMain.dependencies	{
-			implementation(libs.androidx.documentfile)
-			implementation(libs.androidx.startup)
-		}
-	}
+    val jvmAndAndroidMain by creating {
+      dependsOn(commonMain)
+    }
+
+    jvmMain {
+      dependsOn(jvmAndAndroidMain)
+    }
+
+    androidMain {
+      dependsOn(jvmAndAndroidMain)
+
+      dependencies {
+        implementation(libs.androidx.documentfile)
+        implementation(libs.androidx.startup)
+      }
+    }
+  }
 }

@@ -15,9 +15,9 @@ class ContextProvider : Initializer<Unit>	{
 			private set
 	}
 
-	fun create(context: Context)	{
+	override fun create(context: Context)	{
 		appContext = context.applicationContext
 	}
 
-	fun dependencies(): List<Class<out Initializer<*>>> = emptyList()
+	override fun dependencies(): List<Class<out Initializer<*>>> = emptyList()
 }
