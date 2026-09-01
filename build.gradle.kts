@@ -7,26 +7,26 @@ plugins {
 kotlin {
     jvm()
 
-    iosArm64()
-    iosSimulatorArm64()
-    iosX64()
+    val iosArm64Target = iosArm64()
+    val iosSimulatorArm64Target = iosSimulatorArm64()
+    val iosX64Target = iosX64()
 
     jvmToolchain(21)
 
-    androidLibrary {
+    android {
         namespace = "io.github.sifisofakude.filesystem"
         compileSdk = 36
         minSdk = 24
     }
 
     sourceSets {
+        val commonMainSourceSet = named("commonMain").get()
+
         commonMain {
             dependencies {
                 implementation(libs.kotlinx.io.core)
             }
         }
-
-        val commonMainSourceSet = named("commonMain").get()
 
         val jvmAndAndroidMain = create("jvmAndAndroidMain") {
             dependsOn(commonMainSourceSet)
@@ -45,8 +45,20 @@ kotlin {
             }
         }
 
-        named("iosMain") {
+        val iosMain = create("iosMain") {
             dependsOn(commonMainSourceSet)
         }
+
+        iosArm64Target.compilations["main"]
+            .defaultSourceSet
+            .dependsOn(iosMain)
+
+        iosSimulatorArm64Target.compilations["main"]
+            .defaultSourceSet
+            .dependsOn(iosMain)
+
+        iosX64Target.compilations["main"]
+            .defaultSourceSet
+            .dependsOn(iosMain)
     }
 }
