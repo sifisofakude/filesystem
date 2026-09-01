@@ -3,7 +3,7 @@ package io.github.sifisofakude.filesystem
 import kotlinx.io.Sink
 import kotlinx.io.Source
 import kotlinx.io.buffered
-import kotlinx.io.files.FileSystem
+import kotlinx.io.files.SystemFileSystem
 import kotlinx.io.files.Path
 import kotlinx.cinterop.ExperimentalForeignApi
 
@@ -17,8 +17,6 @@ import platform.Foundation.NSFileModificationDate
 import platform.Foundation.NSFileType
 import platform.Foundation.NSFileTypeDirectory
 import platform.Foundation.NSFileTypeRegular
-import platform.Foundation.NSInputStream
-import platform.Foundation.NSOutputStream
 
 /**
  * iOS filesystem implementation of [FileSystemUtil].
@@ -258,11 +256,11 @@ class IosFileSystem : FileSystemUtil {
 	    }
 	
 	    return try {
-	        NSInputStream.fileInputStreamWithFileAtPath(resolved)
-	            ?.asSource()
-	            ?.buffered()
+	    	SystemFileSystem
+	    		.source(Path(resolved))
+	    		.buffered()
 	    } catch (e: Exception) {
-	        null
+        null
 	    }
 	}
 
@@ -291,14 +289,11 @@ class IosFileSystem : FileSystemUtil {
 	    }
 	
 	    return try {
-	        NSOutputStream(
-	            toFileAtPath = resolved,
-	            append = append
-	        )
-	            .asSink()
-	            .buffered()
+	    	SystemFileSystem
+	    		.sink(Path(resolved))
+          .buffered()
 	    } catch (e: Exception) {
-	        null
+        null
 	    }
 	}
 
@@ -752,7 +747,7 @@ class IosFileSystem : FileSystemUtil {
 				as? NSDate
 				?: return -1L
 
-			(date.timeIntervalSince1970 * 1000.0).toLong()
+			(date.timeIntervalSince1970() * 1000.0).toLong()
 		} catch (e: Exception) {
 			-1L
 		}
