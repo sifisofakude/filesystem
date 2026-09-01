@@ -95,25 +95,30 @@ class FileSystemUtilTest {
         fs.createDirectory("src")
         fs.createDirectory("src/main")
         fs.createDirectory("src/test")
-
+    
         fs.createFile("src/main/Main.kt")
         fs.createFile("src/main/Utils.kt")
         fs.createFile("src/test/Test.kt")
         fs.createFile("src/readme.txt")
-
+    
         val kotlinFiles = fs.findFiles(
             "src",
             setOf("kt")
         )
-
+    
+        println("Found Kotlin files:")
+        kotlinFiles.forEach {
+            println("  $it")
+        }
+    
         assertEquals(3, kotlinFiles.size)
-
+    
         assertTrue(
             kotlinFiles.all {
                 fs.getExtension(it) == "kt"
             }
         )
-
+    
         fs.delete("src")
     }
 
