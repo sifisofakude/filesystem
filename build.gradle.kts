@@ -5,40 +5,44 @@ plugins {
 }
 
 kotlin {
-  jvm()
+    jvm()
 
-  iosArm64()
-  iosSimulatorArm64()
-  iosX64()
+    iosArm64()
+    iosSimulatorArm64()
+    iosX64()
 
-  jvmToolchain(21)
+    jvmToolchain(21)
 
-  androidLibrary {
-    namespace = "io.github.sifisofakude.filesystem"
-    compileSdk = 36
-    minSdk = 24
-  }
-
-  sourceSets {
-    commonMain.dependencies {
-      implementation(libs.kotlinx.io.core)
+    android {
+        namespace = "io.github.sifisofakude.filesystem"
+        compileSdk = 36
+        minSdk = 24
     }
 
-    val jvmAndAndroidMain by creating {
-      dependsOn(commonMain)
-    }
+    sourceSets {
+        commonMain {
+            dependencies {
+                implementation(libs.kotlinx.io.core)
+            }
+        }
 
-    jvmMain {
-      dependsOn(jvmAndAndroidMain)
-    }
+        val commonMainSourceSet = named("commonMain")
 
-    androidMain {
-      dependsOn(jvmAndAndroidMain)
+        val jvmAndAndroidMain = create("jvmAndAndroidMain") {
+            dependsOn(commonMainSourceSet.get())
+        }
 
-      dependencies {
-        implementation(libs.androidx.documentfile)
-        implementation(libs.androidx.startup)
-      }
+        named("jvmMain") {
+            dependsOn(jvmAndAndroidMain)
+        }
+
+        named("androidMain") {
+            dependsOn(jvmAndAndroidMain)
+
+            dependencies {
+                implementation(libs.androidx.documentfile)
+                implementation(libs.androidx.startup)
+            }
+        }
     }
-  }
 }
