@@ -5,6 +5,7 @@ import kotlinx.io.Source
 import kotlinx.io.buffered
 import kotlinx.io.files.FileSystem
 import kotlinx.io.files.Path
+import kotlinx.cinterop.ExperimentalForeignApi
 
 import platform.Foundation.NSFileManager
 import platform.Foundation.NSURL
@@ -16,6 +17,8 @@ import platform.Foundation.NSFileModificationDate
 import platform.Foundation.NSFileType
 import platform.Foundation.NSFileTypeDirectory
 import platform.Foundation.NSFileTypeRegular
+import platform.Foundation.NSInputStream
+import platform.Foundation.NSOutputStream
 
 /**
  * iOS filesystem implementation of [FileSystemUtil].
@@ -53,6 +56,7 @@ import platform.Foundation.NSFileTypeRegular
  *
  * @see FileSystemUtil
  */
+ @OptIn(ExperimentalForeignApi::class)
 class IosFileSystem : FileSystemUtil {
 
 	private val fileManager = NSFileManager.defaultManager
@@ -156,7 +160,8 @@ class IosFileSystem : FileSystemUtil {
 			val success = fileManager.createDirectoryAtPath(
 				path = resolved,
 				withIntermediateDirectories = true,
-				attributes = null
+				attributes = null,
+				error = null
 			)
 
 			if (success) {
@@ -246,19 +251,19 @@ class IosFileSystem : FileSystemUtil {
 	 * @return buffered source, or null if the file cannot be opened
 	 */
 	override fun openSource(path: String): Source? {
-		val resolved = resolveSelectedPath(path)
-
-		if (!isFile(resolved)) {
-			return null
-		}
-
-		return try {
-			FileSystem.SYSTEM
-				.source(Path(resolved))
-				.buffered()
-		} catch (e: Exception) {
-			null
-		}
+	    val resolved = resolveSelectedPath(path)
+	
+	    if (!isFile(resolved)) {
+	        return null
+	    }
+	
+	    return try {
+	        NSInputStream.fileInputStreamWithFileAtPath(resolved)
+	            ?.asSource()
+	            ?.buffered()
+	    } catch (e: Exception) {
+	        null
+	    }
 	}
 
 	/**
@@ -272,26 +277,29 @@ class IosFileSystem : FileSystemUtil {
 	 * @return buffered sink, or `null` if the file cannot be opened.
 	 */
 	override fun openSink(
-		path: String,
-		append: Boolean
+	    path: String,
+	    append: Boolean
 	): Sink? {
-		val resolved = resolveSelectedPath(path)
-
-		if (!exists(resolved)) {
-			createFile(resolved) ?: return null
-		}
-
-		if (!isFile(resolved)) {
-			return null
-		}
-
-		return try {
-			FileSystem.SYSTEM
-				.sink(Path(resolved), append = append)
-				.buffered()
-		} catch (e: Exception) {
-			null
-		}
+	    val resolved = resolveSelectedPath(path)
+	
+	    if (!exists(resolved)) {
+	        createFile(resolved) ?: return null
+	    }
+	
+	    if (!isFile(resolved)) {
+	        return null
+	    }
+	
+	    return try {
+	        NSOutputStream(
+	            toFileAtPath = resolved,
+	            append = append
+	        )
+	            .asSink()
+	            .buffered()
+	    } catch (e: Exception) {
+	        null
+	    }
 	}
 
 	/**
