@@ -11,7 +11,7 @@ actual object FileSystems	{
 
 class ContextProvider : Initializer<Unit>	{
 	companion object	{
-		lateinit val appContext: Context
+		lateinit var appContext: Context
 			private set
 	}
 
