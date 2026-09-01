@@ -747,7 +747,7 @@ class IosFileSystem : FileSystemUtil {
 				as? NSDate
 				?: return -1L
 
-			(date.timeIntervalSince1970() * 1000.0).toLong()
+			(date.timeIntervalSinceReferenceDate * 1000.0).toLong()
 		} catch (e: Exception) {
 			-1L
 		}
