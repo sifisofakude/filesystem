@@ -1,4 +1,4 @@
-package io.github.sifisofakud.filesystem
+package io.github.sifisofakude.filesystem
 
  /**
   * Provides access to the filesystem implementation for the current platform.

@@ -44,21 +44,5 @@ kotlin {
                 implementation(libs.androidx.startup)
             }
         }
-
-        val iosMain = create("iosMain") {
-            dependsOn(commonMainSourceSet)
-        }
-
-        iosArm64Target.compilations["main"]
-            .defaultSourceSet
-            .dependsOn(iosMain)
-
-        iosSimulatorArm64Target.compilations["main"]
-            .defaultSourceSet
-            .dependsOn(iosMain)
-
-        iosX64Target.compilations["main"]
-            .defaultSourceSet
-            .dependsOn(iosMain)
     }
 }
