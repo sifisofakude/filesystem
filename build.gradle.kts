@@ -15,7 +15,7 @@ kotlin {
 
     jvmToolchain(21)
 
-    androidLibrary {
+    android {
         namespace = "io.github.sifisofakude.filesystem"
         compileSdk = 36
         minSdk = 24
@@ -24,6 +24,10 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation(libs.kotlinx.io.core)
+        }
+
+        commonTest.dependencies 	{
+        	implementation(kotlin("test"))
         }
 
         val jvmAndAndroidMain = create("jvmAndAndroidMain") {
