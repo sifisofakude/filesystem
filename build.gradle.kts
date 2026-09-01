@@ -1,42 +1,34 @@
-plugins {
-    alias(libs.plugins.kotlin.multiplatform)
-    alias(libs.plugins.android.kmp)
-    alias(libs.plugins.maven.publish)
-}
-
 kotlin {
     jvm()
 
-    val iosArm64Target = iosArm64()
-    val iosSimulatorArm64Target = iosSimulatorArm64()
-    val iosX64Target = iosX64()
+    iosArm64()
+    iosSimulatorArm64()
+    iosX64()
+
+    applyDefaultHierarchyTemplate()
 
     jvmToolchain(21)
 
-    android {
+    androidLibrary {
         namespace = "io.github.sifisofakude.filesystem"
         compileSdk = 36
         minSdk = 24
     }
 
     sourceSets {
-        val commonMainSourceSet = named("commonMain").get()
-
-        commonMain {
-            dependencies {
-                implementation(libs.kotlinx.io.core)
-            }
+        commonMain.dependencies {
+            implementation(libs.kotlinx.io.core)
         }
 
         val jvmAndAndroidMain = create("jvmAndAndroidMain") {
-            dependsOn(commonMainSourceSet)
+            dependsOn(commonMain.get())
         }
 
-        named("jvmMain") {
+        jvmMain {
             dependsOn(jvmAndAndroidMain)
         }
 
-        named("androidMain") {
+        androidMain {
             dependsOn(jvmAndAndroidMain)
 
             dependencies {
