@@ -290,7 +290,7 @@ class IosFileSystem : FileSystemUtil {
 	
 	    return try {
 	    	SystemFileSystem
-	    		.sink(Path(resolved))
+	    		.sink(Path(resolved), append = append)
           .buffered()
 	    } catch (e: Exception) {
         null
@@ -645,40 +645,45 @@ class IosFileSystem : FileSystemUtil {
 	 * @return path of the moved resource, or `null` if the operation fails
 	 */
 	override fun move(
-    src: String,
-    dst: String
+	    src: String,
+	    dst: String
 	): String? {
-    val source = resolveSelectedPath(src)
-    val destination = resolveSelectedPath(dst)
-
-    if (!exists(source) || !isDirectory(destination)) {
-      return null
-    }
-
-    val target = combinePath(
-      destination,
-      getName(source)
-    )
-
-    if (exists(target)) {
-      return null
-    }
-
-    return try {
-      if (
-        fileManager.moveItemAtPath(
-          source,
-          toPath = target,
-          error = null
-        )
-      ) {
-        target
-      } else {
-        null
-      }
-    } catch (e: Exception) {
-      null
-    }
+	    val source = resolveSelectedPath(src)
+	    val destination = resolveSelectedPath(dst)
+	
+	    if (!exists(source)) {
+	        return null
+	    }
+	
+	    val target = if (isDirectory(destination)) {
+	        combinePath(
+	            destination,
+	            getName(source)
+	        )
+	    } else {
+	        destination
+	    }
+	
+	    // move() should not overwrite an existing target
+	    if (exists(target)) {
+	        return null
+	    }
+	
+	    return try {
+	        if (
+	            fileManager.moveItemAtPath(
+	                source,
+	                toPath = target,
+	                error = null
+	            )
+	        ) {
+	            target
+	        } else {
+	            null
+	        }
+	    } catch (e: Exception) {
+	        null
+	    }
 	}
 
 	/**
