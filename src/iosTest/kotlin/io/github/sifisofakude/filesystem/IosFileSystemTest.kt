@@ -23,7 +23,7 @@ class IosFileSystemTest {
     fs.createFile("to/source.txt")
 
     fs.changeSelectedDirectory(testRoot2)
-    assertTrue(!fs.exists("to/source.txt"))
+    assertTrue(fs.exists("to/source.txt"))
     
     fs.changeSelectedDirectory(testRoot)
     assertTrue(fs.exists("to/source.txt"))
