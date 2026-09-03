@@ -104,7 +104,10 @@ open class JvmFileSystem : FileSystemUtil	{
 	 * @return the combined filesystem path
 	 */
 	override fun combinePath(parent: String, child: String): String	{
-		var sanitizedChild = child.removeSuffix("${File.separator}")
+		var sanitizedChild = child
+			.removeSuffix("${File.separator}")
+			.removePrefix("${File.separator}")
+			
 		var sanitizedParent = parent.removeSuffix("${File.separator}")
 		
 		return "$sanitizedParent${File.separator}$sanitizedChild"
@@ -439,5 +442,5 @@ fun main()	{
 
 	// println(fs.createDirectory("destination"))
 	println(fs.copy("test/copable","destination"))
-	println(fs.streamMove("test/movable","test/moveTo"))
+	println(fs.move("source.txt","test/source.txt"))
 }

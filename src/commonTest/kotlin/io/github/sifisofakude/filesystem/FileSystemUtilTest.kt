@@ -183,7 +183,7 @@ class FileSystemUtilTest {
 
         val moved = fs.move(
             "source.txt",
-            "destination"
+            "destination/source.txt"
         )
 
         assertNotNull(moved)
@@ -268,24 +268,25 @@ class FileSystemUtilTest {
         assertFalse(fs.exists("source"))
 
         assertTrue(
-            fs.exists("destination/source/a.txt")
+            fs.exists("destination/a.txt")
         )
 
         assertTrue(
-            fs.exists("destination/source/sub/b.txt")
+            fs.exists("source/sub/b.txt")
         )
 
         assertEquals(
             "A",
-            fs.readText("destination/source/a.txt")
+            fs.readText("destination/a.txt")
         )
 
         assertEquals(
             "B",
-            fs.readText("destination/source/sub/b.txt")
+            fs.readText("source/sub/b.txt")
         )
 
         fs.delete("destination")
+        fs.delete("source")
     }
 
     @Test
