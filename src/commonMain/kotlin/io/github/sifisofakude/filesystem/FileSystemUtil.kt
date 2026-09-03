@@ -145,7 +145,7 @@ interface FileSystemUtil	{
 	 */
 	fun copy(src: String, dst: String,overwrite: Boolean = true): String?
 	
-	fun streamCopy(
+	fun copyByStream(
     src: String,
     dst: String,
     overwrite: Boolean = true
@@ -219,11 +219,11 @@ interface FileSystemUtil	{
 
    			if(isDirectory(file))	{
    				createDirectory(combinePath(finalDst,name))?.let	{
-   					copy(file,it,overwrite)
+   					copyByStream(file,it,overwrite)
    				}
    			}else	{
    				createFile(combinePath(finalDst,name))?.let	{
-   					copy(file,it,true)
+   					copyByStream(file,it,true)
    				}
    			}
    		}
@@ -389,7 +389,7 @@ interface FileSystemUtil	{
 	 */
 	fun move(src: String, dst: String): String?
 	
-	fun streamMove(src: String, dst: String): String? {
+	fun moveByStream(src: String, dst: String): String? {
 		var tmpSource = src
 		val sourceParent = getParentFile(src)
       	println(tmpSource)
@@ -435,7 +435,7 @@ interface FileSystemUtil	{
       for (child in listFiles(tmpSource)) {
         val childDst = combinePath(finalDst, getName(child))
 
-        if (move(child, childDst) == null) {
+        if (moveByStream(child, childDst) == null) {
             return null
         }
       }
@@ -454,7 +454,7 @@ interface FileSystemUtil	{
         tmpDestination
     }
 
-    if (copy(tmpSource, finalDst,true) == null) {
+    if (copyByStream(tmpSource, finalDst,true) == null) {
         return null
     }
 

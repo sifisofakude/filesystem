@@ -216,7 +216,7 @@ open class JvmFileSystem : FileSystemUtil	{
 	}
 
 	override open fun copy(src: String, dst: String, overwrite: Boolean): String?	{
-		return streamCopy(src,dst)
+		return copyByStream(src,dst)
 	}
 
 	/**
