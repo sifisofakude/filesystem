@@ -357,7 +357,7 @@ class IosFileSystemTest {
                 "Stream copy"
             )
 
-            val result = fs.streamCopy(
+            val result = fs.copyByStream(
                 source,
                 destination
             )
@@ -391,7 +391,7 @@ class IosFileSystemTest {
                 "Stream move"
             )
 
-            val result = fs.streamMove(
+            val result = fs.moveByStream(
                 source,
                 destination
             )
