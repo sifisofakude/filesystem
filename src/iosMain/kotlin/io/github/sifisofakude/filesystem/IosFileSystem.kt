@@ -583,52 +583,55 @@ class IosFileSystem : FileSystemUtil {
 	 * @return path of the copied resource, or `null` if the operation fails
 	 */
 	override fun copy(
-    src: String,
-    dst: String,
-    overwrite: Boolean
+	    src: String,
+	    dst: String,
+	    overwrite: Boolean
 	): String? {
-    val source = resolveSelectedPath(src)
-    val destination = resolveSelectedPath(dst)
-
-    if (!exists(source) || !isDirectory(destination)) {
-      return null
-    }
-
-    val target = combinePath(
-      destination,
-      getName(source)
-    )
-
-    if (exists(target)) {
-      if (!overwrite) {
-        return null
-      }
-
-      try {
-        fileManager.removeItemAtPath(
-          target,
-          error = null
-        )
-      } catch (e: Exception) {
-        return null
-      }
-    }
-
-    return try {
-      if (
-          fileManager.copyItemAtPath(
-              source,
-              toPath = target,
-              error = null
-          )
-      ) {
-          target
-      } else {
-          null
-      }
-    } catch (e: Exception) {
-      null
-    }
+	    val source = resolveSelectedPath(src)
+	    val destination = resolveSelectedPath(dst)
+	
+	    if (!exists(source)) {
+	        return null
+	    }
+	
+	    if (isFile(destination)) {
+	        return null
+	    }
+	
+	    val target = if (isDirectory(destination)) {
+	        combinePath(
+	            destination,
+	            getName(source)
+	        )
+	    } else {
+	        destination
+	    }
+	
+	    if (exists(target)) {
+	        if (!overwrite) {
+	            return null
+	        }
+	
+	        if (!delete(target)) {
+	            return null
+	        }
+	    }
+	
+	    return try {
+	        if (
+	            fileManager.copyItemAtPath(
+	                source,
+	                toPath = target,
+	                error = null
+	            )
+	        ) {
+	            target
+	        } else {
+	            null
+	        }
+	    } catch (e: Exception) {
+	        null
+	    }
 	}
 
 	/**
