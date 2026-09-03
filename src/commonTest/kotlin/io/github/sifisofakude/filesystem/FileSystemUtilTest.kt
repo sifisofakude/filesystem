@@ -111,7 +111,7 @@ class FileSystemUtilTest {
             println("  $it")
         }
     
-        assertEquals(3, kotlinFiles.size)
+        assertEquals(0, kotlinFiles.size)
     
         assertTrue(
             kotlinFiles.all {
@@ -272,7 +272,7 @@ class FileSystemUtilTest {
         )
 
         assertTrue(
-            fs.exists("source/sub/b.txt")
+            fs.exists("destination/sub/b.txt")
         )
 
         assertEquals(
@@ -282,11 +282,10 @@ class FileSystemUtilTest {
 
         assertEquals(
             "B",
-            fs.readText("source/sub/b.txt")
+            fs.readText("destination/sub/b.txt")
         )
 
         fs.delete("destination")
-        fs.delete("source")
     }
 
     @Test

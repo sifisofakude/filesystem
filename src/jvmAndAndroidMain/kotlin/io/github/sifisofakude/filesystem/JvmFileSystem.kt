@@ -441,6 +441,7 @@ fun main()	{
 	val fs = JvmFileSystem()
 
 	// println(fs.createDirectory("destination"))
-	println(fs.copy("test/copable","destination"))
-	println(fs.move("source.txt","test/source.txt"))
+	// println(fs.copy("test/copable","destination"))
+	// println(fs.move("source.txt","test/source.txt"))
+	println(fs.findFiles("test",setOf("txt")))
 }
