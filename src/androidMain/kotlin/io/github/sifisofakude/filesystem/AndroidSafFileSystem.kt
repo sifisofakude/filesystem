@@ -147,7 +147,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 * @param path path or SAF URI to evaluate.
 	 * @return `true` if the path represents a relative location, otherwise `false`.
 	 */
-	fun isRelative(path: String): Boolean	{
+	override fun isRelative(path: String): Boolean	{
 		if(isSafUri(path))	{
 			val relativeUri = relativePathFromUri(path)
 			if(relativeUri.relativePath.isEmpty())	{

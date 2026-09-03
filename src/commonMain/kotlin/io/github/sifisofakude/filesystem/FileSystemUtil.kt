@@ -143,52 +143,78 @@ interface FileSystemUtil	{
 	 * @param overwrite whether an existing destination file may be overwritten
 	 * @return resulting destination path or URI, or `null` if copying failed
 	 */
-	fun copy(
+	fun copy(src: String, dst: String,overwrite: Boolean = true): String?
+	
+	fun streamCopy(
     src: String,
     dst: String,
     overwrite: Boolean = true
 	): String? {
+		var tmpSource = src
+		val sourceParent = getParentFile(src)
+		if(sourceParent == null)	{
+			if(isRelative(src))	{
+				getCurrentDirectory()?.let	{
+					tmpSource = combinePath(it,src)
+				} ?: return null
+			}else	{
+				return null
+			}
+		}
+
+		var tmpDestination = dst
+		val destinationParent = getParentFile(dst)
+		if(destinationParent == null)	{
+			if(isRelative(dst))	{
+				getCurrentDirectory()?.let	{
+					tmpDestination = combinePath(it,dst)
+				} ?: return null
+			}else	{
+				return null
+			}
+		}
+
+		var returnDst = dst
+
 	
-    if (!exists(src)) {
+    if (!exists(tmpSource)) {
     	return null
     }
 
-    if (isDirectory(src)) {
+    if (isDirectory(tmpSource)) {
    		var finalDst: String? = null
    		
-    	if(isFile(dst))	{
+    	if(isFile(tmpDestination))	{
     		return null
     	}
 
-    	if(isDirectory(dst))	{
-	   		val srcName = getName(src)
-	   		val dstName = getName(dst)
+    	if(isDirectory(tmpDestination))	{
+	   		val srcName = getName(tmpSource)
+	   		val dstName = getName(tmpDestination)
 	   		
 	   		finalDst = if(srcName != dstName)	{
-	   			val tmpPath = combinePath(dst,srcName)
+	   			val tmpPath = combinePath(tmpDestination,srcName)
+
+	   			returnDst = combinePath(returnDst,srcName)
 	   			
 	   			createDirectory(tmpPath)?.let	{
 	   				tmpPath
-	   			}
+	   			} ?: return null
 	   		}else	{
-	   			dst
+	   			tmpDestination
 	   		}
     	}
 
-    	if(!exists(dst))	{
-    		getParentFile(dst)?.let	{
-    			if(!exists(it)) return null
-    		} ?: return null
+    	if(!exists(tmpDestination))	{
+    		createDirectory(tmpDestination) ?: return null
 
-    		createDirectory(dst) ?: return null
-
-    		finalDst = dst
+    		finalDst = tmpDestination
     	}
 
 
    		if(finalDst == null) return null
    		
-   		for(file in listFiles(src))	{
+   		for(file in listFiles(tmpSource))	{
  				val name = getName(file)
 
    			if(isDirectory(file))	{
@@ -201,33 +227,29 @@ interface FileSystemUtil	{
    				}
    			}
    		}
-   		return finalDst
+   		return returnDst
     }
 
-		var finalDst = dst
+		var finalDst = tmpDestination
 		var finalOverwrite = overwrite
 		
-    if(isDirectory(dst))	{
-    	val name = getName(src)
-    	finalDst = combinePath(dst,name)
-    }else if(!exists(dst))	{
-    	val parent = getParentFile(dst) ?: return null
-    	
-    	if(!exists(parent))	{
-    		return null
-    	}
-    	
-   		createFile(dst) ?: return null
+    if(isDirectory(tmpDestination))	{
+    	val name = getName(tmpSource)
+    	finalDst = combinePath(tmpDestination,name)
+    	returnDst = combinePath(returnDst,name)
+    }else if(!exists(tmpDestination))	{
+
+   		createFile(tmpDestination) ?: return null
    		finalOverwrite = true
     }
     
  		if(finalOverwrite)	{
- 			openSource(src)?.use { source ->
+ 			openSource(tmpSource)?.use { source ->
  				openSink(finalDst)?.use { sink ->
  					source.transferTo(sink)
  				}
  			}
- 			return finalDst
+ 			return returnDst
  		}
     return null
 	}
@@ -365,24 +387,52 @@ interface FileSystemUtil	{
 	 * @param dst destination file or directory
 	 * @return resulting destination path or URI, or `null` if the move failed
 	 */
-	fun move(src: String, dst: String): String? {
-    if (!exists(src)) return null
-    if (isDirectory(src)) {
-      if (isFile(dst)) return null
+	fun move(src: String, dst: String): String?
+	
+	fun streamMove(src: String, dst: String): String? {
+		var tmpSource = src
+		val sourceParent = getParentFile(src)
+      	println(tmpSource)
+		if(sourceParent == null)	{
+			if(isRelative(src))	{
+				getCurrentDirectory()?.let	{
+					tmpSource = combinePath(it,src)
+				} ?: return null
+			}else	{
+				return null
+			}
+		}
 
-      val finalDst = if (isDirectory(dst)) {
-         val target = combinePath(dst, getName(src))
-         if (!exists(target)) {
-             createDirectory(target) ?: return null
-         }
-          target
+		var tmpDestination = dst
+		val destinationParent = getParentFile(dst)
+		if(destinationParent == null)	{
+			if(isRelative(dst))	{
+				getCurrentDirectory()?.let	{
+					tmpDestination = combinePath(it,dst)
+				} ?: return null
+			}
+		}
+
+		var returnDst = dst
+		
+    if (!exists(tmpSource)) return null
+    
+    if (isDirectory(tmpSource)) {
+      if (isFile(tmpDestination)) return null
+
+      val finalDst = if (isDirectory(tmpDestination)) {
+				returnDst = combinePath(returnDst,getName(tmpSource))
+        val target = combinePath(tmpDestination, getName(tmpSource))
+        if (!exists(target)) {
+            createDirectory(target) ?: return null
+        }
+         target
       } else {
-        if (getParentFile(dst)?.let(::exists) != true) return null
-        createDirectory(dst) ?: return null
-        dst
+        createDirectory(tmpDestination) ?: return null
+        tmpDestination
       }
 
-      for (child in listFiles(src)) {
+      for (child in listFiles(tmpSource)) {
         val childDst = combinePath(finalDst, getName(child))
 
         if (move(child, childDst) == null) {
@@ -390,20 +440,25 @@ interface FileSystemUtil	{
         }
       }
 
-      return if (delete(src)) finalDst else null
+      return if(delete(tmpSource))	{
+      	returnDst
+      }else	{
+      	null
+      }
     }
 
-    val finalDst = if (isDirectory(dst)) {
-        combinePath(dst, getName(src))
+    val finalDst = if (isDirectory(tmpDestination)) {
+    	returnDst = combinePath(returnDst,getName(tmpSource))
+      combinePath(tmpDestination, getName(tmpSource))
     } else {
-        dst
+        tmpDestination
     }
 
-    if (copy(src, finalDst,true) == null) {
+    if (copy(tmpSource, finalDst,true) == null) {
         return null
     }
 
-    return if (delete(src)) finalDst else null
+    return if (delete(tmpSource)) returnDst else null
 	}
 
 	/**
@@ -455,6 +510,8 @@ interface FileSystemUtil	{
 	 * @return `true` if the resource is a directory, otherwise `false`
 	 */
 	fun isDirectory(path: String): Boolean
+
+	fun isRelative(path: String): Boolean
 
 	/**
 	 * Returns the last modification timestamp of [path].
@@ -511,7 +568,13 @@ interface FileSystemUtil	{
 	 * @return file extension without the leading `.`
 	 */
 	fun getExtension(path: String): String	{
-		return path.substringAfterLast('.',"")
+		val name = getName(path)
+		val dotIndex = name.lastIndexOf('.')
+		return if(dotIndex > 0 && dotIndex < name.length)	{
+			name.substring(dotIndex+1)
+		}else	{
+			""
+		}
 	}
 
 	/**

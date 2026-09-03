@@ -114,7 +114,7 @@ class IosFileSystem : FileSystemUtil {
 	 * @param path path to inspect
 	 * @return true when the path is relative
 	 */
-	fun isRelative(path: String): Boolean {
+	override fun isRelative(path: String): Boolean {
 		return !isAbsolute(path)
 	}
 

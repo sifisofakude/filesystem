@@ -104,7 +104,10 @@ open class JvmFileSystem : FileSystemUtil	{
 	 * @return the combined filesystem path
 	 */
 	override fun combinePath(parent: String, child: String): String	{
-		return "$parent${File.separator}$child"
+		var sanitizedChild = child.removeSuffix("${File.separator}")
+		var sanitizedParent = parent.removeSuffix("${File.separator}")
+		
+		return "$sanitizedParent${File.separator}$sanitizedChild"
 	}
 
 	/**
@@ -207,6 +210,10 @@ open class JvmFileSystem : FileSystemUtil	{
 	 */
 	override open fun exists(path: String): Boolean	{
 		return File(path).exists()
+	}
+
+	override open fun copy(src: String, dst: String, overwrite: Boolean): String?	{
+		return streamCopy(src,dst)
 	}
 
 	/**
@@ -369,6 +376,10 @@ open class JvmFileSystem : FileSystemUtil	{
 		return File(path).isDirectory
 	}
 
+	override open fun isRelative(path: String): Boolean	{
+		return !File(path).isAbsolute()
+	}
+
 	/**
 	 * Returns the last modification time of a filesystem resource.
 	 *
@@ -423,3 +434,10 @@ open class JvmFileSystem : FileSystemUtil	{
 	}
 }
 
+fun main()	{
+	val fs = JvmFileSystem()
+
+	// println(fs.createDirectory("destination"))
+	println(fs.copy("test/copable","destination"))
+	println(fs.streamMove("test/movable","test/moveTo"))
+}
