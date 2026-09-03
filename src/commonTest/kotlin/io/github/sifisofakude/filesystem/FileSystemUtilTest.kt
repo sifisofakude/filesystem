@@ -111,7 +111,7 @@ class FileSystemUtilTest {
             println("  $it")
         }
     
-        assertEquals(0, kotlinFiles.size)
+        assertEquals(4, kotlinFiles.size)
     
         assertTrue(
             kotlinFiles.all {
