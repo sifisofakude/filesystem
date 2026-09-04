@@ -367,7 +367,7 @@ class IosFileSystemTest {
                 result
             )
 
-//             assertTrue(fs.exists(source))
+            assertTrue(fs.exists(source))
 //             assertTrue(fs.exists(destination))
 // 
 //             assertEquals(
