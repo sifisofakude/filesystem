@@ -362,18 +362,18 @@ class IosFileSystemTest {
                 destination
             )
 
-            // assertEquals(
-            //     destination,
-            //     result
-            // )
+            assertEquals(
+                destination,
+                result
+            )
 
-            // assertTrue(fs.exists(source))
-//             assertTrue(fs.exists(destination))
-// 
-//             assertEquals(
-//                 "Stream copy",
-//                 fs.readText(destination)
-//             )
+            assertTrue(fs.exists(source))
+            assertTrue(fs.exists(destination))
+
+            assertEquals(
+                "Stream copy",
+                fs.readText(destination)
+            )
         } finally {
             fs.delete(source)
             fs.delete(destination)
