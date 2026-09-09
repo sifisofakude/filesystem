@@ -393,7 +393,6 @@ interface FileSystemUtil	{
 		var tmpSource = src
 		val sourceParent = getParentFile(src)
 
-    println("inner debug: $src $dst")
 		if(sourceParent == null)	{
 			if(isRelative(src))	{
 				getCurrentDirectory()?.let	{
@@ -403,6 +402,7 @@ interface FileSystemUtil	{
 				return null
 			}
 		}
+    println("inner debug: $src $dst")
 
 		var tmpDestination = dst
 		val destinationParent = getParentFile(dst)
