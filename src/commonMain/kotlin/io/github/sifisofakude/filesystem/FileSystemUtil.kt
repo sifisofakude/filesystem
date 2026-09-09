@@ -415,6 +415,7 @@ interface FileSystemUtil	{
 
 		var returnDst = dst
 		
+    println(returnDst)
     if (!exists(tmpSource)) return null
     
     if (isDirectory(tmpSource)) {
@@ -455,7 +456,6 @@ interface FileSystemUtil	{
     }
 
     println(finalDst)
-    println(returnDst)
 
     if (copyByStream(tmpSource, finalDst,true) == null) {
         return null
