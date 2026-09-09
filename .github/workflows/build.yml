@@ -43,7 +43,6 @@ jobs:
         run: |
           ls -l /dev/kvm
           groups
-          $ANDROID_HOME/emulator/emulator -accel-check
 
       - name: Start Android Emulator
         uses: reactivecircus/android-emulator-runner@v2
@@ -60,7 +59,11 @@ jobs:
             -gpu swiftshader_indirect
           disable-animations: true
           emulator-boot-timeout: 300
+
           script: |
+            echo "=== Emulator acceleration ==="
+            emulator -accel-check
+
             echo "=== ADB devices ==="
             adb devices -l
 
