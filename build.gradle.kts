@@ -1,50 +1,65 @@
-plugins {
-    alias(libs.plugins.kotlin.multiplatform)
-    alias(libs.plugins.android.kmp)
-    alias(libs.plugins.maven.publish)
-}
+name: Build
 
-kotlin {
-    jvm()
+on:
+  push:
+    branches: ["master", "main"]
+  pull_request:
+    branches: ["master", "main"]
 
-    iosArm64()
-    iosSimulatorArm64()
-    iosX64()
+permissions:
+  contents: read
 
-    applyDefaultHierarchyTemplate()
+jobs:
+  build-jvm-android:
+    name: JVM / Android
+    runs-on: ubuntu-latest
 
-    jvmToolchain(21)
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    android {
-        namespace = "io.github.sifisofakude.filesystem"
-        compileSdk = 36
-        minSdk = 24
-    }
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
 
-    sourceSets {
-        commonMain.dependencies {
-            implementation(libs.kotlinx.io.core)
-        }
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
 
-        commonTest.dependencies 	{
-        	implementation(kotlin("test"))
-        }
+      - name: Build and Test
+        run: |
+          ./gradlew jvmTest
 
-        val jvmAndAndroidMain = create("jvmAndAndroidMain") {
-            dependsOn(commonMain.get())
-        }
+  build-apple-targets:
+    name: Apple / Kotlin Native
+    runs-on: macos-latest
 
-        jvmMain {
-            dependsOn(jvmAndAndroidMain)
-        }
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-        androidMain {
-            dependsOn(jvmAndAndroidMain)
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
 
-            dependencies {
-                implementation(libs.androidx.documentfile)
-                implementation(libs.androidx.startup)
-            }
-        }
-    }
-}
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Cache Kotlin/Native
+        uses: actions/cache@v4
+        with:
+          path: ~/.konan
+          key: ${{ runner.os }}-konan-${{ hashFiles('gradle/libs.versions.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-konan-
+
+      - name: Build and Test Apple Targets
+        run: |
+          ./gradlew \
+            iosX64Test \
+            iosSimulatorArm64Test \
+            macosX64Test \
+            macosArm64Test
