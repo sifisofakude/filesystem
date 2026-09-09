@@ -392,7 +392,7 @@ interface FileSystemUtil	{
 	fun moveByStream(src: String, dst: String): String? {
 		var tmpSource = src
 		val sourceParent = getParentFile(src)
-      	println(tmpSource)
+
 		if(sourceParent == null)	{
 			if(isRelative(src))	{
 				getCurrentDirectory()?.let	{
@@ -439,6 +439,8 @@ interface FileSystemUtil	{
             return null
         }
       }
+
+      println(returnDst)
 
       return if(delete(tmpSource))	{
       	returnDst
