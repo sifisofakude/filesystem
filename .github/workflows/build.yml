@@ -44,11 +44,12 @@ jobs:
             -no-window
             -no-audio
             -no-boot-anim
-            -gpu swiftshader_indirect
             -no-snapshot
+            -gpu swiftshader_indirect
           disable-animations: true
+          emulator-build: 35.2.10
           script: |
-            adb devices
+            adb devices -l
             ./gradlew connectedAndroidTest --stacktrace
 
   build-apple-targets:
