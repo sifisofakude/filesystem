@@ -1,65 +1,50 @@
-name: Build
+plugins {
+    alias(libs.plugins.kotlin.multiplatform)
+    alias(libs.plugins.android.kmp)
+    alias(libs.plugins.maven.publish)
+}
 
-on:
-  push:
-    branches: ["master", "main"]
-  pull_request:
-    branches: ["master", "main"]
+kotlin {
+    jvm()
 
-permissions:
-  contents: read
+    iosArm64()
+    iosSimulatorArm64()
+    iosX64()
 
-jobs:
-  build-jvm-android:
-    name: JVM / Android
-    runs-on: ubuntu-latest
+    applyDefaultHierarchyTemplate()
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+    jvmToolchain(21)
 
-      - name: Set up JDK
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: "21"
+    android {
+        namespace = "io.github.sifisofakude.filesystem"
+        compileSdk = 36
+        minSdk = 24
+    }
 
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
+    sourceSets {
+        commonMain.dependencies {
+            implementation(libs.kotlinx.io.core)
+        }
 
-      - name: Build and Test
-        run: |
-          ./gradlew jvmTest
+        commonTest.dependencies 	{
+        	implementation(kotlin("test"))
+        }
 
-  build-apple-targets:
-    name: Apple / Kotlin Native
-    runs-on: macos-latest
+        val jvmAndAndroidMain = create("jvmAndAndroidMain") {
+            dependsOn(commonMain.get())
+        }
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+        jvmMain {
+            dependsOn(jvmAndAndroidMain)
+        }
 
-      - name: Set up JDK
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: "21"
+        androidMain {
+            dependsOn(jvmAndAndroidMain)
 
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
-
-      - name: Cache Kotlin/Native
-        uses: actions/cache@v4
-        with:
-          path: ~/.konan
-          key: ${{ runner.os }}-konan-${{ hashFiles('gradle/libs.versions.toml') }}
-          restore-keys: |
-            ${{ runner.os }}-konan-
-
-      - name: Build and Test Apple Targets
-        run: |
-          ./gradlew \
-            iosX64Test \
-            iosSimulatorArm64Test \
-            macosX64Test \
-            macosArm64Test
+            dependencies {
+                implementation(libs.androidx.documentfile)
+                implementation(libs.androidx.startup)
+            }
+        }
+    }
+}

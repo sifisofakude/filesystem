@@ -2,16 +2,18 @@ name: Build
 
 on:
   push:
-    branches: [ "master", "main" ]
+    branches: ["master", "main"]
   pull_request:
-    branches: [ "master", "main" ]
+    branches: ["master", "main"]
 
 permissions:
   contents: read
 
 jobs:
   build-jvm-android:
+    name: JVM / Android
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -19,18 +21,20 @@ jobs:
       - name: Set up JDK
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
-          java-version: '21'
+          distribution: temurin
+          java-version: "21"
 
-      # Tier 1: Handles standard Gradle cache, wrappers, and dependency graphs automatically
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Build and Test Core/JVM/Android
-        run: ./gradlew :filesystem-jvm:test :filesystem-android:test
+      - name: Build and Test
+        run: |
+          ./gradlew jvmTest
 
   build-apple-targets:
+    name: Apple / Kotlin Native
     runs-on: macos-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -38,23 +42,24 @@ jobs:
       - name: Set up JDK
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
-          java-version: '21'
+          distribution: temurin
+          java-version: "21"
 
-      # Tier 1: Gradle cache layer
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      # Tier 2: Kotlin/Native (Konan) Toolchain Cache Layer
-      # Keying off libs.versions.toml or build.gradle.kts tells GitHub to only re-download 
-      # the native toolchains if you update your Kotlin version.
-      - name: Cache Kotlin/Native (Konan) Toolchain
+      - name: Cache Kotlin/Native
         uses: actions/cache@v4
         with:
           path: ~/.konan
-          key: ${{ runner.os }}-konan-${{ hashFiles('**/build.gradle.kts', '**/gradle/libs.versions.toml') }}
+          key: ${{ runner.os }}-konan-${{ hashFiles('gradle/libs.versions.toml') }}
           restore-keys: |
             ${{ runner.os }}-konan-
 
       - name: Build and Test Apple Targets
-        run: ./gradlew iosX64Test iosSimulatorArm64Test macosX64Test macosArm64Test
+        run: |
+          ./gradlew \
+            iosX64Test \
+            iosSimulatorArm64Test \
+            macosX64Test \
+            macosArm64Test
