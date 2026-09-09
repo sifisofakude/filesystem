@@ -39,39 +39,60 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
-      - name: Check KVM
+      - name: Install Android emulator
         run: |
-          ls -l /dev/kvm
-          groups
+          yes | sdkmanager --licenses >/dev/null || true
+          sdkmanager "emulator" "platform-tools" "platforms;android-35" \
+            "system-images;android-35;google_apis;x86_64"
 
-      - name: Start Android Emulator
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: 35
-          target: google_apis
-          arch: x86_64
-          profile: pixel_2
-          force-avd-creation: true
-          emulator-options: >-
-            -no-window
-            -no-audio
-            -no-boot-anim
-            -gpu swiftshader_indirect
-          disable-animations: true
-          emulator-boot-timeout: 300
+      - name: Check emulator
+        run: |
+          which emulator
+          emulator -version
+          emulator -accel-check
 
-          script: |
-            echo "=== Emulator acceleration ==="
-            emulator -accel-check
+      - name: Create AVD
+        run: |
+          echo "no" | avdmanager create avd \
+            -n ci-emulator \
+            -k "system-images;android-35;google_apis;x86_64" \
+            --force
 
-            echo "=== ADB devices ==="
-            adb devices -l
+      - name: Start emulator
+        run: |
+          nohup emulator @ci-emulator \
+            -no-window \
+            -no-audio \
+            -no-boot-anim \
+            -gpu swiftshader_indirect \
+            > emulator.log 2>&1 &
 
-            echo "=== Boot completed ==="
-            adb shell getprop sys.boot_completed
+          echo $! > emulator.pid
 
-            echo "=== Device ==="
-            adb shell getprop ro.product.model
+      - name: Wait for emulator
+        run: |
+          adb wait-for-device
+
+          for i in $(seq 1 60); do
+            boot=$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')
+
+            echo "Boot status: $boot"
+
+            if [ "$boot" = "1" ]; then
+              echo "Emulator is ready"
+              break
+            fi
+
+            sleep 5
+          done
+
+          adb devices -l
+          adb shell getprop ro.product.model
+
+      - name: Emulator log
+        if: always()
+        run: |
+          cat emulator.log || true
 
   build-apple-targets:
     if: "!contains(github.event.head_commit.message, '[skip apple]')"
