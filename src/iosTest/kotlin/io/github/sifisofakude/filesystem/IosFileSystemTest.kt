@@ -349,7 +349,7 @@ class IosFileSystemTest {
     @Test
     fun streamCopyWorksIndependentlyOfNativeCopy() {
     		fs.createDirectory("tmpIos")?.let	{
-    			fs.changeSelectedDirectory(it)
+    			(fs as IosFileSystem).changeSelectedDirectory(it)
     		}
     		
         val source = "ios-stream-source.txt"
