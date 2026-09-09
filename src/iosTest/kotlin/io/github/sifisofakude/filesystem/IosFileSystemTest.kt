@@ -369,85 +369,89 @@ class IosFileSystemTest {
                 destination
             )
             
-            println("copy results: $result")
-// 
-//             assertEquals(
-//                 destination,
-//                 result
-//             )
-// 
-//             assertTrue(fs.exists(source))
-//             assertTrue(fs.exists(destination))
-// 
-//             assertEquals(
-//                 "Stream copy",
-//                 fs.readText(destination)
-//             )
+            assertEquals(
+                destination,
+                result
+            )
+
+            assertTrue(fs.exists(source))
+            assertTrue(fs.exists(destination))
+
+            assertEquals(
+                "Stream copy",
+                fs.readText(destination)
+            )
         } finally {
             fs.delete(source)
             fs.delete(destination)
+            fs.delete("tmpIos")
         }
     }
 
     @Test
     fun streamMoveWorksIndependentlyOfNativeMove() {
-//         val source = "ios-stream-source.txt"
-//         val destination = "ios-stream-result.txt"
-// 
-//         try {
-//             fs.writeText(
-//                 source,
-//                 "Stream move"
-//             )
-// 
-//             val result = fs.moveByStream(
-//                 source,
-//                 destination
-//             )
-// 
-//             assertEquals(
-//                 destination,
-//                 result
-//             )
-// 
-//             assertFalse(fs.exists(source))
-//             assertTrue(fs.exists(destination))
-// 
-//             assertEquals(
-//                 "Stream move",
-//                 fs.readText(destination)
-//             )
-//         } finally {
-//             fs.delete(source)
-//             fs.delete(destination)
-//         }
+    			fs.createDirectory("tmpIos")?.let	{
+	    			(fs as IosFileSystem).changeSelectedDirectory(it)
+	    		}
+	    		
+        val source = "ios-stream-source.txt"
+        val destination = "ios-stream-result.txt"
+
+        try {
+            fs.writeText(
+                source,
+                "Stream move"
+            )
+
+            val result = fs.moveByStream(
+                source,
+                destination
+            )
+
+            assertEquals(
+                destination,
+                result
+            )
+
+            assertFalse(fs.exists(source))
+            assertTrue(fs.exists(destination))
+
+            assertEquals(
+                "Stream move",
+                fs.readText(destination)
+            )
+        } finally {
+            fs.delete(source)
+            fs.delete(destination)
+            fs.delete("tmpIos")
+        }
     }
 
     @Test
     fun appendText() {
-//         val file = "ios-append.txt"
-// 
-//         try {
-//             assertTrue(
-//                 fs.writeText(
-//                     file,
-//                     "Hello"
-//                 )
-//             )
-// 
-//             assertTrue(
-//                 fs.appendText(
-//                     file,
-//                     " iOS"
-//                 )
-//             )
-// 
-//             assertEquals(
-//                 "Hello iOS",
-//                 fs.readText(file)
-//             )
-//         } finally {
-//             fs.delete(file)
-//         }
+        val file = "ios-append.txt"
+
+        try {
+            assertTrue(
+                fs.writeText(
+                    file,
+                    "Hello"
+                )
+            )
+
+            assertTrue(
+                fs.appendText(
+                    file,
+                    " iOS"
+                )
+            )
+
+            assertEquals(
+                "Hello iOS",
+                fs.readText(file)
+            )
+        } finally {
+            fs.delete(file)
+        }
     }
 }
