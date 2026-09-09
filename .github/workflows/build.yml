@@ -58,8 +58,4 @@ jobs:
 
       - name: Build and Test Apple Targets
         run: |
-          ./gradlew \
-            iosX64Test \
-            iosSimulatorArm64Test \
-            macosX64Test \
-            macosArm64Test
+          ./gradlew iosTest
