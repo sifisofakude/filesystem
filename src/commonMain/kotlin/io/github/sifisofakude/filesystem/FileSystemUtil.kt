@@ -392,9 +392,9 @@ interface FileSystemUtil	{
 	fun moveByStream(src: String, dst: String): String? {
 		var tmpSource = src
 		val sourceParent = getParentFile(src)
-
 		if(sourceParent == null)	{
 			if(isRelative(src))	{
+				println("inner debug: $src $dst")
 				getCurrentDirectory()?.let	{
 					tmpSource = combinePath(it,src)
 				} ?: return null
@@ -402,7 +402,6 @@ interface FileSystemUtil	{
 				return null
 			}
 		}
-    println("inner debug: $src $dst")
 
 		var tmpDestination = dst
 		val destinationParent = getParentFile(dst)
@@ -411,6 +410,8 @@ interface FileSystemUtil	{
 				getCurrentDirectory()?.let	{
 					tmpDestination = combinePath(it,dst)
 				} ?: return null
+			}else	{
+				return null
 			}
 		}
 
