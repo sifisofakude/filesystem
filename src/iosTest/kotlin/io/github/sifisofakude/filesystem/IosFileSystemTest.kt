@@ -384,13 +384,13 @@ class IosFileSystemTest {
         } finally {
             fs.delete(source)
             fs.delete(destination)
-            fs.delete("tmpIos")
         }
     }
 
     @Test
     fun streamMoveWorksIndependentlyOfNativeMove() {
     			fs.createDirectory("tmpIos")?.let	{
+    				println("test: $it")
 	    			(fs as IosFileSystem).changeSelectedDirectory(it)
 	    		}
 	    		
@@ -423,7 +423,6 @@ class IosFileSystemTest {
         } finally {
             fs.delete(source)
             fs.delete(destination)
-            fs.delete("tmpIos")
         }
     }
 

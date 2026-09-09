@@ -395,7 +395,7 @@ interface FileSystemUtil	{
 		if(sourceParent == null)	{
 			if(isRelative(src))	{
 				getCurrentDirectory()?.let	{
-					println("inner debug: $src $dst")
+					// println("inner debug: $src $dst")
 					tmpSource = combinePath(it,src)
 				} ?: return null
 			}else	{
