@@ -393,6 +393,7 @@ interface FileSystemUtil	{
 		var tmpSource = src
 		val sourceParent = getParentFile(src)
 
+    println("inner debug: $src $dst")
 		if(sourceParent == null)	{
 			if(isRelative(src))	{
 				getCurrentDirectory()?.let	{
@@ -415,7 +416,6 @@ interface FileSystemUtil	{
 
 		var returnDst = dst
 		
-    println(returnDst)
     if (!exists(tmpSource)) return null
     
     if (isDirectory(tmpSource)) {
