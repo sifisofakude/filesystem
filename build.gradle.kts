@@ -46,5 +46,10 @@ kotlin {
                 implementation(libs.androidx.startup)
             }
         }
+
+        androidInstrumentedTest.dependencies {
+            implementation("androidx.test.ext:junit:1.2.1")
+            implementation("androidx.test:core:1.6.1")
+        }
     }
 }
