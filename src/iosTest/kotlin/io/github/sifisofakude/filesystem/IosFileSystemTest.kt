@@ -365,7 +365,7 @@ class IosFileSystemTest {
                 destination
             )
             
-            println("copy results: $results")
+            println("copy results: $result")
 // 
 //             assertEquals(
 //                 destination,
