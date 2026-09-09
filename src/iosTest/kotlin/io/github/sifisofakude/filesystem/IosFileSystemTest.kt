@@ -348,8 +348,10 @@ class IosFileSystemTest {
 
     @Test
     fun streamCopyWorksIndependentlyOfNativeCopy() {
-    		fs.createDirectory("tmpIos")?.let	{
-    			(fs as IosFileSystem).changeSelectedDirectory(it)
+    		if(fs.getCurrentDirectory() == null)	{
+    			fs.createDirectory("tmpIos")?.let	{
+	    			(fs as IosFileSystem).changeSelectedDirectory(it)
+	    		}
     		}
     		
         val source = "ios-stream-source.txt"
@@ -384,14 +386,17 @@ class IosFileSystemTest {
         } finally {
             fs.delete(source)
             fs.delete(destination)
+            fs.delete("tmpIos")
+            (fs as IosFileSystem).changeSelectedDirectory(null)
         }
     }
 
     @Test
     fun streamMoveWorksIndependentlyOfNativeMove() {
-    			fs.createDirectory("tmpIos")?.let	{
-    				println("test: $it")
-	    			(fs as IosFileSystem).changeSelectedDirectory(it)
+    			if(fs.getCurrentDirectory() == null)	{
+	    			fs.createDirectory("tmpIos")?.let	{
+		    			(fs as IosFileSystem).changeSelectedDirectory(it)
+		    		}
 	    		}
 	    		
         val source = "ios-stream-source.txt"
@@ -423,6 +428,8 @@ class IosFileSystemTest {
         } finally {
             fs.delete(source)
             fs.delete(destination)
+            fs.delete("tmpIos")
+            (fs as IosFileSystem).changeSelectedDirectory(null)
         }
     }
 
