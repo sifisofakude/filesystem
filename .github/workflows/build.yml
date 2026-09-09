@@ -47,10 +47,7 @@ jobs:
             -no-snapshot
             -gpu swiftshader_indirect
           disable-animations: true
-          emulator-build: 35.2.10
-          script: |
-            adb devices -l
-            ./gradlew connectedAndroidTest --stacktrace
+          script: ./gradlew connectedAndroidTest --stacktrace
 
   build-apple-targets:
     if: "!contains(github.event.head_commit.message, '[skip apple]')"
