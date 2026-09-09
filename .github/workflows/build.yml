@@ -31,6 +31,53 @@ jobs:
       - name: Run JVM tests
         run: ./gradlew jvmTest
 
+  android:
+    if: "!contains(github.event.head_commit.message, '[skip android]')"
+    name: Android
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      # GitHub-hosted Ubuntu runners provide the Android SDK.
+      # Locate the command-line tools rather than assuming sdkmanager
+      # is already on PATH.
+      - name: Locate Android SDK tools
+        shell: bash
+        run: |
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
+
+          SDKMANAGER=$(find "$ANDROID_HOME/cmdline-tools" \
+            -name sdkmanager \
+            -type f \
+            -print -quit)
+
+          if [ -z "$SDKMANAGER" ]; then
+            echo "sdkmanager not found"
+            exit 1
+          fi
+
+          echo "SDKMANAGER=$SDKMANAGER" >> "$GITHUB_ENV"
+
+          CMDLINE_TOOLS_DIR=$(dirname "$(dirname "$SDKMANAGER")")
+          echo "CMDLINE_TOOLS_DIR=$CMDLINE_TOOLS_DIR" >> "$GITHUB_ENV"
+
+          echo "$ANDROID_HOME/platform-tools" >> "$GITHUB_PATH"
+          echo "$ANDROID_HOME/emulator" >> "$GITHUB_PATH"
+          echo "$CMDLINE_TOOLS_DIR/bin" >> "$GITHUB_PATH"
+
       - name: Enable KVM
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node/kvm"' \
@@ -39,60 +86,114 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
-      - name: Install Android emulator
-        run: |
-          yes | sdkmanager --licenses >/dev/null || true
-          sdkmanager "emulator" "platform-tools" "platforms;android-35" \
-            "system-images;android-35;google_apis;x86_64"
+          ls -l /dev/kvm
 
-      - name: Check emulator
+      - name: Cache Android emulator
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ env.ANDROID_HOME }}/emulator
+            ${{ env.ANDROID_HOME }}/system-images
+            ~/.android/avd
+          key: android-emulator-api35-google-apis-x86_64-${{ runner.os }}-${{ runner.arch }}
+          restore-keys: |
+            android-emulator-api35-google-apis-x86_64-${{ runner.os }}-
+
+      - name: Install Android emulator packages
         run: |
-          which emulator
-          emulator -version
-          emulator -accel-check
+          yes | "$SDKMANAGER" --licenses >/dev/null || true
+
+          "$SDKMANAGER" \
+            "platform-tools" \
+            "emulator" \
+            "platforms;android-35" \
+            "system-images;android-35;google_apis;x86_64"
 
       - name: Create AVD
         run: |
-          echo "no" | avdmanager create avd \
-            -n ci-emulator \
-            -k "system-images;android-35;google_apis;x86_64" \
-            --force
+          if ! avdmanager list avd | grep -q "Name: ci-emulator"; then
+            echo "no" | avdmanager create avd \
+              --name ci-emulator \
+              --package "system-images;android-35;google_apis;x86_64" \
+              --device "pixel_2" \
+              --force
+          fi
+
+      - name: Verify emulator acceleration
+        run: |
+          emulator -accel-check
 
       - name: Start emulator
+        shell: bash
         run: |
           nohup emulator @ci-emulator \
             -no-window \
             -no-audio \
             -no-boot-anim \
             -gpu swiftshader_indirect \
-            > emulator.log 2>&1 &
+            -no-snapshot \
+            > "$RUNNER_TEMP/emulator.log" 2>&1 &
 
-          echo $! > emulator.pid
+          echo $! > "$RUNNER_TEMP/emulator.pid"
 
       - name: Wait for emulator
+        shell: bash
         run: |
-          adb wait-for-device
+          adb start-server
 
-          for i in $(seq 1 60); do
-            boot=$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')
+          for i in {1..60}; do
+            echo "Waiting for emulator... ($i/60)"
 
-            echo "Boot status: $boot"
+            adb devices -l
 
-            if [ "$boot" = "1" ]; then
-              echo "Emulator is ready"
+            if adb devices | grep -q "emulator-5554.*device"; then
+              echo "ADB connection established"
               break
             fi
 
             sleep 5
           done
 
-          adb devices -l
-          adb shell getprop ro.product.model
+          if ! adb devices | grep -q "emulator-5554.*device"; then
+            echo "Emulator failed to become available"
+            echo "===== Emulator log ====="
+            cat "$RUNNER_TEMP/emulator.log" || true
+            exit 1
+          fi
+
+          for i in {1..60}; do
+            BOOT_COMPLETED=$(adb -s emulator-5554 shell \
+              getprop sys.boot_completed 2>/dev/null | tr -d '\r')
+
+            echo "Boot completed: $BOOT_COMPLETED"
+
+            if [ "$BOOT_COMPLETED" = "1" ]; then
+              echo "Android emulator is ready"
+              break
+            fi
+
+            sleep 2
+          done
+
+          adb shell input keyevent 82
+
+      - name: Run JVM tests
+        run: ./gradlew jvmTest
+
+      - name: Run Android instrumented tests
+        run: ./gradlew connectedAndroidTest --stacktrace
 
       - name: Emulator log
         if: always()
         run: |
-          cat emulator.log || true
+          cat "$RUNNER_TEMP/emulator.log" || true
+
+      - name: Stop emulator
+        if: always()
+        run: |
+          if [ -f "$RUNNER_TEMP/emulator.pid" ]; then
+            kill "$(cat "$RUNNER_TEMP/emulator.pid")" || true
+          fi
 
   build-apple-targets:
     if: "!contains(github.event.head_commit.message, '[skip apple]')"
