@@ -28,9 +28,16 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Build and Test
-        run: |
-          ./gradlew jvmTest
+      - name: Run JVM tests
+        run: ./gradlew jvmTest
+      
+      - name: Run Android instrumented tests
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 36
+          arch: x86_64
+          profile: Pixel_2
+          script: ./gradlew connectedAndroidTest
 
   build-apple-targets:
     if: "!contains(github.event.head_commit.message, '[skip apple]')"
