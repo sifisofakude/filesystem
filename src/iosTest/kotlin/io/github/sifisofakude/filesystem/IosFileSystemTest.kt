@@ -357,14 +357,15 @@ class IosFileSystemTest {
                 "Stream copy"
             )
 
-            println("is text written: $textWritten")
 
             
 
-//             val result = fs.copyByStream(
-//                 source,
-//                 destination
-//             )
+            val result = fs.copyByStream(
+                source,
+                destination
+            )
+            
+            println("copy results: $results")
 // 
 //             assertEquals(
 //                 destination,
