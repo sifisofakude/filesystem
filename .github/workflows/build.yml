@@ -31,48 +31,44 @@ jobs:
       - name: Run JVM tests
         run: ./gradlew jvmTest
 
-      name: Android Emulator
-      runs-on: ubuntu-latest
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node/kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules
 
-      steps:
-        - name: Enable KVM
-          run: |
-            echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node/kvm"' \
-              | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
 
-            sudo udevadm control --reload-rules
-            sudo udevadm trigger --name-match=kvm
+      - name: Check KVM
+        run: |
+          ls -l /dev/kvm
+          groups
+          $ANDROID_HOME/emulator/emulator -accel-check
 
-        - name: Check KVM
-          run: |
-            ls -l /dev/kvm
-            groups
-            $ANDROID_HOME/emulator/emulator -accel-check
+      - name: Start Android Emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_2
+          force-avd-creation: true
+          emulator-options: >-
+            -no-window
+            -no-audio
+            -no-boot-anim
+            -gpu swiftshader_indirect
+          disable-animations: true
+          emulator-boot-timeout: 300
+          script: |
+            echo "=== ADB devices ==="
+            adb devices -l
 
-        - name: Start Android Emulator
-          uses: reactivecircus/android-emulator-runner@v2
-          with:
-            api-level: 35
-            target: google_apis
-            arch: x86_64
-            profile: pixel_2
-            force-avd-creation: true
-            emulator-options: >-
-              -no-window
-              -no-audio
-              -no-boot-anim
-              -gpu swiftshader_indirect
-            disable-animations: true
-            emulator-boot-timeout: 300
-            script: |
-              echo "=== ADB devices ==="
-              adb devices -l
+            echo "=== Boot completed ==="
+            adb shell getprop sys.boot_completed
 
-              echo "=== Boot completed ==="
-              adb shell getprop sys.boot_completed
-
-              echo "=== Device ==="
-              adb shell getprop ro.product.model
+            echo "=== Device ==="
+            adb shell getprop ro.product.model
 
   build-apple-targets:
     if: "!contains(github.event.head_commit.message, '[skip apple]')"
