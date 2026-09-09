@@ -79,31 +79,31 @@ class IosFileSystemTest {
         val root = "ios-absolute-root"
         val outside = "ios-outside.txt"
 
-//         try {
-//             fs.createDirectory(root)
-//             fs.writeText(outside, "outside")
-// 
-//             (fs as IosFileSystem).changeSelectedDirectory(root)
-// 
-//             val absolutePath = fs.resolvePath(outside)
-// 
-//             assertFalse(
-//                 fs.exists(absolutePath)
-//             )
-// 
-//             assertFalse(
-//                 fs.exists(
-//                     fs.combinePath(
-//                         root,
-//                         outside
-//                     )
-//                 )
-//             )
-//         } finally {
-//             (fs as IosFileSystem).changeSelectedDirectory(null)
-//             fs.delete(root)
-//             fs.delete(outside)
-//         }
+        try {
+            fs.createDirectory(root)
+            fs.writeText(outside, "outside")
+
+            (fs as IosFileSystem).changeSelectedDirectory(root)
+
+            val absolutePath = fs.resolvePath(outside)
+
+            assertFalse(
+                fs.exists(absolutePath)
+            )
+
+            assertFalse(
+                fs.exists(
+                    fs.combinePath(
+                        root,
+                        outside
+                    )
+                )
+            )
+        } finally {
+            (fs as IosFileSystem).changeSelectedDirectory(null)
+            fs.delete(root)
+            fs.delete(outside)
+        }
     }
 
     @Test

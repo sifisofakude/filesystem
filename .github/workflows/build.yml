@@ -11,6 +11,7 @@ permissions:
 
 jobs:
   build-jvm-android:
+    if: "!contains(github.event.head_commit.message, '[skip jvm]')"
     name: JVM / Android
     runs-on: ubuntu-latest
 
@@ -32,6 +33,7 @@ jobs:
           ./gradlew jvmTest
 
   build-apple-targets:
+    if: "!contains(github.event.head_commit.message, '[skip apple]')"
     name: Apple / Kotlin Native
     runs-on: macos-latest
 
