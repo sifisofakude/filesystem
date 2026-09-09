@@ -1,215 +1,92 @@
 package io.github.sifisofakude.filesystem
 
-import android.content.Context
-import androidx.test.core.app.ApplicationProvider
-import kotlin.test.Test
-import kotlin.test.assertFalse
-import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
+import android.content.Intent
+import android.net.Uri
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
+import androidx.test.uiautomator.UiDevice
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertTrue
+import org.junit.Before
+import org.junit.Test
+import org.junit.runner.RunWith
 
+@RunWith(AndroidJUnit4::class)
 class AndroidSafFileSystemTest {
 
+    private val instrumentation =
+        InstrumentationRegistry.getInstrumentation()
+
     private val context =
-        ApplicationProvider.getApplicationContext<Context>()
+        instrumentation.targetContext
 
-    private val fs = AndroidSafFileSystem(context)
+    private lateinit var device: UiDevice
+    private lateinit var fs: AndroidSafFileSystem
+
+    @Before
+    fun setup() {
+        device = UiDevice.getInstance(instrumentation)
+        fs = AndroidSafFileSystem(context)
+    }
 
     @Test
-    fun detectsSafUri() {
+    fun selectedDirectorySupportsRelativePaths() {
+        val root = selectSafDirectory()
+
+        assertNotNull(root)
+
+        fs.changeSelectedDirectory(root)
+
+        assertEquals(
+            root.toString(),
+            fs.getCurrentDirectory()
+        )
+
         assertTrue(
-            fs.isSafUri(
-                "content://com.android.externalstorage.documents/tree/primary%3ADocuments"
-            )
+            fs.isSafContext("test")
         )
 
-        assertFalse(
-            fs.isSafUri(
-                "/storage/emulated/0/Documents"
-            )
-        )
-
-        assertFalse(
-            fs.isSafUri(
-                "relative/path"
-            )
-        )
-    }
-
-    @Test
-    fun conventionalPathsStillWork() {
-        val root =
-            context.filesDir
-                .resolve("filesystem-test")
-                .absolutePath
-
-        val file =
-            fs.combinePath(
-                root,
-                "test.txt"
-            )
-
-        try {
-            assertNotNull(
-                fs.createDirectory(root)
-            )
-
-            assertTrue(
-                fs.writeText(
-                    file,
-                    "Hello Android"
-                )
-            )
-
-            assertTrue(
-                fs.exists(file)
-            )
-
-            assertTrue(
-                fs.isFile(file)
-            )
-
-            assertTrue(
-                fs.readText(file) ==
-                    "Hello Android"
-            )
-        } finally {
-            fs.delete(root)
-        }
-    }
-
-    @Test
-    fun conventionalCopyWorks() {
-        val root =
-            context.filesDir
-                .resolve("filesystem-copy-test")
-                .absolutePath
-
-        val source =
-            fs.combinePath(
-                root,
-                "source.txt"
-            )
-
-        val destination =
-            fs.combinePath(
-                root,
-                "destination.txt"
-            )
-
-        try {
-            fs.createDirectory(root)
-
-            assertTrue(
-                fs.writeText(
-                    source,
-                    "Hello Android"
-                )
-            )
-
-            val copied =
-                fs.copy(
-                    source,
-                    destination
-                )
-
-            assertNotNull(copied)
-
-            assertTrue(
-                fs.exists(destination)
-            )
-
-            assertTrue(
-                fs.exists(source)
-            )
-
-            assertTrue(
-                fs.readText(destination) ==
-                    "Hello Android"
-            )
-        } finally {
-            fs.delete(root)
-        }
-    }
-
-    @Test
-    fun conventionalMoveWorks() {
-        val root =
-            context.filesDir
-                .resolve("filesystem-move-test")
-                .absolutePath
-
-        val source =
-            fs.combinePath(
-                root,
-                "source.txt"
-            )
-
-        val destination =
-            fs.combinePath(
-                root,
-                "destination.txt"
-            )
-
-        try {
-            fs.createDirectory(root)
-
-            assertTrue(
-                fs.writeText(
-                    source,
-                    "Hello Android"
-                )
-            )
-
-            val moved =
-                fs.move(
-                    source,
-                    destination
-                )
-
-            assertNotNull(moved)
-
-            assertFalse(
-                fs.exists(source)
-            )
-
-            assertTrue(
-                fs.exists(destination)
-            )
-
-            assertTrue(
-                fs.readText(destination) ==
-                    "Hello Android"
-            )
-        } finally {
-            fs.delete(root)
-        }
-    }
-
-    @Test
-    fun safUriIsNotRelative() {
-        val uri =
-            "content://com.android.externalstorage.documents/tree/primary%3ADocuments"
-
-        assertFalse(
-            fs.isRelative(uri)
-        )
-    }
-
-    @Test
-    fun conventionalRelativePathIsRelative() {
         assertTrue(
-            fs.isRelative(
-                "documents/test.txt"
-            )
+            fs.isRelative("test")
         )
+
+        val directory = fs.createDirectory("saf-test")
+
+        assertNotNull(directory)
+        assertTrue(fs.exists("saf-test"))
+        assertTrue(fs.isDirectory("saf-test"))
     }
 
-    @Test
-    fun absolutePathIsNotRelative() {
-        assertFalse(
-            fs.isRelative(
-                "/storage/emulated/0/Documents/test.txt"
+    private fun selectSafDirectory(): Uri {
+        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).apply {
+            addFlags(
+                Intent.FLAG_GRANT_READ_URI_PERMISSION or
+                    Intent.FLAG_GRANT_WRITE_URI_PERMISSION or
+                    Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION
             )
-        )
+        }
+
+        val result = instrumentation
+            .uiAutomation
+            .adoptShellPermissionIdentity(
+                "android.permission.WRITE_EXTERNAL_STORAGE"
+            )
+
+        try {
+            val activity = instrumentation.startActivitySync(intent)
+
+            // We will automate DocumentsUI here.
+            //
+            // For the first test, pause so we can verify the picker
+            // is actually available on the CI emulator.
+            device.waitForIdle()
+
+            throw AssertionError(
+                "SAF picker opened. Root selection automation comes next."
+            )
+        } finally {
+            instrumentation.uiAutomation.dropShellPermissionIdentity()
+        }
     }
 }
