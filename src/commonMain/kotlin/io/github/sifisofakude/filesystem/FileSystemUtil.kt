@@ -394,8 +394,8 @@ interface FileSystemUtil	{
 		val sourceParent = getParentFile(src)
 		if(sourceParent == null)	{
 			if(isRelative(src))	{
-				println("inner debug: $src $dst")
 				getCurrentDirectory()?.let	{
+					println("inner debug: $src $dst")
 					tmpSource = combinePath(it,src)
 				} ?: return null
 			}else	{
