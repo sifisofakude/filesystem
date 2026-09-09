@@ -49,8 +49,6 @@ jobs:
           disable-animations: true
           script: |
             adb devices
-            adb wait-for-device
-            adb shell getprop sys.boot_completed
             ./gradlew connectedAndroidTest --stacktrace
 
   build-apple-targets:
