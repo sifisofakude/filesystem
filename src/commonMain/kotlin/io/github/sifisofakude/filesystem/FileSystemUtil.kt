@@ -440,8 +440,6 @@ interface FileSystemUtil	{
         }
       }
 
-      println(returnDst)
-
       return if(delete(tmpSource))	{
       	returnDst
       }else	{
@@ -455,6 +453,9 @@ interface FileSystemUtil	{
     } else {
         tmpDestination
     }
+
+    println(finalDst)
+    println(returnDst)
 
     if (copyByStream(tmpSource, finalDst,true) == null) {
         return null
