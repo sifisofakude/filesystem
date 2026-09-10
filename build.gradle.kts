@@ -55,6 +55,7 @@ kotlin {
         	dependencies {
 	            implementation("androidx.test.ext:junit:1.2.1")
 	            implementation("androidx.test:core:1.6.1")
+	            implementation("androidx.test:runner:1.6.1")
 	            implementation("androidx.test.uiautomator:uiautomator:2.3.0")
 	        }
         }
