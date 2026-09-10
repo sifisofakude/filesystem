@@ -48,9 +48,11 @@ class AndroidSafFileSystemTest {
         val root1 = constructUri("Root1")
         assertTrue(selectFolder(root1))
         
+        Thread.sleep(200)
         val root2 = constructUri("Root2")
         assertTrue(selectFolder(root2))
         
+        Thread.sleep(200)
         val root3 = constructUri("Root3")
         assertTrue(selectFolder(root3))
     }
