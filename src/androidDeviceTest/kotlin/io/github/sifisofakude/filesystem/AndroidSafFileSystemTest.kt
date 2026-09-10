@@ -18,6 +18,9 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 
+import java.nio.charset.Charsets
+import java.io.ByteArrayOutputStream
+
 
 @RunWith(AndroidJUnit4::class)
 class AndroidSafFileSystemTest {
@@ -149,8 +152,10 @@ class AndroidSafFileSystemTest {
     // 
     //     device.findObject(By.text("Use this folder")).click()
 
+				val output = ByteArrayOutputStream()
+				device.dumpWindowHierarchy(output)
     		println("=========== SAF PICKER UI ======================")
-    		println(device.dumpWindowHierarchy())
+    		println(output.toString(Charsets.UTF_8.name()))
     		println("================================================")
 
     
