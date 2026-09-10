@@ -18,11 +18,7 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class AndroidSafFileSystemTest {
 
-    private val instrumentation =
-        InstrumentationRegistry.getInstrumentation()
-
-    private val context =
-        instrumentation.targetContext
+    private val instrumentation = InstrumentationRegistry.getInstrumentation()
 
     private lateinit var device: UiDevice
     private lateinit var fs: AndroidSafFileSystem
