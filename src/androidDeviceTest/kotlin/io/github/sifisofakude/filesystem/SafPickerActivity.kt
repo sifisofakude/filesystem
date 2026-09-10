@@ -27,12 +27,16 @@ class SafPickerActivity : Activity() {
         super.onActivityResult(requestCode, resultCode, data)
 
         if (requestCode == REQUEST_CODE) {
-            setResult(resultCode, data)
+            resultUri = data?.data
+            this.resultCode = resultCode
             finish()
         }
     }
 
     companion object {
+        var resultUri: Uri? = null
+        var resultCode: Int = RESULT_CANCELED
+
         private const val REQUEST_CODE = 100
     }
 }
