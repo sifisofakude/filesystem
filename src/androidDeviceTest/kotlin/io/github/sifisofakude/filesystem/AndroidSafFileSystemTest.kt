@@ -2,15 +2,18 @@ package io.github.sifisofakude.filesystem
 
 import android.content.Intent
 import android.net.Uri
+import android.content.Context
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.uiautomator.UiDevice
+import androidx.test.core.app.ApplicationProvider
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+
 
 @RunWith(AndroidJUnit4::class)
 class AndroidSafFileSystemTest {
@@ -23,6 +26,7 @@ class AndroidSafFileSystemTest {
 
     private lateinit var device: UiDevice
     private lateinit var fs: AndroidSafFileSystem
+		private val context = ApplicationProvider.getApplicationContext>Context>()
 
     @Before
     fun setup() {
@@ -75,7 +79,7 @@ class AndroidSafFileSystemTest {
 
         try {
             val intent = Intent(
-                ApplicationProvider.getApplicationContext(),
+                context,
                 SafPickerActivity::class.java
             )
             
