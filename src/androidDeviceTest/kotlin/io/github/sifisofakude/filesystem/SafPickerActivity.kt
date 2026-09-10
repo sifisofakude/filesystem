@@ -11,6 +11,8 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.uiautomator.By
 import androidx.test.uiautomator.Until
 
+import java.util.regex.Pattern
+
 class SafPickerActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -32,7 +34,7 @@ class SafPickerActivity : Activity() {
         val device = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
         device.wait(
         	Until.findObject(
-        		By.descMatches("(?i)(Use this folder|Select)")
+        		By.descMatches(Pattern.compile("(?i)(Use this folder|Select)"))
         	),
         	5000
         )?.let	{ selectButton ->
@@ -40,7 +42,7 @@ class SafPickerActivity : Activity() {
 
         	device.wait(
         		Until.findObject(
-        			By.descMatches("(?i)Allow")
+        			By.descMatches(Pattern.compile("(?i)Allow"))
         		),
         		4000
         	)?.let	{ allowButton ->
