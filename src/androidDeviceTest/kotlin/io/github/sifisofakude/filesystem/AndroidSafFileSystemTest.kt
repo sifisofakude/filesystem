@@ -150,7 +150,7 @@ class AndroidSafFileSystemTest {
     //     device.findObject(By.text("Use this folder")).click()
 
     		println("=========== SAF PICKER UI ======================")
-    		println(device.dumpWindowHeirarchy())
+    		println(device.dumpWindowHierarchy())
     		println("================================================")
 
     
