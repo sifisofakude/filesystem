@@ -39,7 +39,7 @@ class AndroidSafFileSystemTest {
 
     @Test
     fun independentSafRoots() {
-        adbCreateDirectory("MyFolder")
+        assertTrue(adbCreateDirectory("MyFolder"))
     }
 
     private fun selectFolder(uri: String): Boolean	{
@@ -67,6 +67,19 @@ class AndroidSafFileSystemTest {
     		.executeShellCommand("mkdir -p /sdcard/$dir")
 
     	return if(folder.fileDescriptor.valid())	{
+    		folder.close()
+    		true
+    	}else	{
+    		false
+    	}
+    }
+
+    private fun adbRemoveDirectory(dir: String): Boolean	{
+    	val folder = instrumentation
+    		.getUiAutomation()
+    		.executeShellCommand("rm -r /sdcard/$dir")
+
+    	return if(!folder.fileDescriptor.valid())	{
     		folder.close()
     		true
     	}else	{
