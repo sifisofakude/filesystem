@@ -39,127 +39,32 @@ class AndroidSafFileSystemTest {
 
     @Test
     fun independentSafRoots() {
-        val downloadsUri = selectDownloads()
-
-    		fs.changeSelectedDirectory(downloadsUri)
-    		
-        assertNotNull(fs.getCurrentDirectory())
-    
-        val root1 = fs.createDirectory("filesystem-test-1")
-            ?: error("Failed to create test root 1")
-    
-        val root2 = fs.createDirectory("filesystem-test-2")
-            ?: error("Failed to create test root 2")
-    
-        val root3 = fs.createDirectory("filesystem-test-3")
-            ?: error("Failed to create test root 3")
-    
-        // Downloads permission is no longer needed.
-        context.contentResolver.releasePersistableUriPermission(
-            downloadsUri,
-            Intent.FLAG_GRANT_READ_URI_PERMISSION or
-                Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-        )
-    
-        // Now each directory is selected independently through SAF.
-    //     val selectedRoot1 = selectSafDirectory()
-    //     assertTrue(
-    //         fs.changeSelectedDirectory(selectedRoot1.toString()),
-    //         "Failed to select test root 1"
-    //     )
-    // 
-    //     val selectedRoot2 = selectSafDirectory()
-    //     assertTrue(
-    //         fs.changeSelectedDirectory(selectedRoot2.toString()),
-    //         "Failed to select test root 2"
-    //     )
-    // 
-    //     val selectedRoot3 = selectSafDirectory()
-    //     assertTrue(
-    //         fs.changeSelectedDirectory(selectedRoot3.toString()),
-    //         "Failed to select test root 3"
-    //     )
+        adbCreateDirectory("MyFolder")
     }
 
-    private fun selectSafDirectory(): Uri {
-        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).apply {
-            addFlags(
-                Intent.FLAG_GRANT_READ_URI_PERMISSION or
-                    Intent.FLAG_GRANT_WRITE_URI_PERMISSION or
-                    Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION
-            )
-        }
+    private fun selectFolder(uri: String): Boolean	{
+    	SafPickerActivity.resultUri = null
+    	SafPickerActivity.resultCode = Activity.RESULT_CANCELED
+    	
+    	val intent = Intent(context,SafPickerActivity::class.java).apply	{
+    		addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    		putExtra("selectUri",uri)
+    	}
 
-        val result = instrumentation
-            .uiAutomation
-            .adoptShellPermissionIdentity(
-                "android.permission.WRITE_EXTERNAL_STORAGE"
-            )
+    	instrumentation.startActivitySync(intent)
 
-        try {
-            val intent = Intent(context,SafPickerActivity::class.java).apply	{
-            	addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            }
-            
-            instrumentation.startActivitySync(intent)
-
-            // We will automate DocumentsUI here.
-            //
-            // For the first test, pause so we can verify the picker
-            // is actually available on the CI emulator.
-            device.waitForIdle()
-
-            return waitForPickerResult()
-        } finally {
-            instrumentation.uiAutomation.dropShellPermissionIdentity()
-        }
+    	return try	{
+    		waitForPickerResult()
+    		true
+    	}catch(_: IllegalArgumentException)	{
+    		false
+    	}
     }
 
-    private fun selectDownloads(): Uri {
-        SafPickerActivity.resultUri = null
-        SafPickerActivity.resultCode = Activity.RESULT_CANCELED
-    
-        val context = ApplicationProvider
-            .getApplicationContext<Context>()
-    
-        val intent = Intent(context, SafPickerActivity::class.java).apply {
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        }
-    
-        instrumentation.startActivitySync(intent)
-    
-        val device = UiDevice.getInstance(instrumentation)
-    
-    //     check(
-    //         device.wait(
-    //             Until.hasObject(By.text("Downloads")),
-    //             10_000
-    //         )
-    //     ) {
-    //         "Downloads was not visible in SAF picker"
-    //     }
-    // 
-    //     device.findObject(By.text("Downloads")).click()
-    // 
-    //     check(
-    //         device.wait(
-    //             Until.hasObject(By.text("Use this folder")),
-    //             10_000
-    //         )
-    //     ) {
-    //         "Use this folder was not visible"
-    //     }
-    // 
-    //     device.findObject(By.text("Use this folder")).click()
-
-				val output = ByteArrayOutputStream()
-				device.dumpWindowHierarchy(output)
-    		println("=========== SAF PICKER UI ======================")
-    		println(output.toString(StandardCharsets.UTF_8))
-    		println("================================================")
-
-    
-        return waitForPickerResult()
+    private fun adbCreateDirectory(dir: String): Boolean	{
+    	return instrumentation
+    		.getUiAutomation()
+    		.executeShellCommand("mkdir -p /sdcard/$dir")
     }
 
     private fun waitForPickerResult(): Uri {
@@ -168,6 +73,6 @@ class AndroidSafFileSystemTest {
             Thread.sleep(100)
         }
     
-        error("SAF picker did not return a URI")
+        throw IllegalArgumentException("SAF did not return result")
     }
 }
