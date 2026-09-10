@@ -32,7 +32,7 @@ class AndroidSafFileSystemTest {
 
     @Test
     fun independentSafRoots() {
-        val downloadsUri = selectDirectory()
+        val downloadsUri = selectSafDirectory()
     
         assertTrue(
             fs.changeSelectedDirectory(downloadsUri.toString()),
@@ -56,19 +56,19 @@ class AndroidSafFileSystemTest {
         )
     
         // Now each directory is selected independently through SAF.
-        val selectedRoot1 = selectDirectory()
+        val selectedRoot1 = selectSafDirectory()
         assertTrue(
             fs.changeSelectedDirectory(selectedRoot1.toString()),
             "Failed to select test root 1"
         )
     
-        val selectedRoot2 = selectDirectory()
+        val selectedRoot2 = selectSafDirectory()
         assertTrue(
             fs.changeSelectedDirectory(selectedRoot2.toString()),
             "Failed to select test root 2"
         )
     
-        val selectedRoot3 = selectDirectory()
+        val selectedRoot3 = selectSafDirectory()
         assertTrue(
             fs.changeSelectedDirectory(selectedRoot3.toString()),
             "Failed to select test root 3"
