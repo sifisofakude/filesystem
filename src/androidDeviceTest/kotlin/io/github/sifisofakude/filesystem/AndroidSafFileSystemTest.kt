@@ -31,31 +31,48 @@ class AndroidSafFileSystemTest {
     }
 
     @Test
-    fun selectedDirectorySupportsRelativePaths() {
-        val root = selectSafDirectory()
-
-        assertNotNull(root)
-
-        fs.changeSelectedDirectory(root)
-
-        assertEquals(
-            root.toString(),
-            fs.getCurrentDirectory()
-        )
-
+    fun independentSafRoots() {
+        val downloadsUri = selectDirectory()
+    
         assertTrue(
-            fs.isSafContext("test")
+            fs.changeSelectedDirectory(downloadsUri.toString()),
+            "Failed to select Downloads"
         )
-
+    
+        val root1 = fs.createDirectory("filesystem-test-1")
+            ?: error("Failed to create test root 1")
+    
+        val root2 = fs.createDirectory("filesystem-test-2")
+            ?: error("Failed to create test root 2")
+    
+        val root3 = fs.createDirectory("filesystem-test-3")
+            ?: error("Failed to create test root 3")
+    
+        // Downloads permission is no longer needed.
+        context.contentResolver.releasePersistableUriPermission(
+            downloadsUri,
+            Intent.FLAG_GRANT_READ_URI_PERMISSION or
+                Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+        )
+    
+        // Now each directory is selected independently through SAF.
+        val selectedRoot1 = selectDirectory()
         assertTrue(
-            fs.isRelative("test")
+            fs.changeSelectedDirectory(selectedRoot1.toString()),
+            "Failed to select test root 1"
         )
-
-        val directory = fs.createDirectory("saf-test")
-
-        assertNotNull(directory)
-        assertTrue(fs.exists("saf-test"))
-        assertTrue(fs.isDirectory("saf-test"))
+    
+        val selectedRoot2 = selectDirectory()
+        assertTrue(
+            fs.changeSelectedDirectory(selectedRoot2.toString()),
+            "Failed to select test root 2"
+        )
+    
+        val selectedRoot3 = selectDirectory()
+        assertTrue(
+            fs.changeSelectedDirectory(selectedRoot3.toString()),
+            "Failed to select test root 3"
+        )
     }
 
     private fun selectSafDirectory(): Uri {
@@ -86,11 +103,18 @@ class AndroidSafFileSystemTest {
             // is actually available on the CI emulator.
             device.waitForIdle()
 
-            throw AssertionError(
-                "SAF picker opened. Root selection automation comes next."
-            )
+            return waitForPickerResult()
         } finally {
             instrumentation.uiAutomation.dropShellPermissionIdentity()
         }
+    }
+
+    private fun waitForPickerResult(): Uri {
+        repeat(50) {
+            SafPickerActivity.resultUri?.let { return it }
+            Thread.sleep(100)
+        }
+    
+        error("SAF picker did not return a URI")
     }
 }
