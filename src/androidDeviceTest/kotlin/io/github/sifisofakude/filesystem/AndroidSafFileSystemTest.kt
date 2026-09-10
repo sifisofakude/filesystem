@@ -43,6 +43,8 @@ class AndroidSafFileSystemTest {
         assertTrue(adbCreateDirectory("Root2"))
         assertTrue(adbCreateDirectory("Root3"))
 
+        Thread.sleep(5000)
+
         val root1 = constructUri("Root1")
         assertTrue(selectFolder(root1))
         
