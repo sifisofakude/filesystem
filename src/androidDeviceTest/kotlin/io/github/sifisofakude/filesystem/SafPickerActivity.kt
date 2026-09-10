@@ -36,7 +36,7 @@ class SafPickerActivity : Activity() {
         	Until.findObject(
         		By.desc(Pattern.compile("(?i)(Use this folder|Select)"))
         	),
-        	5000
+        	2000
         )?.let	{ selectButton ->
         	selectButton.click()
 
@@ -44,7 +44,7 @@ class SafPickerActivity : Activity() {
         		Until.findObject(
         			By.desc(Pattern.compile("(?i)Allow"))
         		),
-        		4000
+        		2000
         	)?.let	{ allowButton ->
         		allowButton.click()
         	}
