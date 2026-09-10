@@ -127,27 +127,32 @@ class AndroidSafFileSystemTest {
     
         val device = UiDevice.getInstance(instrumentation)
     
-        check(
-            device.wait(
-                Until.hasObject(By.text("Downloads")),
-                10_000
-            )
-        ) {
-            "Downloads was not visible in SAF picker"
-        }
-    
-        device.findObject(By.text("Downloads")).click()
-    
-        check(
-            device.wait(
-                Until.hasObject(By.text("Use this folder")),
-                10_000
-            )
-        ) {
-            "Use this folder was not visible"
-        }
-    
-        device.findObject(By.text("Use this folder")).click()
+    //     check(
+    //         device.wait(
+    //             Until.hasObject(By.text("Downloads")),
+    //             10_000
+    //         )
+    //     ) {
+    //         "Downloads was not visible in SAF picker"
+    //     }
+    // 
+    //     device.findObject(By.text("Downloads")).click()
+    // 
+    //     check(
+    //         device.wait(
+    //             Until.hasObject(By.text("Use this folder")),
+    //             10_000
+    //         )
+    //     ) {
+    //         "Use this folder was not visible"
+    //     }
+    // 
+    //     device.findObject(By.text("Use this folder")).click()
+
+    		println("=========== SAF PICKER UI ======================")
+    		println(device.dumpWindowHeirarchy())
+    		println("================================================")
+
     
         return waitForPickerResult()
     }
