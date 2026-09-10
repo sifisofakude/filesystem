@@ -74,10 +74,9 @@ class AndroidSafFileSystemTest {
             )
 
         try {
-            val intent = Intent(
-                context,
-                SafPickerActivity::class.java
-            )
+            val intent = Intent(context,SafPickerActivity::class.java).apply	{
+            	addFlag(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
             
             instrumentation.startActivitySync(intent)
 
