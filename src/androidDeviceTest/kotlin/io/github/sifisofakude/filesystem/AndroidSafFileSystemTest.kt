@@ -32,7 +32,7 @@ class AndroidSafFileSystemTest {
 
     @Test
     fun independentSafRoots() {
-        val downloadsUri = selectSafDirectory()
+        val downloadsUri = selectDownloads()
 
     		fs.changeSelectedDirectory(downloadsUri)
     		
@@ -106,6 +106,46 @@ class AndroidSafFileSystemTest {
         } finally {
             instrumentation.uiAutomation.dropShellPermissionIdentity()
         }
+    }
+
+    private fun selectDownloads(): Uri {
+        SafPickerActivity.resultUri = null
+        SafPickerActivity.resultCode = Activity.RESULT_CANCELED
+    
+        val context = ApplicationProvider
+            .getApplicationContext<Context>()
+    
+        val intent = Intent(context, SafPickerActivity::class.java).apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+    
+        instrumentation.startActivitySync(intent)
+    
+        val device = UiDevice.getInstance(instrumentation)
+    
+        check(
+            device.wait(
+                Until.hasObject(By.text("Downloads")),
+                10_000
+            )
+        ) {
+            "Downloads was not visible in SAF picker"
+        }
+    
+        device.findObject(By.text("Downloads")).click()
+    
+        check(
+            device.wait(
+                Until.hasObject(By.text("Use this folder")),
+                10_000
+            )
+        ) {
+            "Use this folder was not visible"
+        }
+    
+        device.findObject(By.text("Use this folder")).click()
+    
+        return waitForPickerResult()
     }
 
     private fun waitForPickerResult(): Uri {
