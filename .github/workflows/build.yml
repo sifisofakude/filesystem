@@ -67,7 +67,7 @@ jobs:
           target: google_apis_playstore
           arch: x86_64
           profile: pixel_2
-          force-avd-creation: true
+          force-avd-creation: false
           emulator-options: >-
             -no-window
             -no-audio
