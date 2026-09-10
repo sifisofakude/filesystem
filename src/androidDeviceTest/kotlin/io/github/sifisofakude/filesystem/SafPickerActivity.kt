@@ -5,6 +5,11 @@ import android.content.Intent
 import android.os.Bundle
 import android.net.Uri
 import android.provider.DocumentsContract
+import androidx.test.platform.app.InstrumentationRegistry
+import androidx.test.uiautomator.UiDevice
+import androidx.test.core.app.ApplicationProvider
+import androidx.test.uiautomator.By
+import androidx.test.uiautomator.Until
 
 class SafPickerActivity : Activity() {
 
@@ -23,6 +28,27 @@ class SafPickerActivity : Activity() {
         }
 
         startActivityForResult(treeIntent, REQUEST_CODE)
+
+        val device = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
+        device.wait(
+        	Until.findObject(
+        		By.res("android","button1")
+        			.textMatches("(?i)(Use this folder|Select)")
+        	),
+        	5000
+        )?.let	{ selectButton ->
+        	selectButton.click()
+
+        	device.wait(
+        		Until.findObject(
+        			By.res("android","button1")
+        				.textMatches("(?i)Allow")
+        		),
+        		4000
+        	)?.let	{ allowButton ->
+        		allowButton.click()
+        	}
+        }
     }
 
     override fun onActivityResult(

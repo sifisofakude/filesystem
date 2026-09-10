@@ -39,7 +39,18 @@ class AndroidSafFileSystemTest {
 
     @Test
     fun independentSafRoots() {
-        assertTrue(adbCreateDirectory("MyFolder"))
+        assertTrue(adbCreateDirectory("Root1"))
+        assertTrue(adbCreateDirectory("Root2"))
+        assertTrue(adbCreateDirectory("Root3"))
+
+        val root1 = constructUri("Root1")
+        assertTrue(selectFolder(root1))
+        
+        val root2 = constructUri("Root2")
+        assertTrue(selectFolder(root2))
+        
+        val root3 = constructUri("Root3")
+        assertTrue(selectFolder(root3))
     }
 
     private fun selectFolder(uri: String): Boolean	{
@@ -72,6 +83,12 @@ class AndroidSafFileSystemTest {
     	}else	{
     		false
     	}
+    }
+
+    private fun constructUri(relativePath: String): String	{
+    	if(relativePath.isEmpty()) throw IllegalArgumentException("Path can't be an empty string")
+
+    	return "content://com.android.externalstorage.documents/document/primary:$relativePath"
     }
 
     private fun adbRemoveDirectory(dir: String): Boolean	{
