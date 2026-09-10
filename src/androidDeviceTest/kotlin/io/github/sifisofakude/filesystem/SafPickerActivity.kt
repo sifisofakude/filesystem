@@ -32,8 +32,7 @@ class SafPickerActivity : Activity() {
         val device = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
         device.wait(
         	Until.findObject(
-        		By.res("android","button1")
-        			.textMatches("(?i)(Use this folder|Select)")
+        		By.descMatches("(?i)(Use this folder|Select)")
         	),
         	5000
         )?.let	{ selectButton ->
@@ -41,8 +40,7 @@ class SafPickerActivity : Activity() {
 
         	device.wait(
         		Until.findObject(
-        			By.res("android","button1")
-        				.textMatches("(?i)Allow")
+        			By.descMatches("(?i)Allow")
         		),
         		4000
         	)?.let	{ allowButton ->
