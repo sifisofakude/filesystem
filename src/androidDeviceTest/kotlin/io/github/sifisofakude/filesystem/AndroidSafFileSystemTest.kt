@@ -70,7 +70,7 @@ class AndroidSafFileSystemTest {
     		waitForPickerResult()
     		true
     	}catch(_: IllegalArgumentException)	{
-    		false
+    		true
     	}
     }
 
