@@ -28,7 +28,7 @@ class SafPickerActivity : Activity() {
 
         if (requestCode == REQUEST_CODE) {
             resultUri = data?.data
-            this.resultCode = resultCode
+            SafPickerActivity.resultCode = resultCode
             finish()
         }
     }
