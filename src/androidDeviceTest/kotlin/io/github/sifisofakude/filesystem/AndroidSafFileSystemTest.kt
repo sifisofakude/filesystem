@@ -62,9 +62,16 @@ class AndroidSafFileSystemTest {
     }
 
     private fun adbCreateDirectory(dir: String): Boolean	{
-    	return instrumentation
+    	val folder = instrumentation
     		.getUiAutomation()
     		.executeShellCommand("mkdir -p /sdcard/$dir")
+
+    	return if(folder.fileDescriptor.valid())	{
+    		folder.close()
+    		true
+    	}else	{
+    		false
+    	}
     }
 
     private fun waitForPickerResult(): Uri {
