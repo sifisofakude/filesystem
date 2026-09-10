@@ -19,6 +19,10 @@ kotlin {
         namespace = "io.github.sifisofakude.filesystem"
         compileSdk = 36
         minSdk = 24
+
+        withDeviceTest {
+            instrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        }
     }
 
     sourceSets {
@@ -47,10 +51,12 @@ kotlin {
             }
         }
 
-        androidInstrumentedTest.dependencies {
-            implementation("androidx.test.ext:junit:1.2.1")
-            implementation("androidx.test:core:1.6.1")
-            implementation("androidx.test.uiautomator:uiautomator:2.3.0")
+        val androidDeviceTest by getting {
+        	dependencies {
+	            implementation("androidx.test.ext:junit:1.2.1")
+	            implementation("androidx.test:core:1.6.1")
+	            implementation("androidx.test.uiautomator:uiautomator:2.3.0")
+	        }
         }
     }
 }
