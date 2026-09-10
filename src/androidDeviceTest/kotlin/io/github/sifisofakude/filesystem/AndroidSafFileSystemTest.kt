@@ -74,7 +74,12 @@ class AndroidSafFileSystemTest {
             )
 
         try {
-            val activity = instrumentation.startActivitySync(intent)
+            val intent = Intent(
+                ApplicationProvider.getApplicationContext(),
+                SafPickerActivity::class.java
+            )
+            
+            instrumentation.startActivitySync(intent)
 
             // We will automate DocumentsUI here.
             //
