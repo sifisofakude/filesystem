@@ -3,7 +3,7 @@
 
     <application>
         <activity
-            android:name=".SafPickerActivity"
+            android:name="io.github.sifisofakude.filesystem.SafPickerActivity"
             android:exported="false"/>
     </application>
 
