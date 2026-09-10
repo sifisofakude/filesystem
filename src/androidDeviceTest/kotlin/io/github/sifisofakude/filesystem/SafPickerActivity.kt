@@ -49,6 +49,8 @@ class SafPickerActivity : Activity() {
         		allowButton.click()
         	}
         }
+
+        device.waitForIdle()
     }
 
     override fun onActivityResult(
