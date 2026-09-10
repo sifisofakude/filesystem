@@ -26,7 +26,7 @@ class AndroidSafFileSystemTest {
 
     private lateinit var device: UiDevice
     private lateinit var fs: AndroidSafFileSystem
-		private val context = ApplicationProvider.getApplicationContext>Context>()
+		private val context = ApplicationProvider.getApplicationContext()>Context>()
 
     @Before
     fun setup() {
