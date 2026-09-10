@@ -18,8 +18,8 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 
-import java.nio.charset.Charset
 import java.io.ByteArrayOutputStream
+import java.nio.charset.StandardCharsets
 
 
 @RunWith(AndroidJUnit4::class)
@@ -155,7 +155,7 @@ class AndroidSafFileSystemTest {
 				val output = ByteArrayOutputStream()
 				device.dumpWindowHierarchy(output)
     		println("=========== SAF PICKER UI ======================")
-    		println(output.toString(Charset.UTF_8.name()))
+    		println(output.toString(StandardCharsets.UTF_8))
     		println("================================================")
 
     
