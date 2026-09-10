@@ -18,39 +18,39 @@ class SafPickerActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val uri = intent.getStringExtra("selectUri") ?: return
+				window.decorView.post	{
+	        val uri = intent.getStringExtra("selectUri") ?: return
 
-        val treeIntent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).apply {
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
-            addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
-            addFlags(Intent.FLAG_GRANT_PREFIX_URI_PERMISSION)
+	        val treeIntent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).apply {
+	            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+	            addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+	            addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
+	            addFlags(Intent.FLAG_GRANT_PREFIX_URI_PERMISSION)
 
-            putExtra(DocumentsContract.EXTRA_INITIAL_URI,Uri.parse(uri))
-        }
+	            putExtra(DocumentsContract.EXTRA_INITIAL_URI,Uri.parse(uri))
+	        }
 
-        startActivityForResult(treeIntent, REQUEST_CODE)
+	        startActivityForResult(treeIntent, REQUEST_CODE)
 
-        val device = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
-        device.wait(
-        	Until.findObject(
-        		By.desc(Pattern.compile("(?i)(Use this folder|Select)"))
-        	),
-        	2000
-        )?.let	{ selectButton ->
-        	selectButton.click()
+	        val device = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
+	        device.wait(
+	        	Until.findObject(
+	        		By.desc(Pattern.compile("(?i)(Use this folder|Select)"))
+	        	),
+	        	2000
+	        )?.let	{ selectButton ->
+	        	selectButton.click()
 
-        	device.wait(
-        		Until.findObject(
-        			By.desc(Pattern.compile("(?i)Allow"))
-        		),
-        		2000
-        	)?.let	{ allowButton ->
-        		allowButton.click()
-        	}
-        }
-
-        device.waitForIdle()
+	        	device.wait(
+	        		Until.findObject(
+	        			By.desc(Pattern.compile("(?i)Allow"))
+	        		),
+	        		2000
+	        	)?.let	{ allowButton ->
+	        		allowButton.click()
+	        	}
+	        }
+				}
     }
 
     override fun onActivityResult(
