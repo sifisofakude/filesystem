@@ -34,7 +34,7 @@ class AndroidSafFileSystemTest {
     fun selectedDirectorySupportsRelativePaths() {
         val root = selectSafDirectory()
 
-        asserMottNull(root)
+        asserMotNull(root)
 
         fs.changeSelectedDirectory(root)
 
