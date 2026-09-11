@@ -134,7 +134,11 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 * @return `true` if SAF resolution should be used, otherwise `false`.
 	 */
 	fun isSafContext(path: String): Boolean	{
-		return isSafUri(path) || selectedParentUri != null
+		return if(isRelative(path))	{
+			selectedParentUri != null
+		}else	{
+			isSaf(path)
+		}
 	}
 
 	/**
