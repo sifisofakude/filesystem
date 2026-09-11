@@ -234,6 +234,8 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 			relativeName = relativeUri.substringAfterLast('/',"")
 			relativeUri = relativeUri.substringBeforeLast('/',"")
 		}
+
+		throw IllegalStateException("Relative path: $relativeNames")
 		return defaultResult
 	}
 

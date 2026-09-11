@@ -243,6 +243,7 @@ class AndroidSafFileSystemTest {
     	}
 
     	instrumentation.startActivitySync(intent)
+    	// context.startActivity(intent)
 
     	device.waitForIdle()
 
