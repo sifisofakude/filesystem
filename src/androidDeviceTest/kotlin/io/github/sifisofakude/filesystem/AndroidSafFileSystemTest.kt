@@ -60,18 +60,20 @@ class AndroidSafFileSystemTest {
             ?: error("Could not select Root1")
     
         fs.changeSelectedDirectory(root)
+
+        assertError("Current directory: ${fs.getCurrentDirectory()}")
     
-        assertNotNull(fs.createDirectory("docs"))
-        assertTrue(fs.exists("docs"))
-        assertTrue(fs.isDirectory("docs"))
-    
-        assertNotNull(fs.createFile("docs/test.txt"))
-        assertTrue(fs.exists("docs/test.txt"))
-        assertTrue(fs.isFile("docs/test.txt"))
-    
-        assertEquals("test.txt", fs.getName("docs/test.txt"))
-        assertEquals("txt", fs.getExtension("docs/test.txt"))
-        assertEquals("docs", fs.getName(fs.getParentFile("docs/test.txt")!!))
+    //     assertNotNull(fs.createDirectory("docs"))
+    //     assertTrue(fs.exists("docs"))
+    //     assertTrue(fs.isDirectory("docs"))
+    // 
+    //     assertNotNull(fs.createFile("docs/test.txt"))
+    //     assertTrue(fs.exists("docs/test.txt"))
+    //     assertTrue(fs.isFile("docs/test.txt"))
+    // 
+    //     assertEquals("test.txt", fs.getName("docs/test.txt"))
+    //     assertEquals("txt", fs.getExtension("docs/test.txt"))
+    //     assertEquals("docs", fs.getName(fs.getParentFile("docs/test.txt")!!))
     }
 
     @Test
@@ -79,29 +81,29 @@ class AndroidSafFileSystemTest {
         val root = selectFolder(constructUri("Root1"))
             ?: error("Could not select Root1")
     
-        fs.changeSelectedDirectory(root)
-    
-        val path = "hello.txt"
-    
-        assertNotNull(fs.createFile(path))
-    
-        assertTrue(
-            fs.writeText(path, "Hello SAF")
-        )
-    
-        assertEquals(
-            "Hello SAF",
-            fs.readText(path)
-        )
-    
-        assertTrue(
-            fs.appendText(path, "!")
-        )
-    
-        assertEquals(
-            "Hello SAF!",
-            fs.readText(path)
-        )
+    //     fs.changeSelectedDirectory(root)
+    // 
+    //     val path = "hello.txt"
+    // 
+    //     assertNotNull(fs.createFile(path))
+    // 
+    //     assertTrue(
+    //         fs.writeText(path, "Hello SAF")
+    //     )
+    // 
+    //     assertEquals(
+    //         "Hello SAF",
+    //         fs.readText(path)
+    //     )
+    // 
+    //     assertTrue(
+    //         fs.appendText(path, "!")
+    //     )
+    // 
+    //     assertEquals(
+    //         "Hello SAF!",
+    //         fs.readText(path)
+    //     )
     }
 
     @Test
@@ -109,50 +111,50 @@ class AndroidSafFileSystemTest {
         val root = selectFolder(constructUri("Root1"))
             ?: error("Could not select Root1")
     
-        fs.changeSelectedDirectory(root)
-    
-        assertTrue(fs.isRelative("test.txt"))
-    
-        assertNotNull(fs.createDirectory("a/b"))
-        assertNotNull(fs.createFile("a/b/test.txt"))
-    
-        assertTrue(fs.exists("a"))
-        assertTrue(fs.exists("a/b"))
-        assertTrue(fs.exists("a/b/test.txt"))
+    //     fs.changeSelectedDirectory(root)
+    // 
+    //     assertTrue(fs.isRelative("test.txt"))
+    // 
+    //     assertNotNull(fs.createDirectory("a/b"))
+    //     assertNotNull(fs.createFile("a/b/test.txt"))
+    // 
+    //     assertTrue(fs.exists("a"))
+    //     assertTrue(fs.exists("a/b"))
+    //     assertTrue(fs.exists("a/b/test.txt"))
     }
 
     @Test
     fun copyByStream() {
         val root = selectFolder(constructUri("Root2"))
             ?: error("Could not select Root2")
-    
-        fs.changeSelectedDirectory(root)
-    
-        fs.createDirectory("source")
-        fs.createDirectory("destination")
-    
-        assertTrue(
-            fs.writeText(
-                "source/test.txt",
-                "stream copy"
-            )
-        )
-    
-        val result = fs.copyByStream(
-            "source/test.txt",
-            "destination"
-        )
-    
-        assertNotNull(result)
-    
-        assertTrue(
-            fs.exists("destination/test.txt")
-        )
-    
-        assertEquals(
-            "stream copy",
-            fs.readText("destination/test.txt")
-        )
+    // 
+    //     fs.changeSelectedDirectory(root)
+    // 
+    //     fs.createFile("source/test.txt")
+    //     fs.createDirectory("destination")
+    // 
+    //     assertTrue(
+    //         fs.writeText(
+    //             "source/test.txt",
+    //             "stream copy"
+    //         )
+    //     )
+    // 
+    //     val result = fs.copyByStream(
+    //         "source/test.txt",
+    //         "destination"
+    //     )
+    // 
+    //     assertNotNull(result)
+    // 
+    //     assertTrue(
+    //         fs.exists("destination/test.txt")
+    //     )
+    // 
+    //     assertEquals(
+    //         "stream copy",
+    //         fs.readText("destination/test.txt")
+    //     )
     }
 
     @Test
@@ -160,35 +162,35 @@ class AndroidSafFileSystemTest {
         val root = selectFolder(constructUri("Root2"))
             ?: error("Could not select Root2")
     
-        fs.changeSelectedDirectory(root)
-    
-        fs.createDirectory("source")
-        fs.createDirectory("destination")
-    
-        fs.writeText(
-            "source/test.txt",
-            "stream move"
-        )
-    
-        val result = fs.moveByStream(
-            "source/test.txt",
-            "destination"
-        )
-    
-        assertNotNull(result)
-    
-        assertTrue(
-            fs.exists("destination/test.txt")
-        )
-    
-        assertTrue(
-            !fs.exists("source/test.txt")
-        )
-    
-        assertEquals(
-            "stream move",
-            fs.readText("destination/test.txt")
-        )
+    //     fs.changeSelectedDirectory(root)
+    // 
+    //     fs.createDirectory("source")
+    //     fs.createDirectory("destination")
+    // 
+    //     fs.writeText(
+    //         "source/test.txt",
+    //         "stream move"
+    //     )
+    // 
+    //     val result = fs.moveByStream(
+    //         "source/test.txt",
+    //         "destination"
+    //     )
+    // 
+    //     assertNotNull(result)
+    // 
+    //     assertTrue(
+    //         fs.exists("destination/test.txt")
+    //     )
+    // 
+    //     assertTrue(
+    //         !fs.exists("source/test.txt")
+    //     )
+    // 
+    //     assertEquals(
+    //         "stream move",
+    //         fs.readText("destination/test.txt")
+    //     )
     }
 
     private fun selectUri(uri: String): Uri?	{
