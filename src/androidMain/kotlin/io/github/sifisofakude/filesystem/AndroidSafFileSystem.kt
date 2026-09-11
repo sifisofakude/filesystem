@@ -563,7 +563,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 			val fileName = getName(path)
 	    val parents = path.substringBeforeLast('/',"")
 	    var parentUri: String? = null
-	    
+// 	    
 			if(isSafUri(path))	{
 				parentUri = parents
 			}else if(selectedParentUri != null)	{
