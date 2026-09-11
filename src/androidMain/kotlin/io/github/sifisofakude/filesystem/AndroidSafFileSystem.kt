@@ -559,37 +559,31 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 * @return URI string of the file, or null if creation failed
 	 */
 	override fun createFile(path: String): String? {
-		return path
-		
 		if(isSafContext(path))	{
-			var fileName: String? = null
-	    var relativeParents: String? = null
 	    var parentUri: String? = null
+	    var relativeParents: String? = null
+			var fileName: String? = getName(path)
 // 	    
-			if(isRelative(path))	{
-				fileName = getName(path)
-				relativeParents = getParentFile(path)
-				parentUri = selectedParentUri?.toString() ?: return null
+			val relativeUri = relativePathFromUri(path)
+			if(relativeUri.relativePath.isNotEmpty())	{
+				parentUri = relativeUri.rootUri
+				relativeParents = getParentFile(relativeUri.relativePath)
 			}else	{
-				val relPath = relativePathFromUri(path)
+				if(isSafUri(relativeUri.rootUri))	{
+					parentUri = relativeUri.rootUri
+				}else	{
+					if(selectedParentUri == null) return null
 
-				parentUri = relPath.rootUri
-
-				if(relPath.relativePath.isNotEmpty())	{
-					fileName = getName(relPath.relativePath)
-					getParentFile(relPath.relativePath)?.let	{
-						relativeParents = it
-					}
+					parentUri = selectedParentUri
+					relativeParents = relativeUri.relativePath
 				}
-			}
-
-			if(fileName == null)	{
-				return null
 			}
 
 			if(relativeParents != null)	{
 				parentUri = "$parentUri/$relativeParents"
 			}
+
+			return parentUri
 
 //     	return createDirectory(parentUri)?.let	{ parent ->
 //     		getDocumentFile(parent)
@@ -704,11 +698,14 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 */
 	override fun getParentFile(path: String): String?	{
 		if(isSafContext(path))	{
-			val tmpPath = tempPath(path) ?: return null
 			val relativeUri = relativePathFromUri(tmpPath)
 
 			if(relativeUri.relativePath.isNotEmpty())	{
-				return super.getParentFile(relativeUri.relativePath)
+				val relativeParent = super.getParentFile(relativeUri.relativePath)
+				if(relativeParent == null)	{
+					return relativeUri.rootUri
+				}
+				return "${relativeUri.rootUri}/$relativeParent"
 			}
 			
 			return getDocumentFile(relativeUri.rootUri)?.parentFile?.uri?.toString()
