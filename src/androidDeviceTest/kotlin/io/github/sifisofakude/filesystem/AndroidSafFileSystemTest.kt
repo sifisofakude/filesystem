@@ -20,6 +20,7 @@ import org.junit.runner.RunWith
 
 import java.io.ByteArrayOutputStream
 import java.nio.charset.StandardCharsets
+import java.util.regex.Pattern
 
 
 @RunWith(AndroidJUnit4::class)
@@ -68,7 +69,7 @@ class AndroidSafFileSystemTest {
 
       device.wait(
       	Until.findObject(
-      		By.clickable(true).textMatches(Pattern.compile("(?i)(Use this folder|Select)"))
+      		By.clickable(true).text(Pattern.compile("(?i)(Use this folder|Select)"))
       	),
       	5000
       )?.let	{ selectButton ->
@@ -76,7 +77,7 @@ class AndroidSafFileSystemTest {
 
       	device.wait(
       		Until.findObject(
-      			By.clickable(true).textMatches(Pattern.compile("(?i)Allow"))
+      			By.clickable(true).text(Pattern.compile("(?i)Allow"))
       		),
       		5000
       	)?.let	{ allowButton ->

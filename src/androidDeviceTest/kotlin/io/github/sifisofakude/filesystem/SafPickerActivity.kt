@@ -5,13 +5,6 @@ import android.content.Intent
 import android.os.Bundle
 import android.net.Uri
 import android.provider.DocumentsContract
-import androidx.test.platform.app.InstrumentationRegistry
-import androidx.test.uiautomator.UiDevice
-import androidx.test.core.app.ApplicationProvider
-import androidx.test.uiautomator.By
-import androidx.test.uiautomator.Until
-
-import java.util.regex.Pattern
 
 class SafPickerActivity : Activity() {
 
