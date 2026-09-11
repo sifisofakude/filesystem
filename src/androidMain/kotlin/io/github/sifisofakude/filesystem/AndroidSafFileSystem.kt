@@ -581,7 +581,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 				}
 			}
 
-			if(parentUri == null || fileName == null)	{
+			if(fileName == null)	{
 				return null
 			}
 
@@ -589,20 +589,21 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 				parentUri = "$parentUri/$relativeParents"
 			}
 
-    	return createDirectory(parentUri)?.let	{ parent ->
-    		getDocumentFile(parent)
-    			?.findFile(fileName)
-    			?.let	{
-    				if(it.isFile) it.uri.toString()
-    				else null
-    			}
-
-    			?:
-
-    		getDocumentFile(parent)
-    			?.createFile("application/octet-stream",fileName)
-    			?.uri?.toString()
-    	}
+//     	return createDirectory(parentUri)?.let	{ parent ->
+//     		getDocumentFile(parent)
+//     			?.findFile(fileName)
+//     			?.let	{
+//     				if(it.isFile) it.uri.toString()
+//     				else null
+//     			}
+// 
+//     			?:
+// 
+//     		getDocumentFile(parent)
+//     			?.createFile("application/octet-stream",fileName)
+//     			?.uri?.toString()
+//     	}
+			rwturn parentUri
     }
     return super.createFile(path)
 	}
