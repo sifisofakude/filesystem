@@ -512,36 +512,33 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 */
 	override fun createDirectory(path: String): String? {
 		if(isSafContext(path))	{
-			if(isSafUri(path))	{
-				val relativeUri = relativePathFromUri(path)
+			val relativeUri = relativePathFromUri(path)
 
-				var uri = relativeUri.rootUri
-				val segments = relativeUri.relativePath.split('/')
-				for(segment in segments)	{
-					getDocumentFile(uri)?.let	{ parent ->
-						parent
-							.findFile(segment)
-							?.let	{
-								if(it.isFile) return null
+			var uri = relativeUri.rootUri
+			val segments = relativeUri.relativePath.split('/')
+			for(segment in segments)	{
+				getDocumentFile(uri)?.let	{ parent ->
+					parent
+						.findFile(segment)
+						?.let	{
+							if(it.isFile) return null
 
-								uri = it.uri.toString()
-							}
+							uri = it.uri.toString()
+						}
 
-							?:
+						?:
 
-						parent
-							.createDirectory(segment)
-							?.let	{
-								uri = it.uri.toString()
-							}
+					parent
+						.createDirectory(segment)
+						?.let	{
+							uri = it.uri.toString()
+						}
 
-							?:
+						?:
 
-						return null
-					}
-					return uri
+					return null
 				}
-				return null
+				return uri
 			}
 
 			return createDirectory("${selectedParentUri.toString()}/$path")
@@ -578,13 +575,13 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 					relativeParents = getParentFile(relativeUri.rootUri.toString())
 				}
 			}
-
+// 
 			if(relativeParents != null)	{
 				parentUri = "$parentUri/$relativeParents"
 			}
 
 			return parentUri
-
+// 
 //     	return createDirectory(parentUri)?.let	{ parent ->
 //     		getDocumentFile(parent)
 //     			?.findFile(fileName)
