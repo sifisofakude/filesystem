@@ -221,7 +221,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 			if(relativeUri.isNotEmpty())	{
 				DocumentFile.fromTreeUri(context,Uri.parse(relativeUri))?.let	{
 					return SafRelativePath(
-						rootUri = it.uri.toString(),
+						rootUri = relativeUri,
 						relativePath = relativeNames.asReversed().joinToString("/")
 					)
 				}
