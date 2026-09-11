@@ -67,6 +67,8 @@ class AndroidSafFileSystemTest {
 
     	instrumentation.startActivitySync(intent)
 
+    	device.waitIdle(2000)
+
       device.wait(
       	Until.findObject(
       		By.clickable(true).text(Pattern.compile("(?i)(Use this folder|Select)"))
@@ -89,7 +91,7 @@ class AndroidSafFileSystemTest {
     		waitForPickerResult()
     		true
     	}catch(_: IllegalArgumentException)	{
-    		true
+    		false
     	}
     }
 
