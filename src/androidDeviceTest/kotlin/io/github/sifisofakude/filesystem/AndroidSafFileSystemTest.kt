@@ -196,9 +196,9 @@ class AndroidSafFileSystemTest {
 
     	return if(fs.isFile(uri))	{
     		val name = fs.getName(uri)
-    		val root = fs.getParentFile(uri) ?: null
+    		val root = fs.getParentFile(uri) ?: return null
 
-    		selectFile(root,name)
+    		// selectFile(root,name)
     	}else	{
     		selectFolder(uri)
     	}
