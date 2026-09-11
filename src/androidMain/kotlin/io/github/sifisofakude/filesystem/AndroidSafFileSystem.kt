@@ -559,6 +559,8 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 * @return URI string of the file, or null if creation failed
 	 */
 	override fun createFile(path: String): String? {
+		return path
+		
 		if(isSafContext(path))	{
 			var fileName: String? = null
 	    var relativeParents: String? = null
@@ -603,7 +605,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 //     			?.createFile("application/octet-stream",fileName)
 //     			?.uri?.toString()
 //     	}
-			return parentUri
+			// return parentUri
     }
     return super.createFile(path)
 	}
