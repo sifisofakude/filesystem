@@ -511,7 +511,8 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 * @return URI string of the final directory, or null if creation failed
 	 */
 	override fun createDirectory(path: String): String? {
-		if(isSafContext(path))
+		if(isSafContext(path))	{
+			if(isSafUri(path))	{
 				val relativeUri = relativePathFromUri(path)
 
 				var uri = relativeUri.rootUri
