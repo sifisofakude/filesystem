@@ -109,7 +109,7 @@ class AndroidSafFileSystemTest {
         val root = selectFolder(constructUri("Root1"))
             ?: error("Could not select Root1")
     
-        fs.changeSelectedDirectory(root.toString())
+        fs.changeSelectedDirectory(root)
     
         assertTrue(fs.isRelative("test.txt"))
     
@@ -126,7 +126,7 @@ class AndroidSafFileSystemTest {
         val root = selectFolder(constructUri("Root2"))
             ?: error("Could not select Root2")
     
-        fs.changeSelectedDirectory(root.toString())
+        fs.changeSelectedDirectory(root)
     
         fs.createDirectory("source")
         fs.createDirectory("destination")
@@ -160,7 +160,7 @@ class AndroidSafFileSystemTest {
         val root = selectFolder(constructUri("Root2"))
             ?: error("Could not select Root2")
     
-        fs.changeSelectedDirectory(root.toString())
+        fs.changeSelectedDirectory(root)
     
         fs.createDirectory("source")
         fs.createDirectory("destination")
