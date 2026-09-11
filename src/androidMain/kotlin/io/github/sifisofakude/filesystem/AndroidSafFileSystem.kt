@@ -583,7 +583,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 				parentUri = "$parentUri/$relativeParents"
 			}
 
-			return parentUri
+			return parentUri?.toString()
 
 //     	return createDirectory(parentUri)?.let	{ parent ->
 //     		getDocumentFile(parent)
