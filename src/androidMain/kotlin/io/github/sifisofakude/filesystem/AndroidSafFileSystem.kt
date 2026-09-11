@@ -557,7 +557,6 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 * @return URI string of the file, or null if creation failed
 	 */
 	override fun createFile(path: String): String? {
-		throw IllegalStateException("Path to file: $path")
 		if(isSafContext(path))	{
 	    var parentUri: String? = null
 	    var relativeParents: String? = null
@@ -577,6 +576,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 					relativeParents = getParentFile(relativeUri.rootUri.toString())
 				}
 			}
+		throw IllegalStateException("Path to file: $parentUri")
 // 
 			if(relativeParents != null)	{
 				parentUri = "$parentUri/$relativeParents"
