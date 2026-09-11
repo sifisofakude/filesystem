@@ -137,7 +137,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 		return if(isRelative(path))	{
 			selectedParentUri != null
 		}else	{
-			isSaf(path)
+			isSafUri(path)
 		}
 	}
 
