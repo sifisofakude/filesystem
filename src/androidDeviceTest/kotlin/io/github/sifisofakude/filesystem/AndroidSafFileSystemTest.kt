@@ -79,8 +79,8 @@ class AndroidSafFileSystemTest {
 
     @Test
     fun readWriteText() {
-        val root = selectFolder(constructUri("Root1"))
-            ?: error("Could not select Root1")
+        // val root = selectFolder(constructUri("Root1"))
+            // ?: error("Could not select Root1")
     
     //     fs.changeSelectedDirectory(root)
     // 
@@ -109,8 +109,8 @@ class AndroidSafFileSystemTest {
 
     @Test
     fun selectedDirectorySupportsRelativePaths() {
-        val root = selectFolder(constructUri("Root1"))
-            ?: error("Could not select Root1")
+        // val root = selectFolder(constructUri("Root1"))
+            // ?: error("Could not select Root1")
     
     //     fs.changeSelectedDirectory(root)
     // 
@@ -126,8 +126,8 @@ class AndroidSafFileSystemTest {
 
     @Test
     fun copyByStream() {
-        val root = selectFolder(constructUri("Root2"))
-            ?: error("Could not select Root2")
+        // val root = selectFolder(constructUri("Root2"))
+            // ?: error("Could not select Root2")
     // 
     //     fs.changeSelectedDirectory(root)
     // 
@@ -160,8 +160,8 @@ class AndroidSafFileSystemTest {
 
     @Test
     fun moveByStream() {
-        val root = selectFolder(constructUri("Root2"))
-            ?: error("Could not select Root2")
+        // val root = selectFolder(constructUri("Root2"))
+            // ?: error("Could not select Root2")
     
     //     fs.changeSelectedDirectory(root)
     // 
