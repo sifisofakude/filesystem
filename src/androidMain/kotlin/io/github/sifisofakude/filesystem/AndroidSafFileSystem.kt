@@ -698,7 +698,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 */
 	override fun getParentFile(path: String): String?	{
 		if(isSafContext(path))	{
-			val relativeUri = relativePathFromUri(tmpPath)
+			val relativeUri = relativePathFromUri(path)
 
 			if(relativeUri.relativePath.isNotEmpty())	{
 				val relativeParent = super.getParentFile(relativeUri.relativePath)
