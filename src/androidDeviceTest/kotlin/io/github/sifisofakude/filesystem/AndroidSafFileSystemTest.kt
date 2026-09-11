@@ -199,35 +199,36 @@ class AndroidSafFileSystemTest {
     		val root = fs.getParentFile(uri) ?: return null
 
     		// selectFile(root,name)
+    		null
     	}else	{
     		selectFolder(uri)
     	}
     }
 
-    private fun selectFile(root: String, name: String): Uri?	{
-    	SafPickerActivity.resultUri = null
-    	SafPickerActivity.resultCode = Activity.RESULT_CANCELED
-    	
-    	val intent = Intent(context,SafPickerActivity::class.java).apply	{
-    		addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-    		putExtra("selectUri",root)
-    	}
-
-    	instrumentation.startActivitySync(intent)
-
-      device.wait(
-      	Until.findObject(
-      		By.clazzName("android.widget.TextView").text(name)
-      	),
-      	5000
-      )?.click()
-
-    	return try	{
-    		waitForPickerResult()
-    	}catch(_: IllegalArgumentException)	{
-    		null
-    	}
-    }
+//     private fun selectFile(root: String, name: String): Uri?	{
+//     	SafPickerActivity.resultUri = null
+//     	SafPickerActivity.resultCode = Activity.RESULT_CANCELED
+//     	
+//     	val intent = Intent(context,SafPickerActivity::class.java).apply	{
+//     		addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+//     		putExtra("selectUri",root)
+//     	}
+// 
+//     	instrumentation.startActivitySync(intent)
+// 
+//       device.wait(
+//       	Until.findObject(
+//       		By.clazzName("android.widget.TextView").text(name)
+//       	),
+//       	5000
+//       )?.click()
+// 
+//     	return try	{
+//     		waitForPickerResult()
+//     	}catch(_: IllegalArgumentException)	{
+//     		null
+//     	}
+//     }
 
     private fun selectFolder(uri: String): Uri?	{
     	SafPickerActivity.resultUri = null
