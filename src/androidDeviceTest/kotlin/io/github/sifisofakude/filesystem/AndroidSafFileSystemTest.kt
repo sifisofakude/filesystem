@@ -242,8 +242,8 @@ class AndroidSafFileSystemTest {
     		putExtra("selectUri",uri)
     	}
 
-    	// instrumentation.startActivitySync(intent)
-    	context.startActivity(intent)
+    	instrumentation.startActivitySync(intent)
+    	// context.startActivity(intent)
 
     	device.waitForIdle()
 
