@@ -603,7 +603,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 //     			?.createFile("application/octet-stream",fileName)
 //     			?.uri?.toString()
 //     	}
-			return parentUri
+			return null
     }
     return super.createFile(path)
 	}
