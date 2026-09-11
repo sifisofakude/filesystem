@@ -563,7 +563,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	    var parentUri: String? = null
 	    var relativeParents: String? = null
 			var fileName: String? = getName(path)
-// 	    
+	    
 			val relativeUri = relativePathFromUri(path)
 			if(relativeUri.relativePath.isNotEmpty())	{
 				parentUri = relativeUri.rootUri.toString()
