@@ -13,8 +13,13 @@ class SafPickerActivity : Activity() {
 
 				window.decorView.post	{
 	        val uri = intent.getStringExtra("selectUri")
+	        val action = if(intent.getBooleanExtra("isFolder"))	{
+	        	Intent.ACTION_OPEN_DOCUMENT_TREE
+	        }else	{
+	        	Intent.ACTION_OPEN_DOCUMENT
+	        }
 
-	        val treeIntent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).apply {
+	        val treeIntent = Intent(action).apply {
 	            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
 	            addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
 	            addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
@@ -35,6 +40,14 @@ class SafPickerActivity : Activity() {
         super.onActivityResult(requestCode, resultCode, data)
 
         if (requestCode == REQUEST_CODE) {
+        	data?.data?.let	{ uri ->
+        		contentResolver.takePersistableUriPermission(
+ 		            uri,
+ 		            Intent.FLAG_GRANT_READ_URI_PERMISSION or
+ 		                Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+ 		        )
+        	}
+
             SafPickerActivity.resultUri = data?.data
             SafPickerActivity.resultCode = resultCode
             finish()
