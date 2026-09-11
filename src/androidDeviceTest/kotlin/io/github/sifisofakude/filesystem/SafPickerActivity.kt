@@ -31,25 +31,6 @@ class SafPickerActivity : Activity() {
 	        }
 
 	        startActivityForResult(treeIntent, REQUEST_CODE)
-
-	        val device = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
-	        device.wait(
-	        	Until.findObject(
-	        		By.desc(Pattern.compile("(?i)(Use this folder|Select)"))
-	        	),
-	        	2000
-	        )?.let	{ selectButton ->
-	        	selectButton.click()
-
-	        	device.wait(
-	        		Until.findObject(
-	        			By.desc(Pattern.compile("(?i)Allow"))
-	        		),
-	        		2000
-	        	)?.let	{ allowButton ->
-	        		allowButton.click()
-	        	}
-	        }
 				}
     }
 

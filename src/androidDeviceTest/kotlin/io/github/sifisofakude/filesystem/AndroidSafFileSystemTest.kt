@@ -66,6 +66,24 @@ class AndroidSafFileSystemTest {
 
     	instrumentation.startActivitySync(intent)
 
+      device.wait(
+      	Until.findObject(
+      		By.clickable(true).textMatches(Pattern.compile("(?i)(Use this folder|Select)"))
+      	),
+      	5000
+      )?.let	{ selectButton ->
+      	selectButton.click()
+
+      	device.wait(
+      		Until.findObject(
+      			By.clickable(true).textMatches(Pattern.compile("(?i)Allow"))
+      		),
+      		5000
+      	)?.let	{ allowButton ->
+      		allowButton.click()
+      	}
+      }
+
     	return try	{
     		waitForPickerResult()
     		true
