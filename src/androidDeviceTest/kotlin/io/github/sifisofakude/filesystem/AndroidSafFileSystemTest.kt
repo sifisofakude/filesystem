@@ -14,7 +14,7 @@ import androidx.test.uiautomator.Until
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
-import org.junit.Assert.assertError
+import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -62,7 +62,7 @@ class AndroidSafFileSystemTest {
     
         fs.changeSelectedDirectory(root)
 
-        assertError("Current directory: ${fs.getCurrentDirectory()}")
+        fail("Current directory: ${fs.getCurrentDirectory()}")
     
     //     assertNotNull(fs.createDirectory("docs"))
     //     assertTrue(fs.exists("docs"))
