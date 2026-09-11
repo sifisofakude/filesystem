@@ -196,7 +196,7 @@ class AndroidSafFileSystemTest {
 
     	return if(fs.isFile(uri))	{
     		val name = fs.getName(uri)
-    		val root = fs.getParentFile(url)
+    		val root = fs.getParentFile(uri) ?: null
 
     		selectFile(root,name)
     	}else	{
@@ -217,7 +217,7 @@ class AndroidSafFileSystemTest {
 
       device.wait(
       	Until.findObject(
-      		By.className("android.widget.TextView").text(name)
+      		By.clazzName("android.widget.TextView").text(name)
       	),
       	5000
       )?.click()

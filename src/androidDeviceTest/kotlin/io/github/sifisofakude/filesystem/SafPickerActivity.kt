@@ -13,7 +13,7 @@ class SafPickerActivity : Activity() {
 
 				window.decorView.post	{
 	        val uri = intent.getStringExtra("selectUri")
-	        val action = if(intent.getBooleanExtra("isFolder"))	{
+	        val action = if(intent.getBooleanExtra("isFolder",false))	{
 	        	Intent.ACTION_OPEN_DOCUMENT_TREE
 	        }else	{
 	        	Intent.ACTION_OPEN_DOCUMENT
