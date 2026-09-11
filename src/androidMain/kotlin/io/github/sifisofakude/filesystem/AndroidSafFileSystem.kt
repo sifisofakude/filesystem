@@ -566,15 +566,15 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 // 	    
 			val relativeUri = relativePathFromUri(path)
 			if(relativeUri.relativePath.isNotEmpty())	{
-				parentUri = relativeUri.rootUri
+				parentUri = relativeUri.rootUri.toString()
 				relativeParents = getParentFile(relativeUri.relativePath)
 			}else	{
-				if(isSafUri(relativeUri.rootUri))	{
-					parentUri = relativeUri.rootUri
+				if(isSafUri(relativeUri.rootUri.toString()))	{
+					parentUri = relativeUri.rootUri.toString()
 				}else	{
 					if(selectedParentUri == null) return null
 
-					parentUri = selectedParentUri
+					parentUri = selectedParentUri.toString()
 					relativeParents = relativeUri.relativePath
 				}
 			}
@@ -583,7 +583,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 				parentUri = "$parentUri/$relativeParents"
 			}
 
-			return parentUri?.toString()
+			return parentUri
 
 //     	return createDirectory(parentUri)?.let	{ parent ->
 //     		getDocumentFile(parent)
