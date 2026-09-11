@@ -575,7 +575,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 					if(selectedParentUri == null) return null
 
 					parentUri = selectedParentUri.toString()
-					relativeParents = relativeUri.relativePath
+					relativeParents = getParentFile(relativeUri.rootUri.toString())
 				}
 			}
 
@@ -698,17 +698,30 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 */
 	override fun getParentFile(path: String): String?	{
 		if(isSafContext(path))	{
+			var uri = path
 			val relativeUri = relativePathFromUri(path)
 
 			if(relativeUri.relativePath.isNotEmpty())	{
+				uri = relativeUri.rootUri.toString()
 				val relativeParent = super.getParentFile(relativeUri.relativePath)
-				if(relativeParent == null)	{
-					return relativeUri.rootUri
+				if(relativeParent != null)	{
+					uri = "$uri/$relativeParent"
 				}
-				return "${relativeUri.rootUri}/$relativeParent"
+				return uri
+			}else	{
+				if(!isSafUri(uri) && selectedParentUri != null)	{
+					val relativeParent = super.getParentFile(uri)
+					if(relativeParent == null)	{
+						uri = selectedParentUri.toString()
+					}else	{
+						return "${selectedParentUri.toString()}/$relativeParent"
+					}
+				}else	{
+					return null
+				}
 			}
 			
-			return getDocumentFile(relativeUri.rootUri)?.parentFile?.uri?.toString()
+			return getDocumentFile(uri)?.parentFile?.uri?.toString()
 		}
 		return super.getParentFile(path)
 	}
