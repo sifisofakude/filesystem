@@ -576,7 +576,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 					relativeParents = getParentFile(relativeUri.rootUri.toString())
 				}
 			}
-		throw IllegalStateException("Path to file: $parentUri")
+		throw IllegalStateException("Path to file: ${relativeUri.rootUri}")
 // 
 			if(relativeParents != null)	{
 				parentUri = "$parentUri/$relativeParents"
