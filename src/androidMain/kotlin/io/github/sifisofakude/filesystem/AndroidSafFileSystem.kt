@@ -246,15 +246,15 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 */
 	fun getDocumentFile(path: String): DocumentFile?	{
 		if(isSafContext(path))	{
-			val tmpPath = tempPath(path) ?: return null
-			val tmpRelativeUri = relativePathFromUri(tmpPath)
-			val resolvedUri = resolveRelativeUri(
-				rootTreeUri = Uri.parse(tmpRelativeUri.rootUri),
-				relativePath = tmpRelativeUri.relativePath
-			) ?: return null
+			val tmpRelativeUri = relativePathFromUri(path)
+			val sanitizedUri = if(tmpRelativeUri.relativePath.isNotEmpty())	{
+				"${tmpRelativeUri.rootUri}%2F${tmpRelativeUri.relativePath.replace("/","%2F")}"
+			}else	{
+				tmpRelativeUri.rootUri
+			}
 
-			return DocumentFile.fromTreeUri(context, Uri.parse(resolvedUri))
-				?: DocumentFile.fromSingleUri(context, Uri.parse(resolvedUri))
+			return DocumentFile.fromTreeUri(context, Uri.parse(sanitizedUri))
+				?: DocumentFile.fromSingleUri(context, Uri.parse(sanitizedUri))
 		}
 		return null
 	}
