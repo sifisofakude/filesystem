@@ -211,12 +211,12 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 		if(isSafUri(uri))	{
 			val uriPrefix = uri.substringBeforeLast("%3A")
 			val uriSuffix = uri.substringAfterLast("%3A")
-			val uriRoot = uriSuffix.substringBeforeLast('/',uriSuffix)
+			val uriRoot = uriSuffix.substringBefore('/',uriSuffix)
 
 			return SafRelativePath(
 				rootUri = "$uriPrefix%3A$uriRoot",
 				relativePath = if(uriRoot != uriSuffix)	{
-					uriSuffix
+					uriSuffix.substringAfter('/',"")
 				}else	{
 					""
 				}
