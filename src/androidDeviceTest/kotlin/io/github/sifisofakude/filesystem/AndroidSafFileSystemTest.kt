@@ -57,7 +57,7 @@ class AndroidSafFileSystemTest {
 
     @Test
     fun basicOperations() {
-        val root = selectUri(constructUri("Root1/jane/doe"))
+        val root = selectUri(constructUri("Root1%2Fjane%2Fdoe"))
             ?: error("Could not select Root1")
     
         fs.changeSelectedDirectory(root)
