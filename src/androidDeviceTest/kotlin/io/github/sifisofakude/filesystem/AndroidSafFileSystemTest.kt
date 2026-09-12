@@ -57,7 +57,7 @@ class AndroidSafFileSystemTest {
 
     @Test
     fun basicOperations() {
-        val root = selectUri(constructUri("Root1%2Fjane%2Fdoe"))
+        val root = selectFolder(constructUri("Root/jane/doe"))
             ?: error("Could not select Root1")
     
         fs.changeSelectedDirectory(root)
@@ -295,7 +295,7 @@ class AndroidSafFileSystemTest {
     private fun constructUri(relativePath: String): String	{
     	if(relativePath.isEmpty()) throw IllegalArgumentException("Path can't be an empty string")
 
-    	return "content://com.android.externalstorage.documents/document/primary:$relativePath"
+    	return "content://com.android.externalstorage.documents/document/primary:${relativePath.replace("/","%2F")}"
     }
 
     private fun adbRemoveDirectory(dir: String): Boolean	{
