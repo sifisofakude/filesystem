@@ -57,7 +57,7 @@ class AndroidSafFileSystemTest {
 
     @Test
     fun basicOperations() {
-        val root = selectFolder(constructUri("Root1%2Fjane%2Fdoe"))
+        val root = selectFolder(constructUri("Root1/jane/doe"))
             ?: error("Could not select Root1")
     
         fs.changeSelectedDirectory(root)
@@ -196,16 +196,23 @@ class AndroidSafFileSystemTest {
     }
 
     private fun selectUri(uri: String): Uri?	{
-    	if(!fs.exists(uri)) return null
+    	val rel = fs.relativePathFromUri(uri)
+    	val sanitizedUri = if(rel.relativePath.isNotEmpty())	{
+    		"${rel.rootUri}%2F${rel.relativePath.replace("/","%2F")}"
+    	}else	{
+    		rel.rootUri
+    	}
+    	
+    	if(!fs.exists(sanitizedUri)) return null
 
-    	return if(fs.isFile(uri))	{
-    		val name = fs.getName(uri)
-    		val root = fs.getParentFile(uri) ?: return null
+    	return if(fs.isFile(sanitizedUri))	{
+    		val name = fs.getName(sanitizedUri)
+    		val root = fs.getParentFile(sanitizedUri) ?: return null
 
     		// selectFile(root,name)
     		null
     	}else	{
-    		selectFolder(uri)
+    		selectFolder(sanitizedUri)
     	}
     }
 
