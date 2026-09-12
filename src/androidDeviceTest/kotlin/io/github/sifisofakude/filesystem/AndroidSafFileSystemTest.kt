@@ -60,10 +60,10 @@ class AndroidSafFileSystemTest {
         val root = selectFolder(constructUri("Root1"))
             ?: error("Could not select Root1")
     
-        fs.changeSelectedDirectory(root)
-        // val file = "cane/test.txt"
+        // fs.changeSelectedDirectory(root)
+        val file = "$root/cane/test.txt"
 
-        // fail("Created file: ${fs.relativePathFromUri(file)}")
+        fail("Created file: ${fs.relativePathFromUri(file)}")
     
     //     assertNotNull(fs.createDirectory("docs"))
     //     assertTrue(fs.exists("docs"))
