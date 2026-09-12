@@ -208,34 +208,29 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 * with an empty relative path.
 	 */
 	fun relativePathFromUri(uri: String): SafRelativePath	{
-		val defaultResult = SafRelativePath(
-			rootUri = "2",
-			relativePath = ""
-		)
+		if(isSafUri(uri))	{
+			val uriPrefix = uri.substringBeforeLast("%3A")
+			val uriSuffix = uri.substringAfterLast("%3A")
+			val uriRoot = uriSuffix.substringBeforeLast('/',uriSuffix)
 
-		var relativeUri = uri
-		var relativeName = uri.substringAfterLast('/',"")
-		var relativeNames = mutableListOf<String>()
-
-		while(true)	{
-			if(relativeUri.isNotEmpty())	{
-				DocumentFile.fromTreeUri(context,Uri.parse(relativeUri))?.let	{
-					if(it.exists() && it.isDirectory)	{
-						throw IllegalStateException("Relative path from: $relativeUri ${relativeNames}")
-					}
+			return SafRelativePath(
+				rootUri = "$uriPrefix%3A$uriRoot",
+				relativePath = if(uriRoot != uriSuffix)	{
+					uriSuffix
+				}else	{
+					""
 				}
-			}
-			
-			if(relativeName.isEmpty()) break
-
-			relativeNames.add(relativeName)
-
-			relativeName = relativeUri.substringAfterLast('/',"")
-			relativeUri = relativeUri.substringBeforeLast('/',"")
+			)
 		}
-		val tmpUri = Uri.parse("content://com.android.externalstorage.documents/tree/primary%3ARoot7/cane/test.txt/test.txt")
 
-		return defaultResult
+		return SafRelativePath(
+			rootUri = if(selectedParentUri != null)	{
+				selectedParentUri.toString()
+			}else	{
+				""
+			},
+			relativePath = uri
+		)
 	}
 
 	/**
