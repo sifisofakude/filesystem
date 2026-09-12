@@ -209,7 +209,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 */
 	fun relativePathFromUri(uri: String): SafRelativePath	{
 		val defaultResult = SafRelativePath(
-			rootUri = "",
+			rootUri = "2",
 			relativePath = ""
 		)
 
