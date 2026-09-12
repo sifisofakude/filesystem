@@ -57,7 +57,7 @@ class AndroidSafFileSystemTest {
 
     @Test
     fun basicOperations() {
-        val root = selectFolder(constructUri("Root1/jane/doe"))
+        val root = selectUri(constructUri("Root1/jane/doe"))
             ?: error("Could not select Root1")
     
         fs.changeSelectedDirectory(root)
@@ -248,6 +248,7 @@ class AndroidSafFileSystemTest {
     	val intent = Intent(context,SafPickerActivity::class.java).apply	{
     		addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
     		putExtra("selectUri",uri)
+    		putExtra("isFolder",true)
     	}
 
     	instrumentation.startActivitySync(intent)
