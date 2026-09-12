@@ -218,13 +218,12 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 		var relativeNames = mutableListOf<String>()
 
 		while(true)	{
-			if(relativeUri.isNotEmpty())	{
-				DocumentFile.fromTreeUri(context,Uri.parse(relativeUri))?.let	{
-					if(it.exists())	{
-						throw IllegalStateException("Relative path from: ${it.uri.toString()} ${relativeNames.asReversed().joinToString("/")}")
-					}
-				}
-			}
+			// if(relativeUri.isNotEmpty())	{
+			// 	DocumentFile.fromTreeUri(context,Uri.parse(relativeUri))?.let	{
+			// 		if(it.exists())	{
+			// 		}
+			// 	}
+			// }
 			
 			if(relativeName.isEmpty()) break
 
@@ -233,6 +232,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 			relativeName = relativeUri.substringAfterLast('/',"")
 			relativeUri = relativeUri.substringBeforeLast('/',"")
 		}
+		throw IllegalStateException("Relative path from: ${relativeUri} ${relativeNames.asReversed().joinToString("/")}")
 
 		return defaultResult
 	}
