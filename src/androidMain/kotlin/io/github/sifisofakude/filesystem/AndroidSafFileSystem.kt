@@ -213,27 +213,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 			relativePath = ""
 		)
 
-		val relativeNames = mutableListOf<String>()
-		var relativeName = uri.substringAfterLast('/',"")
-		var relativeUri = uri
-
-		while(true)	{
-			if(relativeUri.isNotEmpty())	{
-				DocumentFile.fromTreeUri(context,Uri.parse(relativeUri))?.let	{
-					return SafRelativePath(
-						rootUri = relativeUri,
-						relativePath = relativeNames.asReversed().joinToString("/")
-					)
-				}
-			}
-
-			if(relativeName.isEmpty()) break
-			
-			relativeNames.add(relativeName)
-			
-			relativeName = relativeUri.substringAfterLast('/',"")
-			relativeUri = relativeUri.substringBeforeLast('/',"")
-		}
+		throw IllegalStateException("Relative path from: $uri")
 
 		return defaultResult
 	}
@@ -558,7 +538,8 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 */
 	override fun createFile(path: String): String? {
 		if(isSafContext(path))	{
-	   	throw IllegalStateException("File to create: ${getParentFile(path)}")
+			val relativeUri = relativePathFromUri(path)
+	   	// throw IllegalStateException("File to create: ${getParentFile(path)}")
 // 
 //     	return createDirectory(parentUri)?.let	{ parent ->
 //     		getDocumentFile(parent)
