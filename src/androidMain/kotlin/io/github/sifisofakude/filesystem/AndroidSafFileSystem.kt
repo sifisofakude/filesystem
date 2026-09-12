@@ -220,7 +220,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 		while(true)	{
 			if(relativeUri.isNotEmpty())	{
 				DocumentFile.fromTreeUri(context,Uri.parse(relativeUri))?.let	{
-					if(it.exists() && (it.isDirectory))	{
+					if(it.exists() && it.isDirectory)	{
 						throw IllegalStateException("Relative path from: $relativeUri ${relativeNames}")
 					}
 				}
