@@ -538,7 +538,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 */
 	override fun createFile(path: String): String? {
 		if(isSafContext(path))	{
-			val relativeUri = relativePathFromUri(path)
+			// val relativeUri = relativePathFromUri(path)
 	   	// throw IllegalStateException("File to create: $path")
 // 
 //     	return createDirectory(parentUri)?.let	{ parent ->
