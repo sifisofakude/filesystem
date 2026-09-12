@@ -207,13 +207,13 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 * If no tree root can be resolved, the original URI is returned as the root
 	 * with an empty relative path.
 	 */
-	fun relativePathFromUri(safUri: String): SafRelativePath	{
+	fun relativePathFromUri(uri: String): SafRelativePath	{
 		val defaultResult = SafRelativePath(
-			rootUri = safUri,
+			rootUri = uri,
 			relativePath = ""
 		)
 
-		throw IllegalStateException("Relative path from: $safUri")
+		throw IllegalStateException("Relative path from: $uri")
 
 		return defaultResult
 	}
