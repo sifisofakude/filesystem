@@ -218,12 +218,13 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 		var relativeNames = mutableListOf<String>()
 
 		while(true)	{
-			// if(relativeUri.isNotEmpty())	{
-			// 	DocumentFile.fromTreeUri(context,Uri.parse(relativeUri))?.let	{
-			// 		if(it.exists())	{
-			// 		}
-			// 	}
-			// }
+			if(relativeUri.isNotEmpty())	{
+				DocumentFile.fromTreeUri(context,Uri.parse(relativeUri))?.let	{
+					if(it.exists() && (it.isFile || it.isDirectory))	{
+						throw IllegalStateException("Relative path from: $relativeUri ${relativeNames}")
+					}
+				}
+			}
 			
 			if(relativeName.isEmpty()) break
 
@@ -233,13 +234,6 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 			relativeUri = relativeUri.substringBeforeLast('/',"")
 		}
 		val tmpUri = Uri.parse("content://com.android.externalstorage.documents/tree/primary%3ARoot7/cane/test.txt/test.txt")
-		DocumentFile.fromTreeUri(context,tmpUri)?.let	{
-			if(it.exists() && (it.isFile || it.isDirectory))	{
-				throw IllegalStateException("Relative path from: ${it.uri} ${relativeNames.asReversed().joinToString("/")}")
-				
-			}
-			
-		}
 
 		return defaultResult
 	}
