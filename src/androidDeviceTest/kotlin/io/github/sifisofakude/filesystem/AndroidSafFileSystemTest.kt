@@ -65,7 +65,6 @@ class AndroidSafFileSystemTest {
 
         fail("Created file: ${fs.getDocumentFile(root.toString())?.uri}")
     
-    //     assertTrue(fs.exists("docs"))
     //     assertTrue(fs.isDirectory("docs"))
     // 
     //     assertNotNull(fs.createFile("docs/test.txt"))
