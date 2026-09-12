@@ -232,7 +232,10 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 			relativeName = relativeUri.substringAfterLast('/',"")
 			relativeUri = relativeUri.substringBeforeLast('/',"")
 		}
-		throw IllegalStateException("Relative path from: ${relativeUri} ${relativeNames.asReversed().joinToString("/")}")
+		DocumentFile.fromTreeUri(context,"content://com.android.externalstorage.documents/tree/primary%3ARoot7/cane/test.txt/test.txt")?.let	{
+			throw IllegalStateException("Relative path from: ${it.uri} ${relativeNames.asReversed().joinToString("/")}")
+			
+		}
 
 		return defaultResult
 	}
