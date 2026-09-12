@@ -209,11 +209,28 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 */
 	fun relativePathFromUri(uri: String): SafRelativePath	{
 		val defaultResult = SafRelativePath(
-			rootUri = uri,
+			rootUri = "",
 			relativePath = ""
 		)
 
-		throw IllegalStateException("Relative path from: $uri")
+		var relativeUri = uri
+		var relativeName = uri.substringAfterLast('/',"")
+		var relativeNames = mutableListOf<String>()
+
+		while(true)	{
+			if(relativeUri.isNotEmpty())	{
+				DocumentFile.fromTreeUri(context,relativeUri)?.let	{
+					throw IllegalStateException("Relative path from: $relativeUri ${relativeNames.asReversed().joinToString("/")}")
+				}
+			}
+			
+			if(relativeName.isEmpty()) break
+
+			relativeNames.add(relativeName)
+
+			relativeName = relativeUri.substringAfterLast('/',"")
+			relativeUri = relativeUri.substringBeforeLast('/',"")
+		}
 
 		return defaultResult
 	}
