@@ -62,7 +62,7 @@ class AndroidSafFileSystemTest {
     
         fs.changeSelectedDirectory(root)
 
-        fail("Created file: ${fs.relatvePathFromUri("$root/cane/test.txt")}")
+        fail("Created file: ${fs.relativePathFromUri("$root/cane/test.txt")}")
     
     //     assertNotNull(fs.createDirectory("docs"))
     //     assertTrue(fs.exists("docs"))
