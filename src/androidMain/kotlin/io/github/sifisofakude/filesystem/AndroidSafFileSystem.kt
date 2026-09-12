@@ -234,7 +234,10 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 		}
 		val tmpUri = Uri.parse("content://com.android.externalstorage.documents/tree/primary%3ARoot7/cane/test.txt/test.txt")
 		DocumentFile.fromTreeUri(context,tmpUri)?.let	{
-			throw IllegalStateException("Relative path from: ${it.uri} ${relativeNames.asReversed().joinToString("/")}")
+			if(it.exists() && (it.isFile || it.isDirectory))	{
+				throw IllegalStateException("Relative path from: ${it.uri} ${relativeNames.asReversed().joinToString("/")}")
+				
+			}
 			
 		}
 
