@@ -41,7 +41,7 @@ class AndroidSafFileSystemTest {
 
     @Test
     fun independentSafRoots() {
-        assertTrue(adbCreateDirectory("Root1"))
+        assertTrue(adbCreateDirectory("Root1/jane/doe"))
         assertTrue(adbCreateDirectory("Root2"))
         assertTrue(adbCreateDirectory("Root3"))
 
@@ -57,7 +57,7 @@ class AndroidSafFileSystemTest {
 
     @Test
     fun basicOperations() {
-        val root = selectFolder(constructUri("Root1"))
+        val root = selectFolder(constructUri("Root1/jame/doe"))
             ?: error("Could not select Root1")
     
         // fs.changeSelectedDirectory(root)
