@@ -512,7 +512,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 			var currentUri: String? = relativeUri.rootUri
 			var documentFile = getDocumentFile(relativeUri.rootUri) ?: return null
 
-			throw IllegalStateException("File not found: $relativeUri")
+			throw IllegalStateException("File not found: $relativeUri ")
 			
 			for(segment in relativeUri.relativePath.split('/'))	{
 				
