@@ -208,29 +208,33 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 * with an empty relative path.
 	 */
 	fun relativePathFromUri(uri: String): SafRelativePath	{
-		if(isSafUri(uri))	{
-			val uriPrefix = uri.substringBeforeLast("%3A")
-			val uriSuffix = uri.substringAfterLast("%3A")
-			val uriRoot = uriSuffix.substringBefore('/',uriSuffix)
-
-			return SafRelativePath(
-				rootUri = "$uriPrefix%3A$uriRoot",
-				relativePath = if(uriRoot != uriSuffix)	{
-					uriSuffix.substringAfter('/',"")
-				}else	{
-					""
-				}
-			)
-		}
-
-		return SafRelativePath(
-			rootUri = if(selectedParentUri != null)	{
-				selectedParentUri.toString()
-			}else	{
-				""
-			},
-			relativePath = uri
+		val defaultResult = SafRelativePath(
+			rootUri = uri,
+			relativePath = ""
 		)
+
+		val relativeNames = mutableListOf<String>()
+		var relativeName = uri.substringAfterLast('/',"")
+		var relativeUri = uri
+
+		while(true)	{
+			if(relativeUri.isNotEmpty())	{
+				DocumentFile.fromTreeUri(context,Uri.parse(relativeUri))?.let	{
+					return SafRelativePath(
+						rootUri = it.uri.toString(),
+						relativePath = relativeNames.asReversed().joinToString("/")
+					)
+				}
+			}
+
+			if(relativeName.isEmpty()) break
+			
+			relativeNames.add(relativeName)
+			
+			relativeName = relativeUri.substringAfterLast('/',"")
+			relativeUri = relativeUri.substringBeforeLast('/',"")
+		}
+		return defaultResult
 	}
 
 	/**
@@ -246,15 +250,15 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 */
 	fun getDocumentFile(path: String): DocumentFile?	{
 		if(isSafContext(path))	{
-			val tmpRelativeUri = relativePathFromUri(path)
-			val sanitizedUri = if(tmpRelativeUri.relativePath.isNotEmpty())	{
-				"${tmpRelativeUri.rootUri}%2F${tmpRelativeUri.relativePath.replace("/","%2F")}"
-			}else	{
-				tmpRelativeUri.rootUri
-			}
+			val tmpPath = tempPath(path) ?: return null
+			val tmpRelativeUri = relativePathFromUri(tmpPath)
+			val resolvedUri = resolveRelativeUri(
+				rootTreeUri = Uri.parse(tmpRelativeUri.rootUri),
+				relativePath = tmpRelativeUri.relativePath
+			) ?: return null
 
-			return DocumentFile.fromTreeUri(context, Uri.parse(sanitizedUri))
-				?: DocumentFile.fromSingleUri(context, Uri.parse(sanitizedUri))
+			return DocumentFile.fromTreeUri(context, Uri.parse(resolvedUri))
+				?: DocumentFile.fromSingleUri(context, Uri.parse(resolvedUri))
 		}
 		return null
 	}
@@ -553,9 +557,31 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 */
 	override fun createFile(path: String): String? {
 		if(isSafContext(path))	{
-			// val relativeUri = relativePathFromUri(path)
-	   	// throw IllegalStateException("File to create: $path")
-// 
+	    var parentUri: String? = null
+	    var relativeParents: String? = null
+			var fileName: String? = getName(path)
+	    
+			val relativeUri = relativePathFromUri(path)
+			if(relativeUri.relativePath.isNotEmpty())	{
+				parentUri = relativeUri.rootUri.toString()
+				relativeParents = getParentFile(relativeUri.relativePath)
+			}else	{
+				if(isSafUri(relativeUri.rootUri.toString()))	{
+					parentUri = relativeUri.rootUri.toString()
+				}else	{
+					if(selectedParentUri == null) return null
+
+					parentUri = selectedParentUri.toString()
+					relativeParents = getParentFile(relativeUri.rootUri.toString())
+				}
+			}
+
+			if(relativeParents != null)	{
+				parentUri = "$parentUri/$relativeParents"
+			}
+
+			return parentUri
+
 //     	return createDirectory(parentUri)?.let	{ parent ->
 //     		getDocumentFile(parent)
 //     			?.findFile(fileName)
@@ -676,7 +702,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 				uri = relativeUri.rootUri.toString()
 				val relativeParent = super.getParentFile(relativeUri.relativePath)
 				if(relativeParent != null)	{
-					uri = "$uri/$relativeParent"
+					uri = "$uri||${relativeParent.trim('/')}"
 				}
 				return uri
 			}else	{
@@ -685,7 +711,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 					if(relativeParent == null)	{
 						uri = selectedParentUri.toString()
 					}else	{
-						return "${selectedParentUri.toString()}/$relativeParent"
+						return "${selectedParentUri.toString()}||${relativeParent.trim('/')}"
 					}
 				}else	{
 					return null
