@@ -500,7 +500,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 * @return URI string of the final directory, or null if creation failed
 	 */
 	override fun createDirectory(path: String): String? {
-			throw IllegalStateException("File not found: selectedParentUri")
+			throw IllegalStateException("File not found: $selectedParentUri")
 		if(isSafContext(path))	{
 			val relativeUri = if(isSafUri(path))	{
 				relativePathFromUri(path)
