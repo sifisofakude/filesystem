@@ -207,34 +207,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 * If no tree root can be resolved, the original URI is returned as the root
 	 * with an empty relative path.
 	 */
-	fun relativePathFromUri(uri: String): SafRelativePath	{
-		val defaultResult = SafRelativePath(
-			rootUri = uri,
-			relativePath = ""
-		)
-
-		val relativeNames = mutableListOf<String>()
-		var relativeName = uri.substringAfterLast('/',"")
-		var relativeUri = uri
-
-		while(true)	{
-			if(relativeUri.isNotEmpty())	{
-				DocumentFile.fromTreeUri(context,Uri.parse(relativeUri))?.let	{
-					return SafRelativePath(
-						rootUri = it.uri.toString(),
-						relativePath = relativeNames.asReversed().joinToString("/")
-					)
-				}
-			}
-
-			if(relativeName.isEmpty()) break
-			
-			relativeNames.add(relativeName)
-			
-			relativeName = relativeUri.substringAfterLast('/',"")
-			relativeUri = relativeUri.substringBeforeLast('/',"")
-		}
-		return defaultResult
+	fun relativePathFromUri(uri: String): SafRelative
 	}
 
 	/**
