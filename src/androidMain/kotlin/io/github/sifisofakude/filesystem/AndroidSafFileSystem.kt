@@ -162,6 +162,10 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 		return !File(path).isAbsolute
 	}
 
+	fun isTreeUri(uri: String): Boolean	{
+		return DocumentsContract.isTreeUri(uri)
+	}
+
 	/**
 	 * Resolves a relative path against an SAF tree URI.
 	 *
@@ -178,7 +182,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 * could not be resolved.
 	 */
 	fun resolveRelativeUri(rootTreeUri: Uri, relativePath: String): String?	{
-		if(isSafUri(rootTreeUri.toString()) && DocumentsContract.isTreeUri(rootTreeUri))	{
+		if(isSafUri(rootTreeUri.toString()) && isTreeUri(rootTreeUri))	{
 			val docId = DocumentsContract.getTreeDocumentId(rootTreeUri) ?: return null
 
 			return DocumentsContract
@@ -232,8 +236,11 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 				relativePath = tmpRelativeUri.relativePath
 			) ?: return null
 
-			return DocumentFile.fromTreeUri(context, Uri.parse(resolvedUri))
-				?: DocumentFile.fromSingleUri(context, Uri.parse(resolvedUri))
+			return if(isTreeUri(Uri.parse(resolvedUri)))	{
+				DocumentFile.fromTreeUri(context, Uri.parse(resolvedUri))
+			}else	{
+				DocumentFile.fromSingleUri(context, Uri.parse(resolvedUri))
+			}
 		}
 		return null
 	}
@@ -259,7 +266,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 			path
 		}else	{
 			selectedParentUri?.let	{ 
-				"${it.toString()}||$path"
+				"${it.toString()}||${path.trim('/')}"
 			}
 		}
 	} 
