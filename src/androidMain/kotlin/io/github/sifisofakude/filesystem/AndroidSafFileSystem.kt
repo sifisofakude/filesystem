@@ -98,7 +98,6 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	fun changeSelectedDirectory(newParentUri: Uri?)	{
 		newParentUri?.let	{ parent ->
 			getDocumentFile(parent.toString())?.let	{ df ->
-				throw IllegalStateException("Change directory: ${df.uri}")
 				if(df.isDirectory ) selectedParentUri = newParentUri
 			}
 		}
@@ -502,7 +501,6 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 * @return URI string of the final directory, or null if creation failed
 	 */
 	override fun createDirectory(path: String): String? {
-			throw IllegalStateException("File not found: $selectedParentUri")
 		if(isSafContext(path))	{
 			val relativeUri = if(isSafUri(path))	{
 				relativePathFromUri(path)
@@ -515,9 +513,26 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 			var currentUri: String? = relativeUri.rootUri
 			var documentFile = getDocumentFile(relativeUri.rootUri) ?: return null
 
-			
 			for(segment in relativeUri.relativePath.split('/'))	{
-				
+				documentFile
+					.findFile(segment)
+					?.let	{
+						if(it.isDirectory) documentFile = it
+						else return null
+					}
+
+					?:
+
+				documentFile
+					.createDirectory(segment)
+					?.let	{
+						if(it.exists()) documentFile = it
+						else return null
+					}
+
+					?: return null
+
+				currentUri = combinePath(currentUri,segment)
 			}
 			return currentUri
 		}

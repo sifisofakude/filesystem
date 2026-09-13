@@ -63,7 +63,7 @@ class AndroidSafFileSystemTest {
         fs.changeSelectedDirectory(root)
         // val file = "bane/cane/test.txt"
 
-        fail("Created file: ${root}")
+        fail("Created file: ${fs.createDirectory("bane/mane")}")
     
     //     assertTrue(fs.isDirectory("docs"))
     // 
