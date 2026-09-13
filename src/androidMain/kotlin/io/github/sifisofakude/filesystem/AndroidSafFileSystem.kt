@@ -163,7 +163,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	}
 
 	fun isTreeUri(uri: String): Boolean	{
-		return DocumentsContract.isTreeUri(uri)
+		return DocumentsContract.isTreeUri(Uri.parse(uri))
 	}
 
 	/**
@@ -182,7 +182,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 * could not be resolved.
 	 */
 	fun resolveRelativeUri(rootTreeUri: Uri, relativePath: String): String?	{
-		if(isSafUri(rootTreeUri.toString()) && isTreeUri(rootTreeUri))	{
+		if(isSafUri(rootTreeUri.toString()) && isTreeUri(rootTreeUri.toString()))	{
 			val docId = DocumentsContract.getTreeDocumentId(rootTreeUri) ?: return null
 
 			return DocumentsContract
@@ -236,7 +236,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 				relativePath = tmpRelativeUri.relativePath
 			) ?: return null
 
-			return if(isTreeUri(Uri.parse(resolvedUri)))	{
+			return if(isTreeUri(resolvedUri))	{
 				DocumentFile.fromTreeUri(context, Uri.parse(resolvedUri))
 			}else	{
 				DocumentFile.fromSingleUri(context, Uri.parse(resolvedUri))
