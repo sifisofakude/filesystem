@@ -532,7 +532,9 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 
 					?: return null
 
-				currentUri = combinePath(currentUri,segment)
+				currentUri?.let	{
+					currentUri = combinePath(it,segment)
+				} ?: return null
 			}
 			return currentUri
 		}
