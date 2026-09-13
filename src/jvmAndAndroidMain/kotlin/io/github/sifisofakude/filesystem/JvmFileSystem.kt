@@ -406,7 +406,7 @@ open class JvmFileSystem : FileSystemUtil	{
 	 *         no parent
 	 */
 	override open fun getParentFile(path: String): String?	{
-		return File(path)?.path
+		return File(path).parentFile?.path
 	}
 
 	/**
