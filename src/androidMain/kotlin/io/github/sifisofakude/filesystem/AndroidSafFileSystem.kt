@@ -183,6 +183,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 
 			return DocumentsContract
 				.buildChildDocumentsUri(rootTreeUri.authority,"$docId/${relativePath/trim('/')}")
+				.toString()
 		}
 		return null
 	}
