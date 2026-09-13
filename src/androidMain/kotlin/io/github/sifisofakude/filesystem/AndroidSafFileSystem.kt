@@ -509,7 +509,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 			
 			if(relativeUri.relativePath.isEmpty()) return null
 
-			var currentUri = relativeUri.rootUri
+			var currentUri: String? = relativeUri.rootUri
 			var documentFile = getDocumentFile(relativeUri.rootUri) ?: return null
 			
 			for(segment in relativeUri.relativePath.split('/'))	{
@@ -532,7 +532,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 
 						?: return null
 
-					currentUri = resolveRelativeUri(Uri.parse(currentUri),segment)
+					currentUri = resolveRelativeUri(Uri.parse(currentUri!!),segment) ?: return null
 				}else	{
 					return null
 				}
