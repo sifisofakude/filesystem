@@ -207,7 +207,11 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 * If no tree root can be resolved, the original URI is returned as the root
 	 * with an empty relative path.
 	 */
-	fun relativePathFromUri(uri: String): SafRelative
+	fun relativePathFromUri(uri: String): SafRelativePath	{
+		return SafRelativePath(
+			rootUri = uri.substringBefore("||","").
+			relativePath = uri.substringAfter("||","").
+		)
 	}
 
 	/**
