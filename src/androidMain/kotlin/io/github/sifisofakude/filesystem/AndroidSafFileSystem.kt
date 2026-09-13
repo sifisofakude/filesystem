@@ -99,7 +99,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 		newParentUri?.let	{ parent ->
 			getDocumentFile(parent.toString())?.let	{ df ->
 				throw IllegalStateException("Change directory: ${df.uri}")
-				if(it.isDirectory) selectedParentUri = newParentUri
+				if(df.isDirectory) selectedParentUri = newParentUri
 			}
 		}
 	}
