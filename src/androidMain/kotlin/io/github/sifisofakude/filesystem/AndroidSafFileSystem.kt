@@ -502,6 +502,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 */
 	override fun createDirectory(path: String): String? {
 		if(isSafContext(path))	{
+			throw IllegalStateException("wowghjgfghjf")
 			val relativeUri = if(isSafUri(path))	{
 				relativePathFromUri(path)
 			}else	{
