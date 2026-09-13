@@ -271,6 +271,13 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 		}
 	} 
 
+	override fun combinePath(parent: String, child: String): String	{
+		if(isSafUri(parent))	{
+			return "${parent.trimEnd('/')}||${child.trim('/')}"
+		}
+		return super.combinePath(parent,child)
+	}
+
 	/**
 	 * Resolves a list of SAF inputs into structured [FileSource] entries.
 	 *
@@ -494,38 +501,45 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 */
 	override fun createDirectory(path: String): String? {
 		if(isSafContext(path))	{
-			val relativeUri = relativePathFromUri(path)
+			val relativeUri = if(isSafUri(path))	{
+				relativePathFromUri(path)
+			}else	{
+				relativePathFromUri(combinePath(selectedParentUri.toString(),path))
+			}
+			
+			if(relativeUri.relativePath.isEmpty()) return null
 
-			var uri = relativeUri.rootUri
-			val segments = relativeUri.relativePath.split('/')
-			for(segment in segments)	{
-				getDocumentFile(uri)?.let	{ parent ->
-					parent
+			var currentUri = relativeUri.rootUri
+			var documentFile = getDocumentFile(relativeUri.rootUri) ?: return null
+			
+			for(segment in relativeUri.relativePath.split('/'))	{
+				if(documentFile.isDirectory)	{
+					documentFile
 						.findFile(segment)
 						?.let	{
-							if(it.isFile) return null
-
-							uri = it.uri.toString()
+							if(it.isDirectory)	{
+								documentFile = it
+							}
 						}
 
 						?:
 
-					parent
+					documentFile
 						.createDirectory(segment)
 						?.let	{
-							uri = it.uri.toString()
+							documentFile = it
 						}
 
-						?:
+						?: return null
 
+					currentUri = resolveRelativeUri(Uri.parse(currentUri),segment)
+				}else	{
 					return null
 				}
-				return uri
 			}
-
-			return createDirectory("${selectedParentUri.toString()}/$path")
-    }
-    return super.createDirectory(path)
+			return currentUri
+		}
+		return super.createDirectory(path)
 	}
 
 	/**
