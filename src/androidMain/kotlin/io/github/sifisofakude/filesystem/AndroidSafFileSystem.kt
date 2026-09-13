@@ -98,7 +98,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	fun changeSelectedDirectory(newParentUri: Uri?)	{
 		newParentUri?.let	{ parent ->
 			getDocumentFile(parent.toString())?.let	{ df ->
-				throw IllegalStateException("Change directory: $it")
+				throw IllegalStateException("Change directory: ${df.uri}")
 				if(it.isDirectory) selectedParentUri = it
 			}
 		}
