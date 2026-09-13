@@ -209,8 +209,8 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 */
 	fun relativePathFromUri(uri: String): SafRelativePath	{
 		return SafRelativePath(
-			rootUri = uri.substringBefore("||","").
-			relativePath = uri.substringAfter("||","").
+			rootUri = uri.substringBefore("||",""),
+			relativePath = uri.substringAfter("||","")
 		)
 	}
 
@@ -261,7 +261,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 			path
 		}else	{
 			selectedParentUri?.let	{ 
-				"${it.toString()}/$path"
+				"${it.toString()}||$path"
 			}
 		}
 	} 
