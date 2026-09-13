@@ -177,17 +177,14 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 * @return URI of the resolved document, or `null` if any path segment
 	 * could not be resolved.
 	 */
-	fun resolveRelativeUri(rootTreeUri: Uri, relativePath: String): String? {
-    var parent = DocumentFile.fromTreeUri(context,rootTreeUri) ?: return null
+	fun resolveRelativeUri(rootTreeUri: Uri, relativePath: String): String?	{
+		if(isSafUri(rootTreeUri.toString()) && DocumentsContract.isTreeUri(rootTreeUri))	{
+			val docId = DocumentsContract.getTreeDocumentId(rootTreeUri) ?: return null
 
-    relativePath
-    	.split('/')
-    	.filter { it.isNotEmpty() }
-    	.forEach	{ file ->
-    		parent = parent.findFile(file) ?: return null
-    	}
-
-    return parent.uri.toString()
+			return DocumentsContract
+				.buildChildDocumentsUri(rootTreeUri.authority,"$docId/${relativePath/trim('/')}")
+		}
+		return null
 	}
 
 	/**
