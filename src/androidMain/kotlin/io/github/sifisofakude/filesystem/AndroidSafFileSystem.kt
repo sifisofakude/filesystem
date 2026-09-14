@@ -186,13 +186,12 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 */
 	fun resolveRelativeUri(rootTreeUri: Uri, relativePath: String): String?	{
 		if(isSafUri(rootTreeUri.toString()))	{
-			// throw IllegalStateException("Reolve uri: $rootTreeUri")
 			val docId = DocumentsContract.getTreeDocumentId(rootTreeUri) ?: return null
 
 
 			return DocumentsContract
 				.buildChildDocumentsUri(rootTreeUri.authority,"$docId/${relativePath.trim('/')}")
-				.toString()
+				.toString().removeSuffix("/children")
 		}
 		return null
 	}

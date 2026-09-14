@@ -58,7 +58,7 @@ class AndroidSafFileSystemTest {
 
     @Test
     fun basicOperations() {
-        val root = selectFolder(constructUri("Root1/jane/doe"))
+        val root = selectFolder(constructUri("Root1"))
             ?: error("Could not select Root1")
 
         fs.changeSelectedDirectory(root)
@@ -70,8 +70,10 @@ class AndroidSafFileSystemTest {
         assertTrue(fs.isSafContext("bobby/damn/man.txt"))
         assertTrue(fs.isRelative("bobby/damn/man.sxt"))
         assertTrue(fs.isTreeUri(stringRoot))
+        assertNotNull(fs.resolveRelativeUri(root."got/to/go/za"))
+        assertNotNull(fs.getDocumentFile("jane/doe"))
     
-       	fail("${fs.resolveRelativeUri(root,"got/to/go/za")}")
+       	// fail("${fs.resolveRelativeUri(root,"got/to/go/za")}")
     }
 
     @Test
