@@ -71,7 +71,7 @@ class AndroidSafFileSystemTest {
         assertTrue(fs.isRelative("bobby/damn/man.sxt"))
         assertTrue(fs.isTreeUri(stringRoot))
     
-       	fail("${fs.resolveRelativeUri(root,"got/to/go")}")
+       	fail("${fs.resolveRelativeUri(root,"got/to/go/za")}")
     }
 
     @Test
