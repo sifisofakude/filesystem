@@ -190,7 +190,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 
 
 			return DocumentsContract
-				.buildChildDocumentsUri(rootTreeUri.authority,"$docId/${relativePath.trim('/')}")
+				.buildChildDocumentsUriUsingTree(rootTreeUri,"$docId/${relativePath.trim('/')}")
 				.toString().removeSuffix("/children")
 		}
 		return null
@@ -522,25 +522,28 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 			if(relativeUri.relativePath.isEmpty()) return null
 
 			if(isTreeUri(relativeUri.rootUri))	{
-				var currentUri = relativeUri.rootUri
-				
-				for(segment in relativeUri.relativePath.split('/'))	{
-					getDocumentFile(currentUri)?.let	{ df ->
-						if(df.isDirectory)	{
-							df.findFile(segment)
-								?.let	{
-									if(it.isFile) return null
-								}
+				var df = getDocumentFile(relativeUri.rootUri) ?: return null
+				if(df.isDirectory)	{
+					for(segment in relativeUri.relativePath.split('/'))	{
+						df.findFile(segment)
+							?.let	{
+								if(it.isDirectory) df = it
+								else return null
+							}
 
-								?:
+							?:
 
-							df.createDirectory(segment) ?: return null
-						}
-					} ?: return null
-
-					currentUri = combinePath(currentUri,segment)
+						df.createDirectory(segment) ?: return null
+					}
+				}else	{
+					return null
 				}
-				return currentUri
+
+				return if(isRelative(path))	{
+					path
+				}else	{
+					resolveRelativeUri(Uri.parse(relativeUri.rootUri),relativeUri.relativePath)
+				}
 			}
 			return null
 		}
@@ -786,8 +789,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 */
 	override fun isFile(path: String): Boolean	{
 		if(isSafContext(path))	{
-			val tmpPath = tempPath(path) ?: return false
-			getDocumentFile(tmpPath)?.let	{
+			getDocumentFile(path)?.let	{
 				return it.isFile
 			} ?: return false
 		}
@@ -849,10 +851,13 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 
 				if(segment == "..")	{
 					getParentFile(currentUri)?.let	{ parent ->
-						
+						currentUri = parent
 					}
+				}else	{
+					currentUri = resolveRelativeUri(Uri.parse(currentUri),segment)
 				}
 			}
+			return currentUri
     }
    	return super.resolvePath(path)
 	}
