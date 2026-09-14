@@ -513,7 +513,36 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 */
 	override fun createDirectory(path: String): String? {
 		if(isSafContext(path))	{
-			throw IllegalStateException("cant do this")
+			val relativeUri = if(isSafUri(path))	{
+				relativePathFromUri(path)
+			}else	{
+				SafRelativePath(selectedParentUri,path)
+			}
+
+			if(relativeUri.relativePath.isEmpty()) return null
+
+			if(isTreeUri(relativeUri.rootUri))	{
+				var currentUri = relativeUri.rootUri
+				
+				for(segment in relativeUri.relativePath.split('/'))	{
+					getDocumentFile(currentUri)?.let	{ df ->
+						if(df.isDirectory)	{
+							df.findFile(segment)
+								?.let	{
+									if(it.isFile) return null
+								}
+
+								?:
+
+							df.createDirectory(segment) ?: return null
+						}
+					} ?: return null
+
+					currentUri = combinePath(currentUri,segment)
+				}
+				return currentUri
+			}
+			return null
 		}
 		return super.createDirectory(path)
 	}
