@@ -12,6 +12,7 @@ import androidx.test.uiautomator.By
 import androidx.test.uiautomator.Until
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
@@ -61,8 +62,16 @@ class AndroidSafFileSystemTest {
             ?: error("Could not select Root1")
 
         fs.changeSelectedDirectory(root)
+
+        val stringRoot = root.toString()
+
+        assertNotNull(fs.getCurrentDirectory())
+        assertTrue(fs.isSafUri(stringRoot))
+        assertTrue(fs.isSafUri("bobby/damn/man.txt"))
+        assertTrue(fs.isRelative("bobby/damn/man.txt"))
+        assertTrue(fs.isTreeUri(stringRoot))
     
-       	fail("${fs.getDocumentFile(root.toString())?.uri?.toString()}")
+       	// fail("${fs.getDocumentFile(root.toString())?.uri?.toString()}")
     }
 
     @Test
