@@ -250,7 +250,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	}
 
 	fun getDocumentId(uri: Uri): String?	{
-		return if(isTreeUri(uri))	{
+		return if(isTreeUri(uri.toString()))	{
 			DocumentsContract.getTreeDocumentId(uri)
 		}else	{
 			DocumentsContract.getDocumentId(uri)
@@ -729,7 +729,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 				val parentUri = it.uri
 				val authority = it.uri.authority
 				getDocumentId(parentUri)?.let	{ docId ->
-					if(isTreeUri(parentUri))	{
+					if(isTreeUri(parentUri.toString()))	{
 						DocumentsContract
 							.buildDocumentUriUsingTree(parentUri,docId)
 							?.toString()
