@@ -519,6 +519,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 				relativePathFromUri(combinePath(selectedParentUri.toString(),path))
 			}
 			throw IllegalStateException("cant dobyhis")
+			
 			if(relativeUri.relativePath.isEmpty()) return null
 
 			var currentUri: String? = relativeUri.rootUri
