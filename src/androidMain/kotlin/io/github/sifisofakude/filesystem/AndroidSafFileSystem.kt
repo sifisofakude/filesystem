@@ -526,7 +526,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 				var df = getDocumentFile(relativeUri.rootUri) ?: return null
 				if(df.isDirectory)	{
 					for(segment in relativeUri.relativePath.split('/'))	{
-						println("${df.uri} ")
+						println("${df.uri}")
 						df.findFile(segment)
 							?.let	{
 								if(it.isDirectory) df = it
