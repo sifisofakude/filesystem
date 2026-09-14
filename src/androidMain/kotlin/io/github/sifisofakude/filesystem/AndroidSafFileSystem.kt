@@ -249,6 +249,14 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 		return null
 	}
 
+	fun getDocumentId(uri: Uri): String?	{
+		return if(isTreeUri(uri))	{
+			DocumentsContract.getTreeDocumentId(uri)
+		}else	{
+			DocumentsContract.getDocumentId(uri)
+		}
+	}
+
 	/**
 	 * Constructs the intermediate URI representation used to resolve a path
 	 * within the current SAF context.
@@ -717,7 +725,16 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 				}
 			}
 			
-			return getDocumentFile(uri)?.parentFile?.uri?.toString()
+			return getDocumentFile(uri)?.parentFile?.let	{
+				val authority = it.uri.authority
+				getDocumentId(it.uri)?.let	{ docId ->
+					if(isTreeUri(it.uri))	{
+						DocumentsContract.buildDocumentUriUsingTree(authority,docId)
+					}else	{
+						DocumentsContract.buildDocumentUri(authority,docId)
+					}
+				} ?: null
+			}
 		}
 		return super.getParentFile(path)
 	}
@@ -823,17 +840,20 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 */
 	override fun resolvePath(path: String): String {
 		if(isSafContext(path))	{
-			if(isSafUri(path)) return path
+			val relativeUri = relativePathFromUri(path)
+			if(relativeUri.relativePath.isEmpty()) return path
 
-			var parent = getDocumentFile(selectedParentUri.toString()) ?: return ""
-			path.split('/').forEach	{ segment ->
+			var currentUri = relativeUri.rootUri
+
+			for(segment in relativeUri.relativePath.split("/"))	{
+				if(segment == ".") continue
+
 				if(segment == "..")	{
-					parent = parent.parentFile ?: return ""
-				}else	{
-					parent = parent.findFile(segment) ?: return ""
+					getParentFile(currentUri)?.let	{ parent ->
+						
+					}
 				}
 			}
-			return parent.uri.toString()
     }
    	return super.resolvePath(path)
 	}
