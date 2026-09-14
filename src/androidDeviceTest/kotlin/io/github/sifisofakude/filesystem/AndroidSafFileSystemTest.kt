@@ -68,7 +68,7 @@ class AndroidSafFileSystemTest {
         assertNotNull(fs.getCurrentDirectory())
         assertTrue(fs.isSafUri(stringRoot))
         assertTrue(fs.isSafContext("bobby/damn/man.txt"))
-        assertTrue(fs.isRelative("bobby/damn/man.txt"))
+        assertTrue(fs.isRelative("bobby/damn/man.sxt"))
         assertTrue(fs.isTreeUri(stringRoot))
     
        	// fail("${fs.getDocumentFile(root.toString())?.uri?.toString()}")
