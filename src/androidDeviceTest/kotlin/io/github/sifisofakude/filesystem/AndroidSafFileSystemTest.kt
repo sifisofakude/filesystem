@@ -62,7 +62,7 @@ class AndroidSafFileSystemTest {
 
         fs.changeSelectedDirectory(root)
     
-       	// fail(root.toString(	))
+       	fail(fs.getDocumentFile(root.toString())?.uri?.toString())
     }
 
     @Test

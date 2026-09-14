@@ -101,7 +101,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 				.fromTreeUri(context,parent)
 				?.let	{
 					if(it.isDirectory)	{
-						throw IllegalStateException("can't do this")
+						selectedParentUri = newParentUri
 					}
 				}
 		}
