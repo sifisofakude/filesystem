@@ -73,7 +73,7 @@ class AndroidSafFileSystemTest {
         assertNotNull(fs.resolveRelativeUri(root,"got/to/go/za"))
         assertNotNull(fs.getDocumentFile("jane/doe"))
     
-       	fail("${fs.crreateDirectory("got/to/go/za")}")
+       	fail("${fs.createDirectory("got/to/go/za")}")
     }
 
     @Test
