@@ -729,9 +729,13 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 				val authority = it.uri.authority
 				getDocumentId(it.uri)?.let	{ docId ->
 					if(isTreeUri(it.uri))	{
-						DocumentsContract.buildDocumentUriUsingTree(authority,docId)
+						DocumentsContract
+							.buildDocumentUriUsingTree(authority,docId)
+							?.toString()
 					}else	{
-						DocumentsContract.buildDocumentUri(authority,docId)
+						DocumentsContract
+							.buildDocumentUri(authority,docId)
+							?.toString()
 					}
 				} ?: null
 			}
