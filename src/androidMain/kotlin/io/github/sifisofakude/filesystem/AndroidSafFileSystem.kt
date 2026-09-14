@@ -97,7 +97,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 */
 	fun changeSelectedDirectory(newParentUri: Uri?)	{
 		newParentUri?.let	{ parent ->
-			if(isTreeUri(parent,toString()))	{
+			if(isTreeUri(parent.toString()))	{
 				DocumentFile.fromTreeUri(context,parent)?.let	{
 					if(it.isDirectory) selectedParentUri = newParentUri
 				}
