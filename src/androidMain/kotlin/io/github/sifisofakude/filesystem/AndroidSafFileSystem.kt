@@ -852,9 +852,9 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 				if(segment == "..")	{
 					getParentFile(currentUri)?.let	{ parent ->
 						currentUri = parent
-					}
+					} ?: return null
 				}else	{
-					currentUri = resolveRelativeUri(Uri.parse(currentUri),segment)
+					currentUri = resolveRelativeUri(Uri.parse(currentUri),segment) ?: return null
 				}
 			}
 			return currentUri
