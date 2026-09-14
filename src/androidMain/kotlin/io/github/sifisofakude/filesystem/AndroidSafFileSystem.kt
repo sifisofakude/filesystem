@@ -156,7 +156,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 */
 	override fun isRelative(path: String): Boolean	{
 		return if(isSafUri(path))	{
-			!relativePathFromUri(path).isBlank()
+			!relativePathFromUri(path).relativePath.isBlank()
 		}else	{
 			!File(path).isAbsolute
 		}
@@ -622,8 +622,8 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	override fun openSink(path: String, append: Boolean): Sink?	{
 		return if(isSafContext(path))	{
 			val mode = if(append) "wa" else "w"
-			val tmpPath = tempPath(path) ?: return null
-			val resolvedUri = resolveRelativeUri(tmpPath)
+			val tmpPath = relativePathFromUri(path)
+			val resolvedUri = resolveRelativeUri(Uri.parse(tmpPath.rootUri),tmpPath.relativePath)
 			
 			contentResolver
 				.openOutputStream(Uri.parse(resolvedUri),mode)
@@ -644,8 +644,9 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 */
 	override fun openSource(path: String): Source?	{
 		return if(isSafContext(path))	{
-			val tmpPath = tempPath(path) ?: return null
-			val resolvedUri = resolveRelativeUri(tmpPath)
+			val tmpPath = relativePathFromUri(path)
+			val resolvedUri = resolveRelativeUri(Uri.parse(tmpPath.rootUri),tmpPath.relativePath)
+			
 			contentResolver
 				.openInputStream(Uri.parse(resolvedUri))
 				?.asSource()?.buffered()
@@ -722,7 +723,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 			}
 			
 			return getDocumentFile(uri)?.parentFile?.let	{
-				val tmpPath = tempPath(uri)
+				val parentUri = it.uri
 				
 				getDocumentId(parentUri)?.let	{ docId ->
 					resolveRelativeUri(parentUri,"")
