@@ -63,6 +63,8 @@ class AndroidSafFileSystemTest {
 
         fs.changeSelectedDirectory(root)
 
+        Thread.sleep(1000)
+
         val stringRoot = root.toString()
 
         assertNotNull(fs.getCurrentDirectory())
