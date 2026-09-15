@@ -522,9 +522,9 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 
 			if(relativeUri.relativePath.isEmpty()) return null
 
-			return relativeUri.rootUri
 			
 			if(isTreeUri(relativeUri.rootUri))	{
+			return relativeUri.rootUri
 				var df = getDocumentFile(relativeUri.rootUri) ?: return null
 				if(df.isDirectory)	{
 					for(segment in relativeUri.relativePath.split('/'))	{
