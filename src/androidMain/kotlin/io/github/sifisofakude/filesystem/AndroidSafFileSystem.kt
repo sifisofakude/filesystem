@@ -611,7 +611,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
     			path
     		}else	{
     			val uri = Uri.parse(parent.trimEnd('/'))
-    			resolveRelativeUri(uri,filesName)
+    			resolveRelativeUri(uri,fileName)
     		}
     	}
     }
