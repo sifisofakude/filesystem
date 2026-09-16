@@ -19,7 +19,6 @@ kotlin {
         namespace = "io.github.sifisofakude.filesystem"
         compileSdk = 36
         minSdk = 24
-        buildToolsVersion="37.0.0"
 
         withDeviceTest {
             instrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
