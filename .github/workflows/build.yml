@@ -77,9 +77,9 @@ jobs:
           emulator-boot-timeout: 600
           script: ./gradlew connectedAndroidDeviceTest
 
-  build-apple-targets:
-    if: "!contains(github.event.head_commit.message, '[skip apple]')"
-    name: Apple / Kotlin Native
+  build-ios-targets:
+    if: "!contains(github.event.head_commit.message, '[skip ios]')"
+    name: iOS
     runs-on: macos-latest
 
     steps:

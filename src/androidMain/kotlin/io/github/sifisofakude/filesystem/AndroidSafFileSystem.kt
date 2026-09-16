@@ -162,9 +162,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 		}
 	}
 
-	fun isTreeUri(uri: String): Boolean	{
-		return DocumentsContract.isTreeUri(Uri.parse(uri))
-	}
+	fun isTreeUri(uri: String): Boolean	= return DocumentsContract.isTreeUri(Uri.parse(uri))
 
 	/**
 	 * Resolves a relative path against an SAF tree URI.
@@ -190,9 +188,15 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 				"$docId/${relativePath.trim('/')}"
 			}
 
-			return DocumentsContract
-				.buildDocumentUriUsingTree(rootTreeUri,completeDocId)
-				.toString()
+			return if(relativePath.endsWith("/") || isTreeUri(rootTreeUri))	{
+				DocumentsContract
+					.buildTreeDocumentUri(rootTreeUri.authority,completeDocId)
+					.toString()
+			}else	{
+				DocumentsContract
+					.buildDocumentUriUsingTree(rootTreeUri,completeDocId)
+					.toString()
+			}
 		}
 		return null
 	}
@@ -279,14 +283,14 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 			path
 		}else	{
 			selectedParentUri?.let	{ 
-				"${it.toString()}||${path.trim('/')}"
+				"${it.toString()}||$path"
 			}
 		}
 	} 
 
 	override fun combinePath(parent: String, child: String): String	{
 		if(isSafUri(parent))	{
-			return "${parent.trimEnd('/')}||${child.trim('/')}"
+			return "${parent.trimEnd('/')}||${child.removePrefix("/")}"
 		}
 		return super.combinePath(parent,child)
 	}
@@ -521,11 +525,9 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 			}
 
 			if(relativeUri.relativePath.isEmpty()) return null
-
 			
 			if(isTreeUri(relativeUri.rootUri))	{
 				var df = getDocumentFile(relativeUri.rootUri) ?: return null
-				return df.uri.toString()
 				if(df.isDirectory)	{
 					for(segment in relativeUri.relativePath.split('/'))	{
 						df.findFile(segment)
@@ -545,7 +547,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 				return if(isRelative(path))	{
 					path
 				}else	{
-					resolveRelativeUri(Uri.parse(relativeUri.rootUri),relativeUri.relativePath)
+					resolveRelativeUri(Uri.parse(relativeUri.rootUri),"${relativeUri.relativePath}/")
 				}
 			}
 			return null
@@ -584,26 +586,34 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 			}
 
 			if(relativeParents != null)	{
-				parentUri = "$parentUri/$relativeParents"
+				parentUri = "$parentUri/$relativeParents/"
 			}
 
-			return parentUri
+    	return createDirectory(parentUri)?.let	{ parent ->
+    		var success = false
+    		
+    		getDocumentFile(parent)
+    			?.findFile(fileName)
+    			?.let	{
+    				if(it.isFile) success = true
+    				else null
+    			}
 
-//     	return createDirectory(parentUri)?.let	{ parent ->
-//     		getDocumentFile(parent)
-//     			?.findFile(fileName)
-//     			?.let	{
-//     				if(it.isFile) it.uri.toString()
-//     				else null
-//     			}
-// 
-//     			?:
-// 
-//     		getDocumentFile(parent)
-//     			?.createFile("application/octet-stream",fileName)
-//     			?.uri?.toString()
-//     	}
-			// return parentUri
+    			?:
+
+    		getDocumentFile(parent)
+    			?.createFile("application/octet-stream",fileName)
+    			?.let	{
+    				success = true
+    			}
+
+    		if(isRelative(path))	{
+    			path
+    		}else	{
+    			val uri = Uri.parse(parent.trimEnd('/'))
+    			resolveRelativeUri(uri,fileName)
+    		}
+    	}
     }
     return super.createFile(path)
 	}
