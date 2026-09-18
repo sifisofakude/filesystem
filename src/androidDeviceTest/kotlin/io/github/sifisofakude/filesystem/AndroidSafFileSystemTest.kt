@@ -73,7 +73,8 @@ class AndroidSafFileSystemTest {
         // assertNotNull(fs.resolveRelativeUri(root,"got/to/go/za"))
         // assertNotNull(fs.getDocumentFile("jane/doe"))
     
-       	fail("Created by: ${fs.createDirectory("got/")}")
+       	// fail("Created by: ${fs.createDirectory("got/seleing/tor")}")
+       	fail("Created by: ${fs.createFile("micca/ticaa/muzza.txt")}")
     }
 
     @Test

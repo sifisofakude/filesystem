@@ -220,7 +220,11 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 */
 	fun relativePathFromUri(uri: String): SafRelativePath	{
 		return SafRelativePath(
-			rootUri = uri.substringBefore("||",""),
+			rootUri = if(isSafUri(uri))	{
+				uri.substringBefore("||",uri)
+			}else	{
+				uri.substringBefore("||","")
+			},
 			relativePath = uri.substringAfter("||","")
 		)
 	}
@@ -240,7 +244,6 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 		if(isSafContext(path))	{
 			val tmpPath = tempPath(path) ?: return null
 			val tmpRelativeUri = relativePathFromUri(tmpPath)
-			throw IllegalStateException("Document file: $tmpPath")
 			val resolvedUri = resolveRelativeUri(
 				rootTreeUri = Uri.parse(tmpRelativeUri.rootUri),
 				relativePath = tmpRelativeUri.relativePath
@@ -529,7 +532,6 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 			
 			if(isTreeUri(relativeUri.rootUri))	{
 				var df = getDocumentFile(relativeUri.rootUri) ?: return null
-				throw IllegalStateException("cant do this")
 				if(df.isDirectory)	{
 					for(segment in relativeUri.relativePath.split('/'))	{
 						df.findFile(segment)
@@ -590,6 +592,8 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 			if(relativeParents != null)	{
 				parentUri = "$parentUri/$relativeParents/"
 			}
+
+			throw IllegalStateException("Create file: $relativeUri")
 
     	return createDirectory(parentUri)?.let	{ parent ->
     		var success = false
