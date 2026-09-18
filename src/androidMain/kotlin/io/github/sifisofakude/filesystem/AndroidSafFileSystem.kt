@@ -602,7 +602,6 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
     			?.findFile(fileName)
     			?.let	{
     				if(it.isFile) success = true
-    				else null
     			}
 
     			?:
@@ -613,12 +612,14 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
     				success = true
     			}
 
-    		if(isRelative(path))	{
-    			path
-    		}else	{
-    			val uri = Uri.parse(parent.trimEnd('/'))
-    			resolveRelativeUri(uri,fileName)
-    		}
+				if(success)	{
+	    		if(isRelative(path))	{
+	    			path
+	    		}else	{
+	    			val uri = Uri.parse(parent.trimEnd('/'))
+	    			resolveRelativeUri(uri,fileName)
+	    		}
+				}
     	}
     }
     return super.createFile(path)
