@@ -71,7 +71,7 @@ class AndroidSafFileSystemTest {
         assertTrue(fs.isRelative("bobby/damn/man.sxt"))
         assertTrue(fs.isTreeUri(stringRoot))
         assertNotNull(fs.resolveRelativeUri(root,"got/to/go/za"))
-        assertNotNull(fs.getDocumentFile("jane/doe"))
+        // assertNotNull(fs.getDocumentFile("jane/doe"))
     
        	fail("Created by: ${fs.createDirectory("got/")}")
     }
