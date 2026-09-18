@@ -219,14 +219,25 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 * with an empty relative path.
 	 */
 	fun relativePathFromUri(uri: String): SafRelativePath	{
-		return SafRelativePath(
-			rootUri = if(isSafUri(uri))	{
+		if(isSafContext(uri))	{
+			val root = if(isSafUri(uri))	{
 				uri.substringBefore("||",uri)
 			}else	{
-				uri.substringBefore("||","")
-			},
-			relativePath = uri.substringAfter("||","")
-		)
+				selectedParentUri.toString()
+			}
+
+			val relative = if(isSafUri(uri))	{
+				uri.substringAfter("||","")
+			}else	{
+				uri
+			}
+			
+			return SafRelativePath(
+				rootUri = root,
+				relativePath = relative
+			)
+		}
+		return SafRelativePath("","")
 	}
 
 	/**
@@ -534,6 +545,8 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 				var df = getDocumentFile(relativeUri.rootUri) ?: return null
 				if(df.isDirectory)	{
 					for(segment in relativeUri.relativePath.split('/'))	{
+						if(segment.isBlank()) continue
+						
 						df.findFile(segment)
 							?.let	{
 								if(it.isDirectory) df = it
