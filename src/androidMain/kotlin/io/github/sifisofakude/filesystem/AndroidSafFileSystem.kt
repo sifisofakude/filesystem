@@ -238,6 +238,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 */
 	fun getDocumentFile(path: String): DocumentFile?	{
 		if(isSafContext(path))	{
+			throw IllegalStateException("Document file")
 			val tmpPath = tempPath(path) ?: return null
 			val tmpRelativeUri = relativePathFromUri(tmpPath)
 			val resolvedUri = resolveRelativeUri(
