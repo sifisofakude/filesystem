@@ -240,7 +240,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 		if(isSafContext(path))	{
 			val tmpPath = tempPath(path) ?: return null
 			val tmpRelativeUri = relativePathFromUri(tmpPath)
-			throw IllegalStateException("Document file: $tmpRelativeUri")
+			throw IllegalStateException("Document file: $tmpPath")
 			val resolvedUri = resolveRelativeUri(
 				rootTreeUri = Uri.parse(tmpRelativeUri.rootUri),
 				relativePath = tmpRelativeUri.relativePath
