@@ -603,10 +603,8 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 			}
 
 			if(relativeParents != null)	{
-				parentUri = "$parentUri/$relativeParents/"
+				parentUri = "$parentUri/$relativeParents"
 			}
-
-			throw IllegalStateException("Create file: $parentUri")
 
     	return createDirectory(parentUri)?.let	{ parent ->
     		var success = false
