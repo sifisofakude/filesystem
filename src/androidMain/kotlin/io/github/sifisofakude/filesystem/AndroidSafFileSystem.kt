@@ -591,7 +591,6 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 			if(relativeUri.relativePath.isNotEmpty())	{
 				parentUri = relativeUri.rootUri.toString()
 				relativeParents = getParentFile(relativeUri.relativePath)
-    		throw IllegalStateException("Create file: $relativeParents") 
 			}else	{
 				if(isSafUri(relativeUri.rootUri.toString()))	{
 					parentUri = relativeUri.rootUri.toString()
@@ -610,6 +609,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
     	createDirectory(parentUri)?.let	{ parent ->
     		var success = false
 
+    		throw IllegalStateException("Create file: $relativeParents") 
     		
     		return getDocumentFile(parent)?.let	{
     			var success = false
