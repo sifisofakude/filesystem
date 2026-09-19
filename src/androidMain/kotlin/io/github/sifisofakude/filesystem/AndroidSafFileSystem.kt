@@ -612,7 +612,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 
     		return getDocumentFile(parent)?.let	{
     			var success = false
-    		throw IllegalStateException("Created file: ${parent.uri.toString()}")
+    		throw IllegalStateException("Created file: ${it.uri.toString()}")
     			it.findFile(fileName)?.let { file ->
     				if(file.isFile) success = true
     			}
