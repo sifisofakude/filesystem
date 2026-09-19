@@ -609,9 +609,9 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
     	createDirectory(parentUri)?.let	{ parent ->
     		var success = false
 
-    		throw IllegalStateException("Created file: $parent")
 
     		return getDocumentFile(parent)?.let	{
+    		throw IllegalStateException("Created file: $parent")
     			var success = false
     			it.findFile(fileName)?.let { file ->
     				if(file.isFile) success = true
