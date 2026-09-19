@@ -611,13 +611,13 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 
 
     		return getDocumentFile(parent)?.let	{
+    		throw IllegalStateException("Created file: ${it.canWrite()}")
     			var success = false
     			it.findFile(fileName)?.let { file ->
     				if(file.isFile) success = true
     			}
     				?:
     			it.createFile("application/octet-stream",fileName)?.let	{ file ->
-    		throw IllegalStateException("Created file: ${fileName}")
     				success = true
     			}
 
