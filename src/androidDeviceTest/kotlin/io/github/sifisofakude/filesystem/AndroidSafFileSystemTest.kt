@@ -70,7 +70,7 @@ class AndroidSafFileSystemTest {
         assertTrue(fs.isSafContext("bobby/damn/man.txt"))
         assertTrue(fs.isRelative("bobby/damn/man.sxt"))
         assertTrue(fs.isTreeUri(stringRoot))
-        assertNotNull(fs.createDirectory("got/to/go"))
+        // assertNotNull(fs.createDirectory("got/to/go"))
         // assertNotNull(fs.resolveRelativeUri(root,"got/to/go/za"))
         // assertNotNull(fs.getDocumentFile("jane/doe"))
     

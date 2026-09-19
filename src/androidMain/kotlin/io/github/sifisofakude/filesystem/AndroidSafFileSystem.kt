@@ -137,10 +137,10 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 * @return `true` if SAF resolution should be used, otherwise `false`.
 	 */
 	fun isSafContext(path: String): Boolean	{
-		return if(isRelative(path))	{
-			selectedParentUri != null
+		return if(path.startsWith("content://"))	{
+			true
 		}else	{
-			isSafUri(path)
+			selectedParentUri != null
 		}
 	}
 
@@ -155,8 +155,8 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 * @return `true` if the path represents a relative location, otherwise `false`.
 	 */
 	override fun isRelative(path: String): Boolean	{
-		return if(isSafUri(path))	{
-			!relativePathFromUri(path).relativePath.isBlank()
+		return if(path.startsWith("content://") || path.startsWith("file://"))	{
+			!path.substringAfter("||","").isBlank()
 		}else	{
 			!File(path).isAbsolute
 		}
@@ -591,6 +591,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 			if(relativeUri.relativePath.isNotEmpty())	{
 				parentUri = relativeUri.rootUri.toString()
 				relativeParents = getParentFile(relativeUri.relativePath)
+    		throw IllegalStateException("Create file: $relativeParents") 
 			}else	{
 				if(isSafUri(relativeUri.rootUri.toString()))	{
 					parentUri = relativeUri.rootUri.toString()
@@ -603,37 +604,31 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 			}
 
 			if(relativeParents != null)	{
-				parentUri = "$parentUri/$relativeParents"
+				parentUri = "$parentUri||$relativeParents"
 			}
 
-    	return createDirectory(parentUri)?.let	{ parent ->
+    	createDirectory(parentUri)?.let	{ parent ->
     		var success = false
+
     		
-    		getDocumentFile(parent)
-    			?.findFile(fileName)
-    			?.let	{
-    				if(it.isFile) success = true
+    		return getDocumentFile(parent)?.let	{
+    			var success = false
+    			it.findFile(fileName)?.let { file ->
+    				if(file.isFile) success = true
     			}
-
-    			?:
-
-    		getDocumentFile(parent)
-    			?.createFile("application/octet-stream",fileName)
-    			?.let	{
+    				?:
+    			it.createFile("application/octet-stream",fileName)?.let	{ file ->
     				success = true
     			}
 
-				if(success)	{
-	    		if(isRelative(path))	{
-	    			path
-	    		}else	{
-	    			val uri = Uri.parse(parent.trimEnd('/'))
-	    			resolveRelativeUri(uri,fileName)
-	    		}
-				}else	{
-					null
-				}
+    			if(success)	{
+    				path
+    			}else	{
+    				null
+    			}
+    		}
     	}
+    	return null
     }
     return super.createFile(path)
 	}
@@ -736,11 +731,12 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 
 			if(relativeUri.relativePath.isNotEmpty())	{
 				uri = relativeUri.rootUri
-				val relativeParent = super.getParentFile(relativeUri.relativePath)
-				if(relativeParent != null)	{
-					uri = combinePath(uri,relativeParent)
+				val relativeParent = super.getParentFile(relativeUri.relativePath) ?: return null
+				if(uri == selectedParentUri?.toString())	{
+					return relativeParent
+				}else	{
+					return combinePath(uri,relativeParent)
 				}
-				return uri
 			}else	{
 				if(!isSafUri(uri) && selectedParentUri != null)	{
 					val relativeParent = super.getParentFile(uri)
