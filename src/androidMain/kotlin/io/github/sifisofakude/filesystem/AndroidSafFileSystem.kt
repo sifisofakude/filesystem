@@ -607,25 +607,22 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 			}
 
     	createDirectory(parentUri)?.let	{ parent ->
-    		var success = false
+    		val fileUriString = resolveRelativeUri(Uri.parse(parent),fileName)
+    		val fileDoc = DocumentFile.fromSingleUri(context,Uri.parse(fileUriString))
 
-
-    		return getDocumentFile(parent)?.let	{
-    		throw IllegalStateException("Created file: ${it.canWrite()}")
-    			var success = false
-    			it.findFile(fileName)?.let { file ->
-    				if(file.isFile) success = true
-    			}
-    				?:
-    			it.createFile("application/octet-stream",fileName)?.let	{ file ->
-    				success = true
-    			}
-
-    			if(success)	{
+    		return if(fileDoc?.exists() == true)	{
+    			if(fileDoc?.isFile == true)	{
     				path
     			}else	{
     				null
     			}
+    		}else	{
+    			DocumentsContract.createDocument(
+    				contentResolver,
+    				Uri.parse(parent),
+    				"application/octet-stream",
+    				fileName
+    			)
     		}
     	}
     	return null
