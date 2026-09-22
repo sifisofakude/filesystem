@@ -622,7 +622,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
     				Uri.parse(parent),
     				"application/octet-stream",
     				fileName
-    			)
+    			)?.toString()
     		}
     	}
     	return null
