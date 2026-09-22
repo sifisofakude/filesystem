@@ -617,9 +617,15 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
     				null
     			}
     		}else	{
+    			val finalParent = relativePathFromUri(parent)
+    			var finalParentUri = finalParent.rootUri
+    			if(finalParent.relativePath.isNotEmpty())	{
+    				finalParentUri = resolveRelativeUri(Uri.parse(finalParentUri)."${finalParent.relativePath}/")
+    			}
+    			
     			DocumentsContract.createDocument(
     				contentResolver,
-    				Uri.parse(parent),
+    				Uri.parse(finalParentUri),
     				"application/octet-stream",
     				fileName
     			)?.toString()
