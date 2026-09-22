@@ -188,7 +188,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 				"$docId/${relativePath.trim('/')}"
 			}
 
-			return if(relativePath.endsWith("/") || isTreeUri(rootTreeUri.toString()))	{
+			return if(relativePath.endsWith("/") || relativePath.isBlank())	{
 				DocumentsContract
 					.buildTreeDocumentUri(rootTreeUri.authority,completeDocId)
 					.toString()
@@ -625,8 +625,6 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 
     			if(finalParentUri == null) return null
 
-    			throw IllegalStateException("Can not: $parent")
-    			
     			DocumentsContract.createDocument(
     				contentResolver,
     				Uri.parse(finalParentUri),
