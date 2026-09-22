@@ -620,7 +620,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
     			val finalParent = relativePathFromUri(parent)
     			var finalParentUri = finalParent.rootUri
     			if(finalParent.relativePath.isNotEmpty())	{
-    				finalParentUri = resolveRelativeUri(Uri.parse(finalParentUri)."${finalParent.relativePath}/")
+    				finalParentUri = resolveRelativeUri(Uri.parse(finalParentUri),"${finalParent.relativePath}/")
     			}
     			
     			DocumentsContract.createDocument(
