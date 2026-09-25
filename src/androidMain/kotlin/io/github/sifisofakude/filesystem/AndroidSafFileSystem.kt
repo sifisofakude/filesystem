@@ -554,14 +554,14 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 				}else	{
 					var currentDocId = getDocumentId(Uri.parse(relativeUri.rootUri)) ?: return null
 					var parentUri = DocumentsContract
-						.buildTreeDocumentUri(Uri.parse(relativeUri.rootUri).authority,currentDocId)
+						.buildDocumentUriUsingTree(Uri.parse(resolvedRoot),currentDocId)
 						
 					for(segment in relativeUri.relativePath.split("/"))	{
 						if(segment.isBlank()) continue
 
 						currentDocId = "$currentDocId/$segment"
 						val childUri = DocumentsContract
-							.buildDocumentUriUsingTree(Uri.parse(relativeUri.rootUri),currentDocId)
+							.buildDocumentUriUsingTree(Uri.parse(resolvedRoot),currentDocId)
 
 						val childDoc = DocumentFile.fromSingleUri(context,childUri)
 						if(childDoc?.exists() == true)	{
