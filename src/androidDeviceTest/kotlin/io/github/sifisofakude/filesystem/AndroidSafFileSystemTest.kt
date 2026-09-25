@@ -42,7 +42,7 @@ class AndroidSafFileSystemTest {
 
     @Test
     fun independentSafRoots() {
-        assertTrue(adbCreateDirectory("Root1/jane/doe"))
+        assertTrue(adbCreateDirectory("Root1/micca/ticaa"))
         assertTrue(adbCreateDirectory("Root2"))
         assertTrue(adbCreateDirectory("Root3"))
 
