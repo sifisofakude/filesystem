@@ -553,7 +553,9 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 
 							?:
 
-						df.createDirectory(segment) ?: return null
+						df.createDirectory(segment)?.let	{
+							println("Created $segment")
+						} ?: return null
 					}
 				}else	{
 					return null
@@ -616,9 +618,10 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
     			}
     		}else	{
     			val finalParent = relativePathFromUri(parent)
-    			var finalParentUri: String? = finalParent.rootUri
+    			var finalParentUri = finalParent.rootUri
     			if(finalParent.relativePath.isNotEmpty())	{
     				finalParentUri = resolveRelativeUri(Uri.parse(finalParentUri!!),"${finalParent.relativePath}/")
+    					?: return null
     			}
 
     			if(finalParentUri == null) return null
