@@ -545,14 +545,14 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 					?: return null
 
 				val fullFolderDoc = DocumentFile.fromSingleUri(context,Uri.parse(resolvedFolders))
-				if(fullFolderDoc.exists())	{
-					return if(fullFolderDoc.isDirectory)	{
+				if(fullFolderDoc?.exists() == true)	{
+					return if(fullFolderDoc?.isDirectory == true)	{
 						path
 					}else	{
 						null
 					}
 				}else	{
-					var currentDocId = getDocumentId(relativeUri.rootUri) ?: return null
+					var currentDocId = getDocumentId(Uri.parse(relativeUri.rootUri)) ?: return null
 					var parentUri = DocumentsContract
 						.buildTreeDocumentUri(Uri.parse(relativeUri.rootUri).authority,currentDocId)
 						
@@ -564,8 +564,8 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 							.buildDocumentUriUsingTree(Uri.parse(relativeUri.rootUri),currentDocId)
 
 						val childDoc = DocumentFile.fromSingleUri(context,childUri)
-						if(childDoc.exists())	{
-							if(childDoc.isDirectory)	{
+						if(childDoc?.exists() == true)	{
+							if(childDoc?.isDirectory == true)	{
 								parentUri = childUri
 							}else	{
 								return null
