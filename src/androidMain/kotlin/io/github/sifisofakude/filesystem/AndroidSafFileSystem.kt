@@ -636,9 +636,9 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
     			}
     		}else	{
     			val finalParent = relativePathFromUri(parent)
-    			var finalParentUri = finalParent.rootUri
+    			var finalParentUri: String? = finalParent.rootUri
     			if(finalParent.relativePath.isNotEmpty())	{
-    				finalParentUri = resolveRelativeUri(Uri.parse(finalParentUri!!),"${finalParent.relativePath}/")
+    				finalParentUri = resolveRelativeUri(Uri.parse(finalParentUri),"${finalParent.relativePath}/")
     			}
 
     			if(finalParentUri == null)	{
