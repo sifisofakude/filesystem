@@ -540,31 +540,49 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 			if(relativeUri.relativePath.isEmpty()) return null
 			
 			if(isTreeUri(relativeUri.rootUri))	{
-				var df = getDocumentFile(relativeUri.rootUri) ?: return null
-				if(df.isDirectory)	{
-					for(segment in relativeUri.relativePath.split('/'))	{
-						if(segment.isBlank()) continue
-						
-						df.findFile(segment)
-							?.let	{
-								if(it.isDirectory) df = it
-								else return null
-							}
+				val resolvedRoot = resolveRelativeUri(Uri.parse(relativeUri.rootUri),"") ?: return null
+				val resolvedFolders = resolveRelativeUri(Uri.parsw(relativeUri.rootUri),relativeUri.relativePath)
+					?: return null
 
-							?:
-
-						df.createDirectory(segment)?.let	{
-							println("Created $segment")
-						} ?: return null
+				val fullFolderDoc = DocumentFile.fromSingleUri(context,Uri.parse(resolvedFolders))
+				if(fullFolderDoc.exists())	{
+					return if(fullFolderDoc.isDirectory)	{
+						path
+					}else	{
+						null
 					}
 				}else	{
-					return null
-				}
+					var currentDocId = getDocumentId(relativeUri.rootUri) ?: return null
+					var parentUri = DocumentsContract
+						.buildTreeDocumentUri(Uri.parse(relativeUri.rootUri).authority,currentDocId)
+						
+					for(segment in relativeUri.relativePath.split("/"))	{
+						if(segment.isBlank()) continue
 
-				return if(isRelative(path))	{
-					path
-				}else	{
-					resolveRelativeUri(Uri.parse(relativeUri.rootUri),"${relativeUri.relativePath}/")
+						currentDocId = "$currentDocId/$segment"
+						val childUri = DocumentsContract
+							.buildDocumentUriUsingTree(Uri.parse(relativeUri.rootUri),currentDocId)
+
+						val childDoc = DocumentFile.fromSingleUri(context,childUri)
+						if(childDoc.exists())	{
+							if(childDoc.isDirectory)	{
+								parentUri = childUri
+							}else	{
+								return null
+							}
+						}else	{
+							val newFolderUri = DocumentsContract.createDocument(
+								contentResolver,
+								parentUri,
+								DocumentsContract.Document.MIME_TYPE_DIR,
+								segment
+							) ?: return null
+
+							parentUri = newFolderUri
+						}
+					}
+
+					return path
 				}
 			}
 			return null
