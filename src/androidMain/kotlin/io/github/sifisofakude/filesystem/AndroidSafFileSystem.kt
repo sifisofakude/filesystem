@@ -622,7 +622,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
     			}
 
     			if(finalParentUri == null) return null
-					"${getDocumentFile(parent)?.exists()}"
+					"${getDocumentFile(finalParent.rootUri)?.exists()}"
     			// DocumentsContract.createDocument(
     			// 	contentResolver,
     			// 	Uri.parse(finalParentUri),
