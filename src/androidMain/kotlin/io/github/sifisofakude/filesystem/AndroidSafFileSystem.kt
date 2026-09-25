@@ -639,16 +639,24 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
     			var finalParentUri = finalParent.rootUri
     			if(finalParent.relativePath.isNotEmpty())	{
     				finalParentUri = resolveRelativeUri(Uri.parse(finalParentUri!!),"${finalParent.relativePath}/")
-    					?: return null
     			}
 
-    			if(finalParentUri == null) return null
-    			DocumentsContract.createDocument(
-    				contentResolver,
-    				Uri.parse(finalParentUri),
-    				"application/octet-stream",
-    				fileName
-    			)?.toString()
+    			if(finalParentUri == null)	{
+    				null
+    			}else	{
+	    			val newUri = DocumentsContract.createDocument(
+	    				contentResolver,
+	    				Uri.parse(finalParentUri),
+	    				"application/octet-stream",
+	    				fileName
+	    			)
+
+	    			if(newUri != null)	{
+	    				path
+	    			}else	{
+	    				null
+	    			}
+    			}
     		}
     	}
     	return null
