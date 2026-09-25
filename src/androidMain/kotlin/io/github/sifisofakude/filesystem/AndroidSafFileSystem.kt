@@ -190,11 +190,11 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 
 			return if(relativePath.endsWith("/") || relativePath.isBlank())	{
 				DocumentsContract
-					.buildTreeDocumentUri(rootTreeUri.authority,completeDocId)
+					.buildDocumentUriUsingTree(rootTreeUri,completeDocId)
 					.toString()
 			}else	{
 				DocumentsContract
-					.buildDocumentUriUsingTree(rootTreeUri,completeDocId)
+					.buildDocumentUri(rootTreeUri.authority,completeDocId)
 					.toString()
 			}
 		}
@@ -339,7 +339,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
         is Uri -> DocumentFile.fromTreeUri(context, input)
         is String ->	{
         	if(isSafContext(input))	{
-        		var path: String? = tempPath(input)
+        		val path = tempPath(input)
 
         		path?.let	{
         			getDocumentFile(path)
@@ -356,7 +356,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
         val name = root.name ?: continue
 
         if (extensions.isNotEmpty()) {
-          val ext = name.substringAfterLast('.', "")
+          val ext = getExtension(name)
           if (ext !in extensions) continue
         }
 
@@ -481,9 +481,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
       if (file.isDirectory) {
           walkSaf(file, rel, extensions, out)
       } else {
-        if (extensions.isEmpty() ||
-          name.substringAfterLast('.') in extensions
-        ) {
+        if (extensions.isEmpty() || getExtension(name) in extensions) {
           out.add(
             FileSource(
               relativePath = rel,
@@ -698,7 +696,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 			val document = getDocumentFile(path)
 
 			return document?.listFiles()
-				?.map	{ it.getUri().toString() }
+				?.map	{ it.uri.toString() }
 				?.toList()
 				?: emptyList()
 		}
@@ -799,8 +797,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 			) ?: return null
 			
 			return DocumentsContract
-				.renameDocument(contentResolver,Uri.parse(resolvedUri
-				),target)
+				.renameDocument(contentResolver,Uri.parse(resolvedUri),target)
 				?.toString()
 		}
 		return super.rename(src,target)
