@@ -625,7 +625,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 
     			DocumentsContract.createDocument(
     				contentResolver,
-    				Uri.parse(finalParent.rootUri),
+    				Uri.parse(finalParentUri),
     				"application/octet-stream",
     				fileName
     			)?.toString()
