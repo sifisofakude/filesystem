@@ -586,12 +586,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 							parentUri = newFolderUri
 						}
 					}
-
-					return if(exists("${path}/"))	{
-						path
-					}else	{
-						null
-					}
+					return path
 				}
 			}
 			return null
@@ -755,6 +750,8 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 			val relativeUri = relativePathFromUri(path)
 			val resolvedUri = resolveRelativeUri(Uri.parse(relativeUri.rootUri),relativeUri.relativePath)
 				?: return false
+
+				throw IllegalStateException("Not now: $resolvedUri")
 
 			return try	{
 				contentResolver.query(
