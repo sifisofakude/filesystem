@@ -169,13 +169,13 @@ class AndroidSafFileSystemTest {
     
         assertNotNull(result)
     
-        assertTrue(fs.exists("foo"))
-        assertTrue(fs.exists("foo/bar"))
-        assertTrue(fs.exists("foo/bar/baz"))
+        assertTrue(fs.exists("foo/"))
+        assertTrue(fs.exists("foo/bar/"))
+        assertTrue(fs.exists("foo/bar/baz/"))
     
-        assertTrue(fs.isDirectory("foo"))
-        assertTrue(fs.isDirectory("foo/bar"))
-        assertTrue(fs.isDirectory("foo/bar/baz"))
+        assertTrue(fs.isDirectory("foo/"))
+        assertTrue(fs.isDirectory("foo/bar/"))
+        assertTrue(fs.isDirectory("foo/bar/baz/"))
     }
 
     @Test
