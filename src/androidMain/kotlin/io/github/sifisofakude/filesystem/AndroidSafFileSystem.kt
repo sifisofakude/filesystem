@@ -184,7 +184,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 			val treeDocId = DocumentsContract.getTreeDocumentId(rootTreeUri) ?: return null
 
 			var treeUri = DocumentsContract.buildTreeDocumentUri(rootTreeUri.authority,treeDocId)
-			val docUri = DocumentFile.fromTreeUri(rootTreeUri)?.let	{
+			val docUri = DocumentFile.fromTreeUri(context,rootTreeUri)?.let	{
 				it.uri
 			} ?: return null
 			
