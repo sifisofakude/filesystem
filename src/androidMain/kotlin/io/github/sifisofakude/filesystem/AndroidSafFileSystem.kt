@@ -196,15 +196,9 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 				"$docId/${relativePath.trim('/')}"
 			}
 
-			return if(relativePath.endsWith("/") || relativePath.isBlank())	{
-				DocumentsContract
-					.buildDocumentUriUsingTree(treeUri,completeDocId)
-					.toString()
-			}else	{
-				DocumentsContract
-					.buildDocumentUri(rootTreeUri.authority,completeDocId)
-					.toString()
-			}
+			return DocumentsContract
+				.buildDocumentUriUsingTree(treeUri,completeDocId)
+				.toString()
 		}
 		return null
 	}
