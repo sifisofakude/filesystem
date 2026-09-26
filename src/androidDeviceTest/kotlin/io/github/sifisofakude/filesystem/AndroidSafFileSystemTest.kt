@@ -187,9 +187,9 @@ class AndroidSafFileSystemTest {
     
         fs.changeSelectedDirectory(root)
     
-    //     val result = fs.createFile("hello.txt")
-    // 
-    //     assertNotNull(result)
+        val result = fs.createFile("hello.txt")
+    
+        assertNotNull(result)
     //     assertTrue(fs.exists("hello.txt"))
     //     assertTrue(fs.isFile("hello.txt"))
     }
