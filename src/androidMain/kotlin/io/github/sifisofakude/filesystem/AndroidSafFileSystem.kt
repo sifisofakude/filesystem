@@ -758,7 +758,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 
 			return try	{
 				contentResolver.query(
-					uri,
+					resolvedUri,
 					arrayOf(DocumentsContract.Document.COLUMN_DOCUMENT_ID),
 					null,null,null
 				)?.use { cursor ->
