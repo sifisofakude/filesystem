@@ -550,10 +550,10 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 			if(isTreeUri(relativeUri.rootUri))	{
 				val resolvedRoot = resolveRelativeUri(Uri.parse(relativeUri.rootUri),"") ?: return null
 				val resolvedFolders = resolveRelativeUri(Uri.parse(relativeUri.rootUri),relativeUri.relativePath)
-					?: return null
 
-				val fullFolderDoc = DocumentFile.fromSingleUri(context,Uri.parse(resolvedFolders))
-				if(fullFolderDoc?.exists() == true)	{
+				if(resolvedFolders != null)	{
+					val fullFolderDoc = DocumentFile.fromSingleUri(context,Uri.parse(resolvedFolders))
+					
 					return if(fullFolderDoc?.isDirectory == true)	{
 						path
 					}else	{
