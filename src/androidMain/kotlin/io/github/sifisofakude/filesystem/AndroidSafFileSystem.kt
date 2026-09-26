@@ -888,7 +888,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 					}else	{
 						false
 					}
-				}
+				} ?: false
 			}catch(_: Exception)	{
 				false
 			}
