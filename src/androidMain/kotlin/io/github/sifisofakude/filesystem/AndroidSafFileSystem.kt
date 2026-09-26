@@ -545,8 +545,6 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 				SafRelativePath(selectedParentUri.toString(),path)
 			}
 
-			if(relativeUri.relativePath.isEmpty()) return null
-			
 			if(isTreeUri(relativeUri.rootUri))	{
 				val resolvedRoot = resolveRelativeUri(Uri.parse(relativeUri.rootUri),"") ?: return null
 				val resolvedFolders = resolveRelativeUri(Uri.parse(relativeUri.rootUri),relativeUri.relativePath)
