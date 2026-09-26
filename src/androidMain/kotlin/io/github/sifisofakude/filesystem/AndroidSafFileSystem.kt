@@ -873,9 +873,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 */
 	override fun isDirectory(path: String): Boolean	{
 		if(isSafContext(path))	{
-			val tmpPath = tempPath(path) ?: return false
-			
-			getDocumentFile(tmpPath)?.let	{
+			getDocumentFile(path)?.let	{
 				return it.isDirectory
 			} ?: return false
 		}
@@ -890,9 +888,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 */
 	override fun lastModified(path: String): Long	{
 		if(isSafContext(path))	{
-			val tmpPath = tempPath(path) ?: return -1
-			
-			getDocumentFile(tmpPath)?.let	{
+			getDocumentFile(path)?.let	{
 				return it.lastModified()
 			} ?: return -1
 		}
