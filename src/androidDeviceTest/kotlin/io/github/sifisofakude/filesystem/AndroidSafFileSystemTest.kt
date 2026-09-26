@@ -190,8 +190,8 @@ class AndroidSafFileSystemTest {
         val result = fs.createFile("hello.txt")
     
         assertNotNull(result)
-    //     assertTrue(fs.exists("hello.txt"))
-    //     assertTrue(fs.isFile("hello.txt"))
+        assertTrue(fs.exists("hello.txt"))
+        assertTrue(fs.isFile("hello.txt"))
     }
 
     @Test
@@ -203,17 +203,17 @@ class AndroidSafFileSystemTest {
     
         fs.changeSelectedDirectory(root)
     
-    //     // assertNotNull(
-    //         fs.createDirectory("foo/bar")
-    //     // )
-    // 
-    //     val result = fs.createFile(
-    //         "foo/bar/hello.txt"
-    //     )
+        // assertNotNull(
+            // fs.createDirectory("foo/bar")
+        // )
     
-        // assertNotNull(result)
-        // assertTrue(fs.exists("foo/bar/hello.txt"))
-        // assertTrue(fs.isFile("foo/bar/hello.txt"))
+        val result = fs.createFile(
+            "foo/bar/hello.txt"
+        )
+    
+        assertNotNull(result)
+        assertTrue(fs.exists("foo/bar/hello.txt"))
+        assertTrue(fs.isFile("foo/bar/hello.txt"))
     }
 
     private fun selectUri(uri: String): Uri?	{
