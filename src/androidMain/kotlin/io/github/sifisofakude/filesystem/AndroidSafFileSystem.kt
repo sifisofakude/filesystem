@@ -261,8 +261,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 */
 	fun getDocumentFile(path: String): DocumentFile?	{
 		if(isSafContext(path))	{
-			val tmpPath = tempPath(path) ?: return null
-			val tmpRelativeUri = relativePathFromUri(tmpPath)
+			val tmpRelativeUri = relativePathFromUri(path)
 			val resolvedUri = resolveRelativeUri(
 				rootTreeUri = Uri.parse(tmpRelativeUri.rootUri),
 				relativePath = tmpRelativeUri.relativePath
@@ -753,7 +752,21 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 */
 	override fun exists(path: String): Boolean	{
 		if(isSafContext(path))	{
-			return getDocumentFile(path)?.exists() ?: return false
+			val relativeUri = relativePathFromUri(path)
+			val resolvedUri = resolveRelativeUri(Uri.parse(relativeUri.rootUri),relativeUri.relativePath)
+				?: return false
+
+			return try	{
+				contentResolver.query(
+					uri,
+					arrayOf(DocumentsContract.Document.COLUMN_DOCUMENT_ID),
+					null,null,null
+				)?.use { cursor ->
+					cursor.count > 0
+				} ?: false
+			}catch(_: Exception)	{
+				false
+			}
 		}
 		return super.exists(path)
 	}
