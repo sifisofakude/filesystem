@@ -752,7 +752,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 			val resolvedUri = resolveRelativeUri(Uri.parse(relativeUri.rootUri),relativeUri.relativePath)
 				?: return false
 
-				throw IllegalStateException("Not now: $resolvedUri")
+				// throw IllegalStateException("Not now: $resolvedUri")
 
 			return try	{
 				contentResolver.query(
