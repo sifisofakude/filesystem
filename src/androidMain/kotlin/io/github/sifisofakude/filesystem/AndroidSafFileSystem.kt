@@ -586,6 +586,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 							parentUri = newFolderUri
 						}
 					}
+
 					return path
 				}
 			}
