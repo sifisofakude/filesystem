@@ -365,7 +365,7 @@ class AndroidSafFileSystemTest {
             "path/to/file.txt"
         )
     
-        val result = fs.relativePathFromUri(uri)
+        val result = fs.relativePathFromUri(uri!!)
     
         assertEquals(
             "",result.relativePath
