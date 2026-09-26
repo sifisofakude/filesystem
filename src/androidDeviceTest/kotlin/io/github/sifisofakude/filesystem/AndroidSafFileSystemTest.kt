@@ -310,6 +310,68 @@ class AndroidSafFileSystemTest {
         assertFalse(fs.isDirectory("foo.txt"))
     }
 
+    @Test
+    fun relativePathFromPlainRelativePath() {
+    		assertTrue(adbCreateDirectory("Root1"))
+    		    
+        val root = selectFolder(constructUri("Root1"))
+            ?: error("Could not select Root1")
+    
+        fs.changeSelectedDirectory(root)
+        
+        val path = "path/to/file.txt"
+    
+        val result = fs.relativePathFromUri(path)
+    
+        assertEquals(path, result.relativePath)
+    }
+
+    @Test
+    fun relativePathFromUriWithRelativePath() {
+        assertTrue(adbCreateDirectory("Root1"))
+    
+        val root = selectFolder(constructUri("Root1"))
+            ?: error("Could not select Root1")
+    
+        fs.changeSelectedDirectory(root)
+    
+        val path = "path/to/file.txt"
+        val uri = "${root}||$path"
+    
+        val result = fs.relativePathFromUri(uri)
+    
+        assertEquals(path, result.relativePath)
+    }
+
+    @Test
+    fun relativePathFromAbsoluteSafUri() {
+        assertTrue(adbCreateDirectory("Root1"))
+    
+        val root = selectFolder(constructUri("Root1"))
+            ?: error("Could not select Root1")
+    
+        fs.changeSelectedDirectory(root)
+    
+        assertNotNull(
+            fs.createDirectory("path/to")
+        )
+    
+        assertNotNull(
+            fs.createFile("path/to/file.txt")
+        )
+    
+        val uri = fs.resolveRelativeUri(
+            root,
+            "path/to/file.txt"
+        )
+    
+        val result = fs.relativePathFromUri(uri)
+    
+        assertEquals(
+            "",result.relativePath
+        )
+    }
+
     private fun selectUri(uri: String): Uri?	{
     	val rel = fs.relativePathFromUri(uri)
     	val sanitizedUri = if(rel.relativePath.isNotEmpty())	{
