@@ -746,8 +746,6 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 			val resolvedUri = resolveRelativeUri(Uri.parse(relativeUri.rootUri),relativeUri.relativePath)
 				?: return false
 
-				// throw IllegalStateException("Not now: $resolvedUri")
-
 			return try	{
 				contentResolver.query(
 					Uri.parse(resolvedUri),
@@ -861,9 +859,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 */
 	override fun isFile(path: String): Boolean	{
 		if(isSafContext(path))	{
-			getDocumentFile(path)?.let	{
-				return it.isFile
-			} ?: return false
+			return exists(path) && !isDirectory(path)
 		}
 		return File(path).isFile
 	}
@@ -876,9 +872,26 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 */
 	override fun isDirectory(path: String): Boolean	{
 		if(isSafContext(path))	{
-			getDocumentFile(path)?.let	{
-				return it.isDirectory
-			} ?: return false
+			val relativeUri = relativePathFromUri(path)
+			val resolvedUri = resolveRelativeUri(Uri.parse(relativeUri.rootUri),relativeUri.relativePath)
+				?: return false
+
+			return try	{
+				contentResolver.query(
+					Uri.parse(resolvedUri),
+					arrayOf(DocumentsContract.Document.COLUMN_MIME_TYPE),
+					null,null,null
+				)?.use { cursor ->
+					if(cursor.moveToFirst())	{
+						val mimeType = cursor.getString(0)
+						mimeType == DocumentsContract.Document.MIME_TYPE_DIR
+					}else	{
+						false
+					}
+				}
+			}catch(_: Exception)	{
+				false
+			}
 		}
 		return File(path).isDirectory
 	}
