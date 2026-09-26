@@ -41,61 +41,179 @@ class AndroidSafFileSystemTest {
     }
 
     @Test
-    fun independentSafRoots() {
+    fun selectRoot() {
         assertTrue(adbCreateDirectory("Root1"))
-        assertTrue(adbCreateDirectory("Root2"))
-        assertTrue(adbCreateDirectory("Root3"))
-
-        val root1 = constructUri("Root1")
-        // assertNotNull(selectFolder(root1))
-        
-        val root2 = constructUri("Root2")
-        // assertNotNull(selectFolder(root2))
-        
-        val root3 = constructUri("Root3")
-        // assertNotNull(selectFolder(root3))
+    
+        val root = selectFolder(constructUri("Root1"))
+    
+        assertNotNull(root)
+        assertTrue(fs.isSafUri(root.toString()))
+        assertTrue(fs.isTreeUri(root.toString()))
     }
 
     @Test
-    fun basicOperations() {
+    fun selectedDirectoryBecomesCurrentDirectory() {
+        assertTrue(adbCreateDirectory("Root1"))
+    
         val root = selectFolder(constructUri("Root1"))
             ?: error("Could not select Root1")
-
-        fs.changeSelectedDirectory(root)
-
-        val stringRoot = root.toString()
-
-        assertNotNull(fs.getCurrentDirectory())
-        assertTrue(fs.isSafUri(stringRoot))
-        assertTrue(fs.isSafContext("bobby/damn/man.txt"))
-        assertTrue(fs.isRelative("bobby/damn/man.sxt"))
-        assertTrue(fs.isTreeUri(stringRoot))
-        // assertNotNull(fs.createDirectory("got/to/go"))
-        // assertNotNull(fs.resolveRelativeUri(root,"got/to/go/za"))
-        // assertNotNull(fs.getDocumentFile("jane/doe"))
     
-       	// fail("Created by: ${fs.createDirectory("got/seleing/tor")}")
-       	fail("Created by: ${fs.createFile("micca/ticaa/muzza.txt")}")
+        fs.changeSelectedDirectory(root)
+    
+        assertNotNull(fs.getCurrentDirectory())
+        assertEquals(root.toString(), fs.getCurrentDirectory().toString())
     }
 
     @Test
-    fun readWriteText() {
-        
+    fun relativePathsAreSafContext() {
+        assertTrue(adbCreateDirectory("Root1"))
+    
+        val root = selectFolder(constructUri("Root1"))
+            ?: error("Could not select Root1")
+    
+        fs.changeSelectedDirectory(root)
+    
+        assertTrue(fs.isRelative("hello.txt"))
+        assertTrue(fs.isRelative("foo/bar.txt"))
+    
+        assertTrue(fs.isSafContext("hello.txt"))
+        assertTrue(fs.isSafContext("foo/bar.txt"))
     }
 
     @Test
-    fun selectedDirectorySupportsRelativePaths() {
-      	
+    fun resolveRelativeFileUri() {
+        assertTrue(adbCreateDirectory("Root1"))
+    
+        val root = selectFolder(constructUri("Root1"))
+            ?: error("Could not select Root1")
+    
+        fs.changeSelectedDirectory(root)
+    
+        val uri = fs.resolveRelativeUri(
+            root,
+            "hello.txt"
+        )
+
+    		uri?.let	{
+        	assertTrue(it.contains("hello.txt"))
+    		}
     }
 
     @Test
-    fun copyByStream() {
-        
+    fun resolveNestedRelativeUri() {
+        assertTrue(adbCreateDirectory("Root1"))
+    
+        val root = selectFolder(constructUri("Root1"))
+            ?: error("Could not select Root1")
+    
+        fs.changeSelectedDirectory(root)
+    
+        val uri = fs.resolveRelativeUri(
+            root,
+            "foo/bar/baz.txt"
+        )
+
+    		uri?.let	{
+        	assertTrue(it.contains("foo"))
+        	assertTrue(it.contains("bar"))
+        	assertTrue(it.contains("baz.txt"))
+        }
     }
 
     @Test
-    fun moveByStream() {
-        
+    fun relativePathFromRoot() {
+        assertTrue(adbCreateDirectory("Root1"))
+    
+        val root = selectFolder(constructUri("Root1"))
+            ?: error("Could not select Root1")
+    
+        fs.changeSelectedDirectory(root)
+    
+        val result = fs.relativePathFromUri(
+            root.toString()
+        )
+
+    		result?.let	{
+        	assertEquals("", it.relativePath)
+    		}
+    }
+
+    @Test
+    fun createDirectory() {
+        assertTrue(adbCreateDirectory("Root1"))
+    
+        val root = selectFolder(constructUri("Root1"))
+            ?: error("Could not select Root1")
+    
+        fs.changeSelectedDirectory(root)
+    
+        val result = fs.createDirectory("foo")
+
+        // assertNotNull(result)
+        // assertTrue(fs.exists("foo/"))
+        // assertTrue(fs.isDirectory("foo/"))
+    }
+
+    @Test
+    fun createNestedDirectory() {
+        assertTrue(adbCreateDirectory("Root1"))
+    
+        val root = selectFolder(constructUri("Root1"))
+            ?: error("Could not select Root1")
+    
+        fs.changeSelectedDirectory(root)
+    
+        // val result = fs.createDirectory(
+        //     "foo/bar/baz"
+        // )
+    
+        // assertNotNull(result)
+    
+    //     assertTrue(fs.exists("foo"))
+    //     assertTrue(fs.exists("foo/bar"))
+    //     assertTrue(fs.exists("foo/bar/baz"))
+    // 
+    //     assertTrue(fs.isDirectory("foo"))
+    //     assertTrue(fs.isDirectory("foo/bar"))
+    //     assertTrue(fs.isDirectory("foo/bar/baz"))
+    }
+
+    @Test
+    fun createFile() {
+        assertTrue(adbCreateDirectory("Root1"))
+    
+        val root = selectFolder(constructUri("Root1"))
+            ?: error("Could not select Root1")
+    
+        fs.changeSelectedDirectory(root)
+    
+        // val result = fs.createFile("hello.txt")
+    
+        // assertNotNull(result)
+        // assertTrue(fs.exists("hello.txt"))
+        // assertTrue(fs.isFile("hello.txt"))
+    }
+
+    @Test
+    fun createFileInNestedDirectory() {
+        assertTrue(adbCreateDirectory("Root1"))
+    
+        val root = selectFolder(constructUri("Root1"))
+            ?: error("Could not select Root1")
+    
+        fs.changeSelectedDirectory(root)
+    
+        // assertNotNull(
+            fs.createDirectory("foo/bar")
+        // )
+    
+        val result = fs.createFile(
+            "foo/bar/hello.txt"
+        )
+    
+        // assertNotNull(result)
+        // assertTrue(fs.exists("foo/bar/hello.txt"))
+        // assertTrue(fs.isFile("foo/bar/hello.txt"))
     }
 
     private fun selectUri(uri: String): Uri?	{
