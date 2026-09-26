@@ -150,8 +150,8 @@ class AndroidSafFileSystemTest {
         val result = fs.createDirectory("foo")
 
         assertNotNull(result)
-        // assertTrue(fs.exists("foo/"))
-        // assertTrue(fs.isDirectory("foo/"))
+        assertTrue(fs.exists("foo"))
+        assertTrue(fs.isDirectory("foo"))
     }
 
     @Test
@@ -203,17 +203,111 @@ class AndroidSafFileSystemTest {
     
         fs.changeSelectedDirectory(root)
     
-        // assertNotNull(
-            // fs.createDirectory("foo/bar")
-        // )
-    
-        val result = fs.createFile(
-            "foo/bar/hello.txt"
-        )
+        val result = fs.createFile("foo/bar/hello.txt")
     
         assertNotNull(result)
         assertTrue(fs.exists("foo/bar/hello.txt"))
         assertTrue(fs.isFile("foo/bar/hello.txt"))
+    }
+
+    @Test
+    fun getDocumentFileForFile() {
+        assertTrue(adbCreateDirectory("Root1"))
+    
+        val root = selectFolder(constructUri("Root1"))
+            ?: error("Could not select Root1")
+    
+        fs.changeSelectedDirectory(root)
+    
+        assertNotNull(
+            fs.createFile("hello.txt")
+        )
+    
+        val document = fs.getDocumentFile(
+            "hello.txt"
+        )
+    
+        assertNotNull(document)
+        assertTrue(document!!.exists())
+        assertTrue(document.isFile)
+        assertEquals("hello.txt", document.name)
+    }
+
+    @Test
+    fun getDocumentFileForNestedFile() {
+        assertTrue(adbCreateDirectory("Root1"))
+    
+        val root = selectFolder(constructUri("Root1"))
+            ?: error("Could not select Root1")
+    
+        fs.changeSelectedDirectory(root)
+    
+        assertNotNull(
+            fs.createDirectory("foo/bar")
+        )
+    
+        assertNotNull(
+            fs.createFile("foo/bar/test.txt")
+        )
+    
+        val document = fs.getDocumentFile(
+            "foo/bar/test.txt"
+        )
+    
+        assertNotNull(document)
+        assertTrue(document!!.exists())
+        assertTrue(document.isFile)
+        assertEquals("test.txt", document.name)
+    }
+
+    @Test
+    fun nonexistentPathDoesNotExist() {
+        assertTrue(adbCreateDirectory("Root1"))
+    
+        val root = selectFolder(constructUri("Root1"))
+            ?: error("Could not select Root1")
+    
+        fs.changeSelectedDirectory(root)
+    
+        assertFalse(
+            fs.exists("this/does/not/exist.txt")
+        )
+    }
+
+    @Test
+    fun directoryIsNotFile() {
+        assertTrue(adbCreateDirectory("Root1"))
+    
+        val root = selectFolder(constructUri("Root1"))
+            ?: error("Could not select Root1")
+    
+        fs.changeSelectedDirectory(root)
+    
+        assertNotNull(
+            fs.createDirectory("foo")
+        )
+    
+        assertTrue(fs.exists("foo"))
+        assertTrue(fs.isDirectory("foo"))
+        assertFalse(fs.isFile("foo"))
+    }
+
+    @Test
+    fun fileIsNotDirectory() {
+        assertTrue(adbCreateDirectory("Root1"))
+    
+        val root = selectFolder(constructUri("Root1"))
+            ?: error("Could not select Root1")
+    
+        fs.changeSelectedDirectory(root)
+    
+        assertNotNull(
+            fs.createFile("foo.txt")
+        )
+    
+        assertTrue(fs.exists("foo.txt"))
+        assertTrue(fs.isFile("foo.txt"))
+        assertFalse(fs.isDirectory("foo.txt"))
     }
 
     private fun selectUri(uri: String): Uri?	{
