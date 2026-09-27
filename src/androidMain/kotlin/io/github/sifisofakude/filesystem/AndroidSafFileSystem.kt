@@ -298,8 +298,12 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 		return if(isSafUri(path))	{
 			path
 		}else	{
-			selectedParentUri?.let	{ 
-				"${it.toString()}||$path"
+			selectedParentUri?.let	{
+				if(path == "." || path.isBlank())	{
+					it.toString()
+				}else	{
+					"${it.toString()}||$path"
+				}
 			}
 		}
 	} 

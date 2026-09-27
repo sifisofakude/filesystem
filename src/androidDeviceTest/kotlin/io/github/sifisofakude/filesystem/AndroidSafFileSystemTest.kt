@@ -372,6 +372,115 @@ class AndroidSafFileSystemTest {
         )
     }
 
+    @Test
+    fun resolveFilesSingleFile() {
+        assertTrue(adbCreateDirectory("Root1"))
+    
+        val root = selectFolder(constructUri("Root1"))
+            ?: error("Could not select Root1")
+    
+        fs.changeSelectedDirectory(root)
+    
+        assertNotNull(
+            fs.createFile("foo.txt")
+        )
+    
+        val result = fs.resolveFiles(
+            listOf("foo.txt"),
+            emptySet()
+        )
+    
+        assertEquals(1, result.size)
+        assertEquals("foo.txt", result[0].relativePath)
+        assertTrue(result[0].absolutePath.startsWith("content://"))
+    }
+
+    @Test
+    fun resolveFilesNestedDirectory() {
+        assertTrue(adbCreateDirectory("Root1"))
+    
+        val root = selectFolder(constructUri("Root1"))
+            ?: error("Could not select Root1")
+    
+        fs.changeSelectedDirectory(root)
+    
+        assertNotNull(
+            fs.createFile("foo/bar/test.txt")
+        )
+    
+        val result = fs.resolveFiles(
+            listOf("foo"),
+            emptySet()
+        )
+    
+        assertEquals(1, result.size)
+        assertEquals(
+            "bar/test.txt",
+            result[0].relativePath
+        )
+    
+        assertTrue(
+            result[0].absolutePath.startsWith("content://")
+        )
+    }
+
+    @Test
+    fun resolveFilesFiltersExtensions() {
+        assertTrue(adbCreateDirectory("Root1"))
+    
+        val root = selectFolder(constructUri("Root1"))
+            ?: error("Could not select Root1")
+    
+        fs.changeSelectedDirectory(root)
+    
+        assertNotNull(fs.createFile("one.txt"))
+        assertNotNull(fs.createFile("two.kt"))
+        assertNotNull(fs.createFile("three.java"))
+    
+        val result = fs.resolveFiles(
+            listOf("."),
+            setOf("txt", "kt")
+        )
+    
+        assertEquals(2, result.size)
+    
+        assertTrue(
+            result.any { it.relativePath == "one.txt" }
+        )
+    
+        assertTrue(
+            result.any { it.relativePath == "two.kt" }
+        )
+    
+        assertFalse(
+            result.any { it.relativePath == "three.java" }
+        )
+    }
+
+    @Test
+    fun findFilesInRoot() {
+        assertTrue(adbCreateDirectory("Root1"))
+    
+        val root = selectFolder(constructUri("Root1"))
+            ?: error("Could not select Root1")
+    
+        fs.changeSelectedDirectory(root)
+    
+        assertNotNull(fs.createFile("one.txt"))
+        assertNotNull(fs.createFile("two.txt"))
+    
+        val result = fs.findFiles(
+            "",
+            emptySet()
+        )
+    
+        assertEquals(2, result.size)
+    
+        assertTrue(
+            result.all { it.startsWith("content://") }
+        )
+    }
+
     private fun selectUri(uri: String): Uri?	{
     	val rel = fs.relativePathFromUri(uri)
     	val sanitizedUri = if(rel.relativePath.isNotEmpty())	{
