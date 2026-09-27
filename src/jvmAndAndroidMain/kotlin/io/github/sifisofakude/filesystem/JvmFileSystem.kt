@@ -105,8 +105,8 @@ open class JvmFileSystem : FileSystemUtil	{
 	 */
 	override fun combinePath(parent: String, child: String): String	{
 		var sanitizedChild = child
-			.removeSuffix("${File.separator}")
 			.removePrefix("${File.separator}")
+			.removeSuffix("${File.separator}")
 			
 		var sanitizedParent = parent.removeSuffix("${File.separator}")
 		

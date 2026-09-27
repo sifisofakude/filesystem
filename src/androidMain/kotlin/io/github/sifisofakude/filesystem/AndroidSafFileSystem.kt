@@ -310,7 +310,11 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 
 	override fun combinePath(parent: String, child: String): String	{
 		if(isSafUri(parent))	{
-			return "${parent.trimEnd('/')}||${child.removePrefix("/")}"
+			return if(parent.contains("||"))	{
+				"${parent.trimEnd('/')}/${child.trim('/')}}"
+			}else	{
+				"${parent.trimEnd('/')}||${child.removePrefix("/")}"
+			}
 		}
 		return super.combinePath(parent,child)
 	}

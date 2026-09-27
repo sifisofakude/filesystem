@@ -157,8 +157,6 @@ interface FileSystemUtil	{
 				getCurrentDirectory()?.let	{
 					tmpSource = combinePath(it,src)
 				} ?: return null
-			}else	{
-				return null
 			}
 		}
 
@@ -169,13 +167,12 @@ interface FileSystemUtil	{
 				getCurrentDirectory()?.let	{
 					tmpDestination = combinePath(it,dst)
 				} ?: return null
-			}else	{
-				return null
 			}
 		}
 
 		var returnDst = dst
 
+    throw IllegalArgumentException("I pass here ${getCurrentDirectory()} $tmpSource")
 	
     if (!exists(tmpSource)) {
     	return null
@@ -216,13 +213,14 @@ interface FileSystemUtil	{
    		
    		for(file in listFiles(tmpSource))	{
  				val name = getName(file)
+ 				finalDst = combinePath(finalDst!!,name) ?: return null
 
    			if(isDirectory(file))	{
-   				createDirectory(combinePath(finalDst,name))?.let	{
+   				createDirectory(finalDst)?.let	{
    					copyByStream(file,it,overwrite)
    				}
    			}else	{
-   				createFile(combinePath(finalDst,name))?.let	{
+   				createFile(finalDst)?.let	{
    					copyByStream(file,it,true)
    				}
    			}
@@ -242,6 +240,7 @@ interface FileSystemUtil	{
    		createFile(tmpDestination) ?: return null
    		finalOverwrite = true
     }
+
     
  		if(finalOverwrite)	{
  			openSource(tmpSource)?.use { source ->
