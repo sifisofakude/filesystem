@@ -20,6 +20,7 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 
+import java.io.File
 import java.io.ByteArrayOutputStream
 import java.nio.charset.StandardCharsets
 import java.util.regex.Pattern
@@ -34,29 +35,47 @@ class AndroidSafFileSystemTest {
     private lateinit var fs: AndroidSafFileSystem
 		private val context = ApplicationProvider.getApplicationContext<Context>()
 
+		private lateinit var ROOT1: Uri
+		private lateinit var ROOT2: Uri
+		private lateinit var ROOT3: Uri
+
     @Before
     fun setup() {
         device = UiDevice.getInstance(instrumentation)
         fs = AndroidSafFileSystem(context)
+
+        adbCreateDirectory("Root1")
+        adbCreateDirectory("Root2")
+        adbCreateDirectory("Root3")
+        
+        ROOT1 = selectFolder(constructUri("Root1"))
+        	?: error("Could not select Root1")
+        	
+        ROOT2 = selectFolder(constructUri("Root2"))
+        	?: error("Could not select Root2")
+        	
+        ROOT3 = selectFolder(constructUri("Root3"))
+        	?: error("Could not select Root3")
     }
 
     @Test
     fun selectRoot() {
-        assertTrue(adbCreateDirectory("Root1"))
+        assertNotNull(ROOT1)
+        assertTrue(fs.isSafUri(ROOT1.toString()))
+        assertTrue(fs.isTreeUri(ROOT1.toString()))
     
-        val root = selectFolder(constructUri("Root1"))
+        assertNotNull(ROOT2)
+        assertTrue(fs.isSafUri(ROOT2.toString()))
+        assertTrue(fs.isTreeUri(ROOT2.toString()))
     
-        assertNotNull(root)
-        assertTrue(fs.isSafUri(root.toString()))
-        assertTrue(fs.isTreeUri(root.toString()))
+        assertNotNull(ROOT3)
+        assertTrue(fs.isSafUri(ROOT3.toString()))
+        assertTrue(fs.isTreeUri(ROOT3.toString()))
     }
 
     @Test
     fun selectedDirectoryBecomesCurrentDirectory() {
-        assertTrue(adbCreateDirectory("Root1"))
-    
-        val root = selectFolder(constructUri("Root1"))
-            ?: error("Could not select Root1")
+        val root = ROOT1
     
         fs.changeSelectedDirectory(root)
     
@@ -66,10 +85,7 @@ class AndroidSafFileSystemTest {
 
     @Test
     fun relativePathsAreSafContext() {
-        assertTrue(adbCreateDirectory("Root1"))
-    
-        val root = selectFolder(constructUri("Root1"))
-            ?: error("Could not select Root1")
+        val root = ROOT1
     
         fs.changeSelectedDirectory(root)
     
@@ -82,10 +98,7 @@ class AndroidSafFileSystemTest {
 
     @Test
     fun resolveRelativeFileUri() {
-        assertTrue(adbCreateDirectory("Root1"))
-    
-        val root = selectFolder(constructUri("Root1"))
-            ?: error("Could not select Root1")
+        val root = ROOT1
     
         fs.changeSelectedDirectory(root)
     
@@ -101,10 +114,7 @@ class AndroidSafFileSystemTest {
 
     @Test
     fun resolveNestedRelativeUri() {
-        assertTrue(adbCreateDirectory("Root1"))
-    
-        val root = selectFolder(constructUri("Root1"))
-            ?: error("Could not select Root1")
+        val root = ROOT1
     
         fs.changeSelectedDirectory(root)
     
@@ -122,10 +132,7 @@ class AndroidSafFileSystemTest {
 
     @Test
     fun relativePathFromRoot() {
-        assertTrue(adbCreateDirectory("Root1"))
-    
-        val root = selectFolder(constructUri("Root1"))
-            ?: error("Could not select Root1")
+        val root = ROOT1
     
         fs.changeSelectedDirectory(root)
     
@@ -140,10 +147,7 @@ class AndroidSafFileSystemTest {
 
     @Test
     fun createDirectory() {
-        assertTrue(adbCreateDirectory("Root1"))
-    
-        val root = selectFolder(constructUri("Root1"))
-            ?: error("Could not select Root1")
+        val root = ROOT1
     
         fs.changeSelectedDirectory(root)
     
@@ -152,14 +156,13 @@ class AndroidSafFileSystemTest {
         assertNotNull(result)
         assertTrue(fs.exists("foo"))
         assertTrue(fs.isDirectory("foo"))
+
+        deleteAllFiles(root.toString())
     }
 
     @Test
     fun createNestedDirectory() {
-        assertTrue(adbCreateDirectory("Root1"))
-    
-        val root = selectFolder(constructUri("Root1"))
-            ?: error("Could not select Root1")
+        val root = ROOT1
     
         fs.changeSelectedDirectory(root)
     
@@ -176,14 +179,13 @@ class AndroidSafFileSystemTest {
         assertTrue(fs.isDirectory("foo"))
         assertTrue(fs.isDirectory("foo/bar"))
         assertTrue(fs.isDirectory("foo/bar/baz"))
+
+        deleteAllFiles(root.toString())
     }
 
     @Test
     fun createFile() {
-        assertTrue(adbCreateDirectory("Root1"))
-    
-        val root = selectFolder(constructUri("Root1"))
-            ?: error("Could not select Root1")
+        val root = ROOT1
     
         fs.changeSelectedDirectory(root)
     
@@ -192,14 +194,13 @@ class AndroidSafFileSystemTest {
         assertNotNull(result)
         assertTrue(fs.exists("hello.txt"))
         assertTrue(fs.isFile("hello.txt"))
+
+        deleteAllFiles(root.toString())
     }
 
     @Test
     fun createFileInNestedDirectory() {
-        assertTrue(adbCreateDirectory("Root1"))
-    
-        val root = selectFolder(constructUri("Root1"))
-            ?: error("Could not select Root1")
+        val root = ROOT1
     
         fs.changeSelectedDirectory(root)
     
@@ -208,14 +209,13 @@ class AndroidSafFileSystemTest {
         assertNotNull(result)
         assertTrue(fs.exists("foo/bar/hello.txt"))
         assertTrue(fs.isFile("foo/bar/hello.txt"))
+
+        deleteAllFiles(root.toString())
     }
 
     @Test
     fun getDocumentFileForFile() {
-        assertTrue(adbCreateDirectory("Root1"))
-    
-        val root = selectFolder(constructUri("Root1"))
-            ?: error("Could not select Root1")
+        val root = ROOT1
     
         fs.changeSelectedDirectory(root)
     
@@ -231,14 +231,13 @@ class AndroidSafFileSystemTest {
         assertTrue(document!!.exists())
         assertTrue(document.isFile)
         assertEquals("hello.txt", document.name)
+
+        deleteAllFiles(root.toString())
     }
 
     @Test
     fun getDocumentFileForNestedFile() {
-        assertTrue(adbCreateDirectory("Root1"))
-    
-        val root = selectFolder(constructUri("Root1"))
-            ?: error("Could not select Root1")
+        val root = ROOT1
     
         fs.changeSelectedDirectory(root)
     
@@ -258,14 +257,13 @@ class AndroidSafFileSystemTest {
         assertTrue(document!!.exists())
         assertTrue(document.isFile)
         assertEquals("test.txt", document.name)
+
+        deleteAllFiles(root.toString())
     }
 
     @Test
     fun nonexistentPathDoesNotExist() {
-        assertTrue(adbCreateDirectory("Root1"))
-    
-        val root = selectFolder(constructUri("Root1"))
-            ?: error("Could not select Root1")
+        val root = ROOT1
     
         fs.changeSelectedDirectory(root)
     
@@ -276,10 +274,7 @@ class AndroidSafFileSystemTest {
 
     @Test
     fun directoryIsNotFile() {
-        assertTrue(adbCreateDirectory("Root1"))
-    
-        val root = selectFolder(constructUri("Root1"))
-            ?: error("Could not select Root1")
+        val root = ROOT1
     
         fs.changeSelectedDirectory(root)
     
@@ -290,14 +285,13 @@ class AndroidSafFileSystemTest {
         assertTrue(fs.exists("foo"))
         assertTrue(fs.isDirectory("foo"))
         assertFalse(fs.isFile("foo"))
+
+        deleteAllFiles(root.toString())
     }
 
     @Test
     fun fileIsNotDirectory() {
-        assertTrue(adbCreateDirectory("Root1"))
-    
-        val root = selectFolder(constructUri("Root1"))
-            ?: error("Could not select Root1")
+        val root = ROOT1
     
         fs.changeSelectedDirectory(root)
     
@@ -308,14 +302,13 @@ class AndroidSafFileSystemTest {
         assertTrue(fs.exists("foo.txt"))
         assertTrue(fs.isFile("foo.txt"))
         assertFalse(fs.isDirectory("foo.txt"))
+
+        deleteAllFiles(root.toString())
     }
 
     @Test
     fun relativePathFromPlainRelativePath() {
-    		assertTrue(adbCreateDirectory("Root1"))
-    		    
-        val root = selectFolder(constructUri("Root1"))
-            ?: error("Could not select Root1")
+        val root = ROOT1
     
         fs.changeSelectedDirectory(root)
         
@@ -328,10 +321,7 @@ class AndroidSafFileSystemTest {
 
     @Test
     fun relativePathFromUriWithRelativePath() {
-        assertTrue(adbCreateDirectory("Root1"))
-    
-        val root = selectFolder(constructUri("Root1"))
-            ?: error("Could not select Root1")
+        val root = ROOT1
     
         fs.changeSelectedDirectory(root)
     
@@ -345,10 +335,7 @@ class AndroidSafFileSystemTest {
 
     @Test
     fun relativePathFromAbsoluteSafUri() {
-        assertTrue(adbCreateDirectory("Root1"))
-    
-        val root = selectFolder(constructUri("Root1"))
-            ?: error("Could not select Root1")
+        val root = ROOT1
     
         fs.changeSelectedDirectory(root)
     
@@ -370,14 +357,13 @@ class AndroidSafFileSystemTest {
         assertEquals(
             "",result.relativePath
         )
+
+        deleteAllFiles(root.toString())
     }
 
     @Test
     fun resolveFilesSingleFile() {
-        assertTrue(adbCreateDirectory("Root1"))
-    
-        val root = selectFolder(constructUri("Root1"))
-            ?: error("Could not select Root1")
+        val root = ROOT1
     
         fs.changeSelectedDirectory(root)
     
@@ -393,14 +379,13 @@ class AndroidSafFileSystemTest {
         assertEquals(1, result.size)
         assertEquals("foo.txt", result[0].relativePath)
         assertTrue(result[0].absolutePath.startsWith("content://"))
+
+        deleteAllFiles(root.toString())
     }
 
     @Test
     fun resolveFilesNestedDirectory() {
-        assertTrue(adbCreateDirectory("Root1"))
-    
-        val root = selectFolder(constructUri("Root1"))
-            ?: error("Could not select Root1")
+        val root = ROOT1
     
         fs.changeSelectedDirectory(root)
     
@@ -422,14 +407,13 @@ class AndroidSafFileSystemTest {
         assertTrue(
             result[0].absolutePath.startsWith("content://")
         )
+
+        deleteAllFiles(root.toString())
     }
 
     @Test
     fun resolveFilesFiltersExtensions() {
-        assertTrue(adbCreateDirectory("Root1"))
-    
-        val root = selectFolder(constructUri("Root1"))
-            ?: error("Could not select Root1")
+        val root = ROOT1
     
         fs.changeSelectedDirectory(root)
     
@@ -455,16 +439,19 @@ class AndroidSafFileSystemTest {
         assertFalse(
             result.any { it.relativePath == "three.java" }
         )
+
+        deleteAllFiles(root.toString())
     }
 
     @Test
     fun findFilesInRoot() {
-        assertTrue(adbCreateDirectory("Root1"))
-    
-        val root = selectFolder(constructUri("Root1"))
-            ?: error("Could not select Root1")
+        val root = ROOT1
     
         fs.changeSelectedDirectory(root)
+
+        fs.listFiles(root.toString()).forEach	{
+        	fs.delete(it)
+        }
     
         assertNotNull(fs.createFile("one.txt"))
         assertNotNull(fs.createFile("two.txt"))
@@ -479,6 +466,192 @@ class AndroidSafFileSystemTest {
         assertTrue(
             result.all { it.startsWith("content://") }
         )
+
+        deleteAllFiles(root.toString())
+    }
+
+    @Test
+    fun copySafToNormalFileSystemByStream() {
+        val root = ROOT1
+    
+        fs.changeSelectedDirectory(root)
+    
+        assertTrue(fs.writeText("saf-source.txt", "Hello from SAF"))
+    
+        val normalDir = File(context.filesDir, "saf-copy-test").apply {
+            deleteRecursively()
+            mkdirs()
+        }
+    
+        val destination = File(normalDir, "copied.txt").absolutePath
+    
+        val result = fs.copyByStream(
+            "saf-source.txt",
+            destination
+        )
+    
+        assertNotNull(result)
+    
+        assertTrue(fs.exists("saf-source.txt"))
+        assertTrue(fs.exists(destination))
+    
+        assertEquals(
+            "Hello from SAF",
+            fs.readText(destination)
+        )
+    
+        normalDir.deleteRecursively()
+        deleteAllFiles(root.toString())
+    }
+
+    @Test
+    fun copyNormalFileSystemToSafByStream() {
+        val root = ROOT1
+    
+        fs.changeSelectedDirectory(root)
+    
+        val source = File(context.filesDir, "normal-source.txt")
+        source.writeText("Hello from normal filesystem")
+    
+        assertNotNull(
+            fs.createDirectory("destination")
+        )
+    
+        val result = fs.copyByStream(
+            source.absolutePath,
+            "destination"
+        )
+    
+        assertNotNull(result)
+    
+        assertTrue(source.exists())
+        assertTrue(fs.exists("destination/normal-source.txt"))
+    
+        assertEquals(
+            "Hello from normal filesystem",
+            fs.readText("destination/normal-source.txt")
+        )
+    
+        source.delete()
+        deleteAllFiles(root.toString())
+    }
+
+    @Test
+    fun moveSafToNormalFileSystemByStream() {
+    //     val root = ROOT1
+    // 
+    //     fs.changeSelectedDirectory(root)
+    // 
+    //     assertTrue(fs.writeText("saf-source.txt", "Move from SAF"))
+    // 
+    //     val normalDir = File(context.filesDir, "saf-move-test").apply {
+    //         deleteRecursively()
+    //         mkdirs()
+    //     }
+    // 
+    //     val destination = File(normalDir, "moved.txt").absolutePath
+    // 
+    //     val result = fs.moveByStream(
+    //         "saf-source.txt",
+    //         destination
+    //     )
+    // 
+    //     assertNotNull(result)
+    // 
+    //     assertFalse(fs.exists("saf-source.txt"))
+    //     assertTrue(File(destination).exists())
+    // 
+    //     assertEquals(
+    //         "Move from SAF",
+    //         File(destination).readText()
+    //     )
+    // 
+    //     normalDir.deleteRecursively()
+    }
+
+    @Test
+    fun moveNormalFileSystemToSafByStream() {
+//         val root = ROOT1
+//     
+//         fs.changeSelectedDirectory(root)
+//     
+//         val source = File(context.filesDir, "normal-source.txt")
+//         source.writeText("Move to SAF")
+//     
+//         assertNotNull(
+//             fs.createDirectory("destination")
+//         )
+//     
+//         val result = fs.moveByStream(
+//             source.absolutePath,
+//             "destination"
+//         )
+//     
+//         assertNotNull(result)
+//     
+//         assertFalse(source.exists())
+//         assertTrue(fs.exists("destination/normal-source.txt"))
+//     
+//         assertEquals(
+//             "Move to SAF",
+//             fs.readText("destination/normal-source.txt")
+//         )
+// 
+//         fs.delete("destination")
+    }
+
+    @Test
+    fun copySafDirectoryToNormalFileSystemByStream() {
+    //     val root = ROOT1
+    // 
+    //     fs.changeSelectedDirectory(root)
+    // 
+    //     assertTrue(fs.writeText("source/a.txt", "AAA"))
+    //     assertTrue(fs.writeText("source/nested/b.txt", "BBB"))
+    //     assertTrue(fs.writeText("source/nested/deep/c.txt", "CCC"))
+    // 
+    //     val destination = File(
+    //         context.filesDir,
+    //         "saf-directory-copy"
+    //     ).apply {
+    //         deleteRecursively()
+    //         mkdirs()
+    //     }
+    // 
+    //     val result = fs.copyByStream(
+    //         "source",
+    //         destination.absolutePath
+    //     )
+    // 
+    //     assertNotNull(result)
+    // 
+    //     assertTrue(fs.exists("${destination.absolutePath}/source/a.txt"))
+    //     assertTrue(fs.exists("${destination.absolutePath}/source/nested/b.txt"))
+    //     assertTrue(fs.exists("${destination.absolutePath}/source/nested/deep/c.txt"))
+    // 
+    //     assertEquals(
+    //         "AAA",
+    //         File(destination, "source/a.txt").readText()
+    //     )
+    // 
+    //     assertEquals(
+    //         "BBB",
+    //         File(destination, "source/nested/b.txt").readText()
+    //     )
+    // 
+    //     assertEquals(
+    //         "CCC",
+    //         File(destination, "source/nested/deep/c.txt").readText()
+    //     )
+    // 
+    //     destination.deleteRecursively()
+    //     fs.delete("source")
+    }
+
+    private fun deleteAllFiles(uri: String)	{
+    	fs.listFiles(uri).forEach	{
+    		fs.delete(it)
+    	}
     }
 
     private fun selectUri(uri: String): Uri?	{

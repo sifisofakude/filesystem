@@ -728,12 +728,44 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 */
 	override fun listFiles(path: String): List<String>	{
 		if(isSafContext(path))	{
-			val document = getDocumentFile(path)
+			val fileList = mutableListOf<String>()
 
-			return document?.listFiles()
-				?.map	{ it.uri.toString() }
-				?.toList()
-				?: emptyList()
+			val relativeUri = relativePathFromUri(path)
+			val resolvedUri = resolveRelativeUri(Uri.parse(relativeUri.rootUri),relativeUri.relativePath)
+
+			try	{
+				val parentDocId = DocumentsContract.getTreeDocumentId(Uri.parse(resolvedUri))
+				val childrenUri = DocumentsContract
+					.buildChildDocumentsUriUsingTree(Uri.parse(relativeUri.rootUri),parentDocId)
+
+				val projection = arrayOf(
+					DocumentsContract.Document.COLUMN_DOCUMENT_ID,
+					// DocumentsContract.Document.COLUMN_DISPLAY_NAME,
+					// DocumentsContract.Document.COLUMN_MIME_TYPE,
+					// DocumentsContract.Document.COLUMN_SIZE
+				)
+
+				contentResolver.query(childrenUri,projection,null,null,null)?.use { cursor ->
+					val idIndex = cursor.getColumnIndexOrThrow(DocumentsContract.Document.COLUMN_DOCUMENT_ID)
+					// val nameIndex = cursor.getColumnIndexOrThrow(DocumentsContract.Document.COLUMN_DISPLAY_NAME)
+					// val sizeIndex = cursor.getColumnIndexOrThrow(DocumentsContract.Document.COLUMN_SIZE)
+					// val mimeIndex = cursor.getColumnIndexOrThrow(DocumentsContract.Document.COLUMN_MIME_TYPE)
+
+					while(cursor.moveToNext())	{
+						val docId = cursor.getString(idIndex)
+						// val name = cursor.getString(nameIndex)
+						// val mime = cursor.getString(mimeIndex)
+						// val size = cursor.getLong(sizeIndex)
+
+						val childUri = DocumentsContract
+							.buildDocumentUriUsingTree(Uri.parse(relativeUri.rootUri),docId)
+
+						fileList.add(childUri.toString())
+					}
+				}
+			}catch(_: Exception) {}
+
+			return fileList
 		}
 		return super.listFiles(path)
 	}
@@ -824,9 +856,15 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 */
 	override fun delete(path: String): Boolean	{
 		if(isSafContext(path))	{
-			val tmpPath = tempPath(path) ?: return false
+			val relativeUri = relativePathFromUri(path)
+			val resolvedUri = resolveRelativeUri(Uri.parse(relativeUri.rootUri),relativeUri.relativePath)
+				?: return false
 
-			return getDocumentFile(tmpPath)?.delete() ?: false
+			return try	{
+				DocumentsContract.deleteDocument(contentResolver,Uri.parse(resolvedUri))
+			}catch(_: Exception)	{
+				false
+			}
 		}
 		return super.delete(path)
 	}
