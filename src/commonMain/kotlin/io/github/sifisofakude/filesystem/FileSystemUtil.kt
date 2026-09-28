@@ -211,14 +211,15 @@ interface FileSystemUtil	{
    		
    		for(file in listFiles(tmpSource))	{
  				val name = getName(file)
- 				finalDst = combinePath(finalDst!!,name) ?: return null
+ 				val tmp = combinePath(finalDst,name) ?: return null
+    throw IllegalArgumentException("I'm here: $finalDst $tmpSource $tmp")
 
    			if(isDirectory(file))	{
-   				createDirectory(finalDst)?.let	{
+   				createDirectory(tmp)?.let	{
    					copyByStream(file,it,overwrite)
    				}
    			}else	{
-   				createFile(finalDst)?.let	{
+   				createFile(tmp)?.let	{
    					copyByStream(file,it,true)
    				}
    			}
@@ -237,7 +238,6 @@ interface FileSystemUtil	{
    		finalOverwrite = true
     }
 
-    
  		if(finalOverwrite)	{
  			openSource(tmpSource)?.use { source ->
  				openSink(finalDst)?.use { sink ->
