@@ -666,7 +666,7 @@ class AndroidSafFileSystemTest {
 		        fs.writeText(source, "Hello from Root1")
 		    )
 		
-		    val result = fs.copy(
+		    val result = fs.copyByStream(
 		        source,
 		        destination
 		    )
