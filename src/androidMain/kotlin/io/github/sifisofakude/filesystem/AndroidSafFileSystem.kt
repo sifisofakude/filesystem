@@ -694,6 +694,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 			val mode = if(append) "wa" else "w"
 			val tmpPath = relativePathFromUri(path)
 			val resolvedUri = resolveRelativeUri(Uri.parse(tmpPath.rootUri),tmpPath.relativePath)
+				?: return null
 
 			if(!exists(resolvedUri)) createFile(resolvedUri) ?: return null
 			
