@@ -140,7 +140,8 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 		return if(path.startsWith("content://"))	{
 			true
 		}else	{
-			selectedParentUri != null
+			if(isRelative(path)) selectedParentUri != null
+			else false
 		}
 	}
 
