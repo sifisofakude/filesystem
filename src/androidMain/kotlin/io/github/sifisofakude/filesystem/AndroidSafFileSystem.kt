@@ -696,7 +696,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 			val resolvedUri = resolveRelativeUri(Uri.parse(tmpPath.rootUri),tmpPath.relativePath)
 				?: return null
 
-			if(!exists(resolvedUri)) createFile(resolvedUri) ?: return null
+			if(!exists(resolvedUri)) createFile(path) ?: return null
 			
 			contentResolver
 				.openOutputStream(Uri.parse(resolvedUri),mode)

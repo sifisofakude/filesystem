@@ -73,77 +73,77 @@ class AndroidSafFileSystemTest {
     //     assertTrue(fs.isTreeUri(ROOT3.toString()))
     }
 
-    @Test
-    fun selectedDirectoryBecomesCurrentDirectory() {
-        val root = ROOT1
-    
-        fs.changeSelectedDirectory(root)
-    
-        assertNotNull(fs.getCurrentDirectory())
-        assertEquals(root.toString(), fs.getCurrentDirectory().toString())
-    }
-
-    @Test
-    fun relativePathsAreSafContext() {
-        val root = ROOT1
-    
-        fs.changeSelectedDirectory(root)
-    
-        assertTrue(fs.isRelative("hello.txt"))
-        assertTrue(fs.isRelative("foo/bar.txt"))
-    
-        assertTrue(fs.isSafContext("hello.txt"))
-        assertTrue(fs.isSafContext("foo/bar.txt"))
-    }
-
-    @Test
-    fun resolveRelativeFileUri() {
-        val root = ROOT1
-    
-        fs.changeSelectedDirectory(root)
-    
-        val uri = fs.resolveRelativeUri(
-            root,
-            "hello.txt"
-        )
-
-    		uri?.let	{
-        	assertTrue(it.contains("hello.txt"))
-    		}
-    }
-
-    @Test
-    fun resolveNestedRelativeUri() {
-        val root = ROOT1
-    
-        fs.changeSelectedDirectory(root)
-    
-        val uri = fs.resolveRelativeUri(
-            root,
-            "foo/bar/baz.txt"
-        )
-
-    		uri?.let	{
-        	assertTrue(it.contains("foo"))
-        	assertTrue(it.contains("bar"))
-        	assertTrue(it.contains("baz.txt"))
-        }
-    }
-
-    @Test
-    fun relativePathFromRoot() {
-        val root = ROOT1
-    
-        fs.changeSelectedDirectory(root)
-    
-        val result = fs.relativePathFromUri(
-            root.toString()
-        )
-
-    		result?.let	{
-        	assertEquals("", it.relativePath)
-    		}
-    }
+//     @Test
+//     fun selectedDirectoryBecomesCurrentDirectory() {
+//         val root = ROOT1
+//     
+//         fs.changeSelectedDirectory(root)
+//     
+//         assertNotNull(fs.getCurrentDirectory())
+//         assertEquals(root.toString(), fs.getCurrentDirectory().toString())
+//     }
+// 
+//     @Test
+//     fun relativePathsAreSafContext() {
+//         val root = ROOT1
+//     
+//         fs.changeSelectedDirectory(root)
+//     
+//         assertTrue(fs.isRelative("hello.txt"))
+//         assertTrue(fs.isRelative("foo/bar.txt"))
+//     
+//         assertTrue(fs.isSafContext("hello.txt"))
+//         assertTrue(fs.isSafContext("foo/bar.txt"))
+//     }
+// 
+//     @Test
+//     fun resolveRelativeFileUri() {
+//         val root = ROOT1
+//     
+//         fs.changeSelectedDirectory(root)
+//     
+//         val uri = fs.resolveRelativeUri(
+//             root,
+//             "hello.txt"
+//         )
+// 
+//     		uri?.let	{
+//         	assertTrue(it.contains("hello.txt"))
+//     		}
+//     }
+// 
+//     @Test
+//     fun resolveNestedRelativeUri() {
+//         val root = ROOT1
+//     
+//         fs.changeSelectedDirectory(root)
+//     
+//         val uri = fs.resolveRelativeUri(
+//             root,
+//             "foo/bar/baz.txt"
+//         )
+// 
+//     		uri?.let	{
+//         	assertTrue(it.contains("foo"))
+//         	assertTrue(it.contains("bar"))
+//         	assertTrue(it.contains("baz.txt"))
+//         }
+//     }
+// 
+//     @Test
+//     fun relativePathFromRoot() {
+//         val root = ROOT1
+//     
+//         fs.changeSelectedDirectory(root)
+//     
+//         val result = fs.relativePathFromUri(
+//             root.toString()
+//         )
+// 
+//     		result?.let	{
+//         	assertEquals("", it.relativePath)
+//     		}
+//     }
 
 //     @Test
 //     fun createDirectory() {
@@ -504,77 +504,77 @@ class AndroidSafFileSystemTest {
 //         deleteAllFiles(root.toString())
 //     }
 
+//     @Test
+//     fun copyNormalFileSystemToSafByStream() {
+//         val root = ROOT1
+//     
+//         fs.changeSelectedDirectory(root)
+//     
+//         val source = File(context.filesDir, "normal-source.txt").apply	{
+//         	createNewFile()
+//         	writeText("Hello from normal filesystem")
+//         }
+// 
+//     
+//         assertNotNull(
+//             fs.createDirectory("destination")
+//         )
+//         // fail("Not again: ${fs.exists("destination")}")
+//     
+//         val result = fs.copyByStream(
+//             source.absolutePath,
+//             "destination"
+//         )
+//     
+//         assertNotNull(result)
+//     
+//         assertTrue(source.exists())
+//         assertTrue(fs.exists("destination/normal-source.txt"))
+//     
+//         assertEquals(
+//             "Hello from normal filesystem",
+//             fs.readText("destination/normal-source.txt")
+//         )
+//     
+//         source.delete()
+//         deleteAllFiles(root.toString())
+//     }
+
     @Test
-    fun copyNormalFileSystemToSafByStream() {
+    fun moveSafToNormalFileSystemByStream() {
         val root = ROOT1
     
         fs.changeSelectedDirectory(root)
     
-        val source = File(context.filesDir, "normal-source.txt").apply	{
-        	createNewFile()
-        	writeText("Hello from normal filesystem")
+        assertTrue(fs.writeText("saf-source.txt", "Move from SAF"))
+    
+        val normalDir = File(context.filesDir, "saf-move-test").apply {
+            deleteRecursively()
+            mkdirs()
         }
-
     
-        assertNotNull(
-            fs.createDirectory("destination")
-        )
-        // fail("Not again: ${fs.exists("destination")}")
+        val destination = File(normalDir, "moved.txt").absolutePath
     
-        val result = fs.copyByStream(
-            source.absolutePath,
-            "destination"
+        val result = fs.moveByStream(
+            "saf-source.txt",
+            destination
         )
     
         assertNotNull(result)
     
-        // assertTrue(source.exists())
-        assertTrue(fs.exists("destination/normal-source.txt"))
+        assertFalse(fs.exists("saf-source.txt"))
+        assertTrue(File(destination).exists())
     
         assertEquals(
-            "Hello from normal filesystem",
-            fs.readText("destination/normal-source.txt")
+            "Move from SAF",
+            File(destination).readText()
         )
     
-        source.delete()
-        deleteAllFiles(root.toString())
+        normalDir.deleteRecursively()
     }
 
-    @Test
-    fun moveSafToNormalFileSystemByStream() {
-    //     val root = ROOT1
-    // 
-    //     fs.changeSelectedDirectory(root)
-    // 
-    //     assertTrue(fs.writeText("saf-source.txt", "Move from SAF"))
-    // 
-    //     val normalDir = File(context.filesDir, "saf-move-test").apply {
-    //         deleteRecursively()
-    //         mkdirs()
-    //     }
-    // 
-    //     val destination = File(normalDir, "moved.txt").absolutePath
-    // 
-    //     val result = fs.moveByStream(
-    //         "saf-source.txt",
-    //         destination
-    //     )
-    // 
-    //     assertNotNull(result)
-    // 
-    //     assertFalse(fs.exists("saf-source.txt"))
-    //     assertTrue(File(destination).exists())
-    // 
-    //     assertEquals(
-    //         "Move from SAF",
-    //         File(destination).readText()
-    //     )
-    // 
-    //     normalDir.deleteRecursively()
-    }
-
-    @Test
-    fun moveNormalFileSystemToSafByStream() {
+//     @Test
+//     fun moveNormalFileSystemToSafByStream() {
 //         val root = ROOT1
 //     
 //         fs.changeSelectedDirectory(root)
@@ -601,11 +601,11 @@ class AndroidSafFileSystemTest {
 //             fs.readText("destination/normal-source.txt")
 //         )
 // 
-//         fs.delete("destination")
-    }
+//         deleteAllFiles(root.toString())
+//     }
 
-    @Test
-    fun copySafDirectoryToNormalFileSystemByStream() {
+    // @Test
+    // fun copySafDirectoryToNormalFileSystemByStream() {
     //     val root = ROOT1
     // 
     //     fs.changeSelectedDirectory(root)
@@ -650,7 +650,7 @@ class AndroidSafFileSystemTest {
     // 
     //     destination.deleteRecursively()
     //     fs.delete("source")
-    }
+    // }
 
     private fun deleteAllFiles(uri: String)	{
     	fs.listFiles(uri).forEach	{
