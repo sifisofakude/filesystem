@@ -719,6 +719,16 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 		return if(isSafContext(path))	{
 			val tmpPath = relativePathFromUri(path)
 			val resolvedUri = resolveRelativeUri(Uri.parse(tmpPath.rootUri),tmpPath.relativePath)
+
+			throw IllegalArgumentException(
+			    """
+			    OPEN SOURCE
+			    path=$path
+			    rootUri=${tmpPath.rootUri}
+			    relative=${tmpPath.relativePath}
+			    resolved=$resolvedUri
+			    """.trimIndent()
+			)
 			
 			contentResolver
 				.openInputStream(Uri.parse(resolvedUri))
