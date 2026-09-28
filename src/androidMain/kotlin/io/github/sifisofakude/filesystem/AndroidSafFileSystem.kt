@@ -185,8 +185,8 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 			val treeDocId = DocumentsContract.getTreeDocumentId(rootTreeUri) ?: return null
 
 			var treeUri = DocumentsContract.buildTreeDocumentUri(rootTreeUri.authority,treeDocId)
-			val docUri = DocumentFile.fromSingleUri(context,rootTreeUri)?.let	{
-				it.uri.toString()
+			val docUri = DocumentFile.fromTreeUri(context,rootTreeUri)?.let	{
+				it.uri
 			} ?: return null
 			
 			val docId = DocumentsContract.getDocumentId(docUri)
@@ -742,7 +742,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 			val resolvedUri = resolveRelativeUri(Uri.parse(relativeUri.rootUri),relativeUri.relativePath)
 
 			try	{
-				val parentDocId = DocumentsContract.getTreeDocumentId(Uri.parse(resolvedUri))
+				val parentDocId = DocumentsContract.getDocumentId(Uri.parse(resolvedUri))
 				val childrenUri = DocumentsContract
 					.buildChildDocumentsUriUsingTree(Uri.parse(relativeUri.rootUri),parentDocId)
 
@@ -761,8 +761,8 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 
 					while(cursor.moveToNext())	{
 						val docId = cursor.getString(idIndex)
-						// val name = cursor.getString(nameIndex)
 						// val mime = cursor.getString(mimeIndex)
+						// val name = cursor.getString(nameIndex)
 						// val size = cursor.getLong(sizeIndex)
 
 						val childUri = DocumentsContract
