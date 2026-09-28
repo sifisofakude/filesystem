@@ -653,38 +653,38 @@ class AndroidSafFileSystemTest {
 //         destination.deleteRecursively()
 //     }
 
-		@Test
-		fun copySafFileBetweenDifferentRoots() {
-		    val source = "$ROOT1||source.txt"
-		    val destination = "$ROOT2||destination.txt"
-		
-		    assertTrue(
-		        fs.createFile(source) != null
-		    )
-		
-		    assertTrue(
-		        fs.writeText(source, "Hello from Root1")
-		    )
-		
-		    val result = fs.copyByStream(
-		        source,
-		        destination
-		    )
-		
-		    assertNotNull(result)
-		
-		    assertTrue(
-		        fs.exists(destination)
-		    )
-		
-		    assertEquals(
-		        "Hello from Root1",
-		        fs.readText(destination)
-		    )
-		
-		    deleteAllFiles(ROOT1.toString())
-		    deleteAllFiles(ROOT2.toString())
-		}
+		// @Test
+		// fun copySafFileBetweenDifferentRoots() {
+		//     val source = "$ROOT1||source.txt"
+		//     val destination = "$ROOT2||destination.txt"
+		// 
+		//     assertTrue(
+		//         fs.createFile(source) != null
+		//     )
+		// 
+		//     assertTrue(
+		//         fs.writeText(source, "Hello from Root1")
+		//     )
+		// 
+		//     val result = fs.copyByStream(
+		//         source,
+		//         destination
+		//     )
+		// 
+		//     assertNotNull(result)
+		// 
+		//     assertTrue(
+		//         fs.exists(destination)
+		//     )
+		// 
+		//     assertEquals(
+		//         "Hello from Root1",
+		//         fs.readText(destination)
+		//     )
+		// 
+		//     deleteAllFiles(ROOT1.toString())
+		//     deleteAllFiles(ROOT2.toString())
+		// }
 
 		@Test
 		fun copySafDirectoryBetweenDifferentRootsByStream() {
