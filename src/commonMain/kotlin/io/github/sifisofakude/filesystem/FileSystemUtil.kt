@@ -172,11 +172,11 @@ interface FileSystemUtil	{
 
 		var returnDst = dst
 
-    throw IllegalArgumentException("I pass here ${getCurrentDirectory()} $tmpSource")
 	
     if (!exists(tmpSource)) {
     	return null
     }
+    throw IllegalArgumentException("I pass here ${getCurrentDirectory()} $tmpSource")
 
     if (isDirectory(tmpSource)) {
    		var finalDst: String? = null
