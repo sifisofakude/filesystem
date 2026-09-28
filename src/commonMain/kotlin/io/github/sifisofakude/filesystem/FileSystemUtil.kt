@@ -214,6 +214,7 @@ interface FileSystemUtil	{
  				val tmp = combinePath(finalDst,name) ?: return null
 
    			if(isDirectory(file))	{
+    println("Copied file: $file")
    				createDirectory(tmp)?.let	{
    					copyByStream(file,it,overwrite)
    				}
@@ -238,7 +239,6 @@ interface FileSystemUtil	{
     }
 
 
-    println("Copied file: $tmpSource")
  		if(finalOverwrite)	{
  			openSource(tmpSource)?.use { source ->
  				openSink(finalDst)?.use { sink ->
