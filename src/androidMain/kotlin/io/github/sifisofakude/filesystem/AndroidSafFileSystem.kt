@@ -484,7 +484,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	) {
     dir.listFiles().forEach { file ->
 
-      val name = file.name ?: return@forEach
+      val name = file.name?.trim('}') ?: return@forEach
 
       val rel = if (basePath.isEmpty()) name else "$basePath/$name"
 
