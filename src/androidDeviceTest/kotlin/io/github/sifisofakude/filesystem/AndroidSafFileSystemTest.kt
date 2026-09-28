@@ -36,7 +36,7 @@ class AndroidSafFileSystemTest {
 		private val context = ApplicationProvider.getApplicationContext<Context>()
 
 		private lateinit var ROOT1: Uri
-		// private lateinit var ROOT2: Uri
+		private lateinit var ROOT2: Uri
 		// private lateinit var ROOT3: Uri
 
     @Before
