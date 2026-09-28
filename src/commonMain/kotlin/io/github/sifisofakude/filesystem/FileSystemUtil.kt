@@ -171,7 +171,6 @@ interface FileSystemUtil	{
 		}
 
 		var returnDst = dst
-
 	
     if (!exists(tmpSource)) {
     	return null
