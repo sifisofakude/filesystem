@@ -212,7 +212,6 @@ interface FileSystemUtil	{
    		for(file in listFiles(tmpSource))	{
  				val name = getName(file)
  				val tmp = combinePath(finalDst,name) ?: return null
-    throw IllegalArgumentException("I'm here: $finalDst $tmpSource $tmp")
 
    			if(isDirectory(file))	{
    				createDirectory(tmp)?.let	{
