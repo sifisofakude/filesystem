@@ -235,8 +235,6 @@ interface FileSystemUtil	{
     	finalDst = combinePath(tmpDestination,name)
     	returnDst = combinePath(returnDst,name)
     }else if(!exists(tmpDestination))	{
-
-   		createFile(tmpDestination) ?: return null
    		finalOverwrite = true
     }
 
