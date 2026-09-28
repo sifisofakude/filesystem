@@ -214,7 +214,6 @@ interface FileSystemUtil	{
  				val tmp = combinePath(finalDst,name) ?: return null
 
    			if(isDirectory(file))	{
-    println("Copied file: $file")
    				createDirectory(tmp)?.let	{
    					copyByStream(file,it,overwrite)
    				}
