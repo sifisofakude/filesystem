@@ -237,8 +237,8 @@ interface FileSystemUtil	{
    		finalOverwrite = true
     }
 
-    println("Copied file: $tmpSource")
 
+    println("Copied file: $tmpSource")
  		if(finalOverwrite)	{
  			openSource(tmpSource)?.use { source ->
  				openSink(finalDst)?.use { sink ->
