@@ -716,7 +716,7 @@ class AndroidSafFileSystemTest {
 		
 		    assertNotNull(result)
 
-		    fail("I pass here: ${fs.listFiles("$ROOT2||destination/source")}")
+		    fail("I pass here: ${fs.listFiles("$ROOT1||source")}")
 		
 		    assertEquals(
 		        "AAA",
