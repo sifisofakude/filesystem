@@ -51,8 +51,8 @@ class AndroidSafFileSystemTest {
         ROOT1 = selectFolder(constructUri("Root1"))
         	?: error("Could not select Root1")
         	
-        // ROOT2 = selectFolder(constructUri("Root2"))
-        	// ?: error("Could not select Root2")
+        ROOT2 = selectFolder(constructUri("Root2"))
+        	?: error("Could not select Root2")
         	
         // ROOT3 = selectFolder(constructUri("Root3"))
         	// ?: error("Could not select Root3")
