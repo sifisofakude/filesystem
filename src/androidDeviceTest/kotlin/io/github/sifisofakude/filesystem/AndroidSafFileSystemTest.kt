@@ -691,7 +691,6 @@ class AndroidSafFileSystemTest {
 		    val source = "$ROOT1||source"
 		    val destination = "$ROOT2||destination"
 
-				// deleteAllFiles(ROOT1.toString())
 		    assertTrue(
 		        fs.writeText(
 		            "$ROOT1||source/a.txt",

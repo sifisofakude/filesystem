@@ -236,8 +236,8 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 		}else	{
 			return emptyMap()
 		}
-
 		throw IllegalStateException("$rootUri $resolvedUri")
+
 		val projection = metadata.toTypedArray()
 		val result = mutableMapOf<String,String>()
 
