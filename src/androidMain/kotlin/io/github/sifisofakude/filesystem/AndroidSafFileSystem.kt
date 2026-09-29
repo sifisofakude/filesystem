@@ -223,8 +223,8 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 
 	fun getDocumentMetadata(rootUri: Uri,metadata: List<String>): Map<String,String>	{
 		val isTree = DocumentsContract.isTreeUri(rootUri)
-		val isDocument = !isTree && DocumentsContract.isDocumentUri(context,rootUri)
-		val isTreeDocument = DocumentsContract.isTreeUri(rootUri) && isDocument
+		val isDocument = DocumentsContract.isDocumentUri(context,rootUri)
+		val isTreeDocument = isTree && isDocument
 		
 		val resolvedUri = if(isTreeDocument || isDocument)	{
 			rootUri
@@ -241,11 +241,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 		val result = mutableMapOf<String,String>()
 
 		try	{
-			contentResolver.query(
-		    resolvedUri,
-		    projection,
-		    null,null,null
-			)?.use { cursor ->
+			contentResolver.query(resolvedUri,projection,null,null,null)?.use { cursor ->
 				cursor.moveToFirst()
 				
 				val metadataIndexes = mutableMapOf<String,Int>()
@@ -255,7 +251,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 					if(index > -1)	{
 						metadataIndexes[it] = index
 					}
-		throw IllegalStateException("$rootUri $resolvedUri $index")
+		// throw IllegalStateException("$rootUri $resolvedUri $index")
 				}
 
 				while(cursor.moveToNext())	{
@@ -265,7 +261,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 						result[k] = md
 					}
 				}
-			}
+			} ?: error("Not good")
 		}catch(e: Exception) {}
 
 		return result
