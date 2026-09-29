@@ -195,12 +195,12 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 			return null
 		}
 
-		throw IllegalStateException("wow: $docId")
 
 		val completeDocId = if(!relativePath.isBlank() && (isTreeDocument || isTree))	{
 			val metadata = DocumentsContract.Document.COLUMN_MIME_TYPE
 			val mime = getDocumentMetadata(uri,listOf(metadata))[metadata]
 
+		throw IllegalStateException("wow: $metadata $mime")
 			if(mime != DocumentsContract.Document.MIME_TYPE_DIR) return null
 
 			if(isTreeDocument)	{
