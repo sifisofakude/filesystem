@@ -690,7 +690,9 @@ class AndroidSafFileSystemTest {
 		fun copySafDirectoryBetweenDifferentRootsByStream() {
 		    val source = "$ROOT1||source"
 		    val destination = "$ROOT2||destination"
-		
+
+
+				fail("im here ${fs.resolveRelativeUri("$ROOT2","souice/a.txt")}")
 		    assertTrue(
 		        fs.writeText(
 		            "$ROOT1||source/a.txt",
