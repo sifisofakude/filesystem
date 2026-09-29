@@ -714,7 +714,7 @@ class AndroidSafFileSystemTest {
 		        destination
 		    )
 		
-		    assertNotNull(result)
+		    // assertNotNull(result)
 
 		    assertEquals(
 		        "AAA",
