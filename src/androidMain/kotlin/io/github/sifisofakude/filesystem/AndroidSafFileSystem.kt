@@ -200,7 +200,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 			val metadata = DocumentsContract.Document.COLUMN_MIME_TYPE
 			val mime = getDocumentMetadata(uri,listOf(metadata))[metadata]
 
-		throw IllegalStateException("wow: $metadata $mime $uri")
+		// throw IllegalStateException("wow: $metadata $mime $uri")
 			if(mime != DocumentsContract.Document.MIME_TYPE_DIR) return null
 
 			if(isTreeDocument)	{
@@ -236,7 +236,8 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 		}else	{
 			return emptyMap()
 		}
-		
+
+		throw IllegalStateException("$rootUri $resolvedUri")
 		val projection = metadata.toTypedArray()
 		val result = mutableMapOf<String,String>()
 
