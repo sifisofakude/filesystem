@@ -249,9 +249,9 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 				metadata.forEach	{
 					val index = cursor.getColumnIndexOrThrow(it)
 					if(index > -1)	{
-						metadataIndexes.put(it to imdex)
+						metadataIndexes.put(it to index)
 					}else	{
-						result.put(it to null)
+						result.put(it to null as String)
 					}
 				}
 
@@ -322,7 +322,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 		if(isSafContext(path))	{
 			val tmpRelativeUri = relativePathFromUri(path)
 			val resolvedUri = resolveRelativeUri(
-				rootTreeUri = Uri.parse(tmpRelativeUri.rootUri),
+				uri = Uri.parse(tmpRelativeUri.rootUri),
 				relativePath = tmpRelativeUri.relativePath
 			) ?: return null
 
