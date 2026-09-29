@@ -180,28 +180,92 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 * @return URI of the resolved document, or `null` if any path segment
 	 * could not be resolved.
 	 */
-	fun resolveRelativeUri(rootTreeUri: Uri, relativePath: String): String?	{
-		if(isSafUri(rootTreeUri.toString()))	{
-			val treeDocId = DocumentsContract.getTreeDocumentId(rootTreeUri) ?: return null
+	fun resolveRelativeUri(uri: Uri, relativePath: String): String?	{
+		if(!isSafUri(uri.toString())) return null
 
-			var treeUri = DocumentsContract.buildTreeDocumentUri(rootTreeUri.authority,treeDocId)
-			val docUri = DocumentFile.fromTreeUri(context,rootTreeUri)?.let	{
-				it.uri
-			} ?: return null
-			
-			val docId = DocumentsContract.getDocumentId(docUri)
-			
-			val completeDocId = if(relativePath.isBlank())	{
-				docId
+		val isDocument = DocumentsContract.isDocumentUri(context,uri)
+		val isTreeDocument = DocumentsContract.isTreeUri(uri) && isDocument
+		val isTree = DocumentsContract.isTreeUri(uri) && !isDocument
+
+		val docId = if(isTree || isTreeDocument)	{
+			DocumentsContract.getTreeDocumentId(uri)
+		}else if(isDocument)	{
+			DocumentsContract.getDocumentId(uri)
+		}else	{
+			return null
+		}
+
+		val completeDocId = if(!relativePath.isBlank() && (isTreeDocument || isTree))	{
+			val metadata = DocumentsContract.Document.COLUMN_MIME_TYPE
+			val mime = getDocumentMetadata(uri,listOf(metadata))[metadata]
+
+			if(mime != DocumentsContract.Document.MIME_TYPE_DIR) return null
+
+			if(isTreeDocument)	{
+				"${DocumentsContract.getDocumentId(uri)}/${relativePath.trim('/')}"
 			}else	{
 				"$docId/${relativePath.trim('/')}"
 			}
-
-			return DocumentsContract
-				.buildDocumentUriUsingTree(treeUri,completeDocId)
-				.toString()
+		}else if(isDocument && relativePath.isBlank())	{
+			return uri.toString()
+		}else	{
+			return null
 		}
-		return null
+
+		val treeUri = DocumentsContract.buildTreeDocumentUri(uri.authority,docId)
+
+		return DocumentsContract
+			.buildDocumentUriUsingTree(treeUri,completeDocId)
+			.toString()
+	}
+
+	fun getDocumentMetadata(rootUri: Uri,metadata: List<String>): Map<String,String?>	{
+		val isTree = DocumentsContract.isTreeUri(rootUri)
+		val isDocument = !isTree && DocumentsContract.isDocumentUri(context,rootUri)
+		val isTreeDocument = DocumentsContract.isTreeUri(rootUri) && isDocument
+		
+		val resolvedUri = if(isTreeDocument || isDocument)	{
+			rootUri
+		}else if(isTree)	{
+			val treeDocId = DocumentsContract.getTreeDocumentId(rootUri)
+
+			DocumentsContract
+				.buildDocumentUriUsingTree(rootUri,treeDocId)
+		}else	{
+			return emptyMap()
+		}
+		
+		val projection = metadata.toTypedArray()
+		val result = mutableMapOf<String,String?>()
+
+		try	{
+			contentResolver.query(
+		    resolvedUri,
+		    projection,
+		    null,null,null
+			)?.use { cursor ->
+				val metadataIndexes = mutableMapOf<String,Int>()
+
+				metadata.forEach	{
+					val index = cursor.getColumnIndexOrThrow(it)
+					if(index > -1)	{
+						metadataIndexes.put(it to imdex)
+					}else	{
+						result.put(it to null)
+					}
+				}
+
+				while(cursor.moveToNext())	{
+					for((k,v) in metadataIndexes)	{
+						val md = cursor.getString(v)
+
+						result.put(k to md)
+					}
+				}
+			}
+		}catch(_: Exception) {}
+
+		return result
 	}
 
 	/**
@@ -720,16 +784,6 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 			val tmpPath = relativePathFromUri(path)
 			val resolvedUri = resolveRelativeUri(Uri.parse(tmpPath.rootUri),tmpPath.relativePath)
 
-			throw IllegalArgumentException(
-			    """
-			    OPEN SOURCE
-			    path=$path
-			    rootUri=${tmpPath.rootUri}
-			    relative=${tmpPath.relativePath}
-			    resolved=$resolvedUri
-			    """.trimIndent()
-			)
-			
 			contentResolver
 				.openInputStream(Uri.parse(resolvedUri))
 				?.asSource()?.buffered()
