@@ -249,9 +249,9 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 				metadata.forEach	{
 					val index = cursor.getColumnIndexOrThrow(it)
 					if(index > -1)	{
-						metadataIndexes.put(it to index)
+						metadataIndexes.put(it, index)
 					}else	{
-						result.put(it to null as String)
+						result.put(it, null as String)
 					}
 				}
 
@@ -259,7 +259,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 					for((k,v) in metadataIndexes)	{
 						val md = cursor.getString(v)
 
-						result.put(k to md)
+						result.put(k, md)
 					}
 				}
 			}
