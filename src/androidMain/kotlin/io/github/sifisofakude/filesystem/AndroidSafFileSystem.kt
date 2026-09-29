@@ -195,6 +195,8 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 			return null
 		}
 
+		throw IllegalStateException("wow: $docId")
+
 		val completeDocId = if(!relativePath.isBlank() && (isTreeDocument || isTree))	{
 			val metadata = DocumentsContract.Document.COLUMN_MIME_TYPE
 			val mime = getDocumentMetadata(uri,listOf(metadata))[metadata]
@@ -219,7 +221,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 			.toString()
 	}
 
-	fun getDocumentMetadata(rootUri: Uri,metadata: List<String>): Map<String,String?>	{
+	fun getDocumentMetadata(rootUri: Uri,metadata: List<String>): Map<String,String>	{
 		val isTree = DocumentsContract.isTreeUri(rootUri)
 		val isDocument = !isTree && DocumentsContract.isDocumentUri(context,rootUri)
 		val isTreeDocument = DocumentsContract.isTreeUri(rootUri) && isDocument
@@ -236,7 +238,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 		}
 		
 		val projection = metadata.toTypedArray()
-		val result = mutableMapOf<String,String?>()
+		val result = mutableMapOf<String,String>()
 
 		try	{
 			contentResolver.query(
@@ -244,14 +246,14 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 		    projection,
 		    null,null,null
 			)?.use { cursor ->
+				cursor.moveToFirst()
+				
 				val metadataIndexes = mutableMapOf<String,Int>()
 
 				metadata.forEach	{
-					val index = cursor.getColumnIndexOrThrow(it)
+					val index = cursor.getColumnIndex(it)
 					if(index > -1)	{
-						metadataIndexes.put(it, index)
-					}else	{
-						result.put(it, null as String)
+						metadataIndexes[it] = index
 					}
 				}
 
@@ -259,11 +261,11 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 					for((k,v) in metadataIndexes)	{
 						val md = cursor.getString(v)
 
-						result.put(k, md)
+						result[k] = md
 					}
 				}
 			}
-		}catch(_: Exception) {}
+		}catch(e: Exception) {}
 
 		return result
 	}
@@ -616,6 +618,8 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 				val resolvedFolders = resolveRelativeUri(Uri.parse(relativeUri.rootUri),relativeUri.relativePath)
 					?: return null
 
+					// throw IllegalStateException("$resolvedFolders")
+
 				val fullFolderDoc = DocumentFile.fromSingleUri(context,Uri.parse(resolvedFolders))
 				if(fullFolderDoc?.exists() == true)	{
 					return if(fullFolderDoc?.isDirectory == true)	{
@@ -694,11 +698,13 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 				}
 			}
 
+
 			if(relativeParents != null)	{
 				parentUri = "$parentUri||$relativeParents"
 			}
 
     	createDirectory(parentUri)?.let	{ parent ->
+			// throw IllegalStateException("in created file : $parentUri $parent")
     		val fileUriString = resolveRelativeUri(Uri.parse(parent),fileName)
     		val fileDoc = DocumentFile.fromSingleUri(context,Uri.parse(fileUriString))
 
@@ -854,17 +860,10 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 			val resolvedUri = resolveRelativeUri(Uri.parse(relativeUri.rootUri),relativeUri.relativePath)
 				?: return false
 
-			return try	{
-				contentResolver.query(
-					Uri.parse(resolvedUri),
-					arrayOf(DocumentsContract.Document.COLUMN_DOCUMENT_ID),
-					null,null,null
-				)?.use { cursor ->
-					cursor.count > 0
-				} ?: false
-			}catch(_: Exception)	{
-				false
-			}
+			val metadata = DocumentsContract.Document.COLUMN_DOCUMENT_ID
+			val result = getDocumentMetadata(Uri.parse(resolvedUri),listOf(metadata))
+
+			return getDocumentMetadata(Uri.parse(resolvedUri),listOf(metadata))[metadata] != null
 		}
 		return super.exists(path)
 	}
