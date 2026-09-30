@@ -161,7 +161,7 @@ class AndroidSafFileSystemTest {
 
         // deleteAllFiles(root.toString())
         val metadata = DocumentsContract.Document.COLUMN_MIME_TYPE
-        fs.getDocumentMetadata(root,listOf(metadata))
+        fail("${fs.getDocumentMetadata(root,listOf(metadata))}")
     }
 // 
 //     @Test

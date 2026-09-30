@@ -252,8 +252,6 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 						}
 					}
 
-			throw IllegalStateException("pakathi while $rootUri $resolvedUri ${cursor.count}")
-			
 					do	{
 						for((k,v) in metadataIndexes)	{
 							val md = cursor.getString(v)
@@ -263,9 +261,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 					}while(cursor.moveToNext())
 				}
 			}
-		}catch(e: Exception) {
-			throw e
-		}
+		}catch(e: Exception) {}
 
 		return result
 	}
