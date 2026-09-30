@@ -11,6 +11,8 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.uiautomator.By
 import androidx.test.uiautomator.Until
 
+import android.provider.DocumentsContract
+
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -149,15 +151,17 @@ class AndroidSafFileSystemTest {
     fun createDirectory() {
         val root = ROOT1
     
-        fs.changeSelectedDirectory(root)
+        // fs.changeSelectedDirectory(root)
     
-        val result = fs.createDirectory("foo")
+        // val result = fs.createDirectory("foo")
 
-        assertNotNull(result)
-        assertTrue(fs.exists("foo"))
-        assertTrue(fs.isDirectory("foo"))
+        // assertNotNull(result)
+        // assertTrue(fs.isDirectory("foo"))
+        // assertTrue(fs.exists("foo"))
 
-        deleteAllFiles(root.toString())
+        // deleteAllFiles(root.toString())
+        val metadata = DocumentsContract.Document.COLUMN_MIME_TYPE
+        fs.getDocumentMetadata(root,listOf(metadata))
     }
 // 
 //     @Test

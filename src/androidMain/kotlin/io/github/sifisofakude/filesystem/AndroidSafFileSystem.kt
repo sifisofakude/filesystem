@@ -239,28 +239,33 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 		val result = mutableMapOf<String,String>()
 
 		try	{
-		throw IllegalStateException("$rootUri $resolvedUri $index")
 			contentResolver.query(resolvedUri,projection,null,null,null)?.use { cursor ->
-				cursor.moveToFirst()
-				
-				val metadataIndexes = mutableMapOf<String,Int>()
+				if(cursor.count > 0)	{
+					cursor.moveToFirst()
+					
+					val metadataIndexes = mutableMapOf<String,Int>()
 
-				metadata.forEach	{
-					val index = cursor.getColumnIndex(it)
-					if(index > -1)	{
-						metadataIndexes[it] = index
+					metadata.forEach	{
+						val index = cursor.getColumnIndex(it)
+						if(index > -1)	{
+							metadataIndexes[it] = index
+						}
 					}
-				}
 
-				while(cursor.moveToNext())	{
-					for((k,v) in metadataIndexes)	{
-						val md = cursor.getString(v)
+			throw IllegalStateException("pakathi while $rootUri $resolvedUri ${cursor.count}")
+			
+					do	{
+						for((k,v) in metadataIndexes)	{
+							val md = cursor.getString(v)
 
-						result[k] = md
-					}
+							result[k] = md
+						}
+					}while(cursor.moveToNext())
 				}
-			} ?: error("Not good")
-		}catch(e: Exception) {}
+			}
+		}catch(e: Exception) {
+			throw e
+		}
 
 		return result
 	}
