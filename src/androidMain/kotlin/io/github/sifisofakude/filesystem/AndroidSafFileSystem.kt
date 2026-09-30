@@ -183,9 +183,9 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	fun resolveRelativeUri(uri: Uri, relativePath: String): String?	{
 		if(!isSafUri(uri.toString())) return null
 
+		val isTree = DocumentsContract.isTreeUri(uri)
 		val isDocument = DocumentsContract.isDocumentUri(context,uri)
-		val isTreeDocument = DocumentsContract.isTreeUri(uri) && isDocument
-		val isTree = DocumentsContract.isTreeUri(uri) && !isDocument
+		val isTreeDocument = isTree && isDocument
 
 		val docId = if(isTree || isTreeDocument)	{
 			DocumentsContract.getTreeDocumentId(uri)
@@ -195,23 +195,23 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 			return null
 		}
 
-
-		val completeDocId = if(!relativePath.isBlank() && (isTreeDocument || isTree))	{
+		val completeDocId = if(isTreeDocument || isTree)	{
 			val metadata = DocumentsContract.Document.COLUMN_MIME_TYPE
 			val mime = getDocumentMetadata(uri,listOf(metadata))[metadata]
 
-		// throw IllegalStateException("wow: $metadata $mime $uri")
 			if(mime != DocumentsContract.Document.MIME_TYPE_DIR) return null
 
-			if(isTreeDocument)	{
-				"${DocumentsContract.getDocumentId(uri)}/${relativePath.trim('/')}"
+			if(!relativePath.isBlank())	{
+				if(isTreeDocument)	{
+					"${DocumentsContract.getDocumentId(uri)}/${relativePath.trim('/')}"
+				}else	{
+					"$docId/${relativePath.trim('/')}"
+				}
 			}else	{
-				"$docId/${relativePath.trim('/')}"
+				docId
 			}
-		}else if(isDocument && relativePath.isBlank())	{
-			return uri.toString()
 		}else	{
-			return null
+			return uri.toString()
 		}
 
 		val treeUri = DocumentsContract.buildTreeDocumentUri(uri.authority,docId)
@@ -609,55 +609,42 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 				SafRelativePath(selectedParentUri.toString(),path)
 			}
 
-			if(isTreeUri(relativeUri.rootUri))	{
-				val resolvedRoot = resolveRelativeUri(Uri.parse(relativeUri.rootUri),"") ?: return null
-				val resolvedFolders = resolveRelativeUri(Uri.parse(relativeUri.rootUri),relativeUri.relativePath)
-					?: return null
+			val relativePath = relativeUri.relativePath.trim('/')
 
-					// throw IllegalStateException("$resolvedFolders")
+			var currentUri = resolveRelativeUri(Uri.parse(relativeUri.rootUri),"") ?: return null
 
-				val fullFolderDoc = DocumentFile.fromSingleUri(context,Uri.parse(resolvedFolders))
-				if(fullFolderDoc?.exists() == true)	{
-					return if(fullFolderDoc?.isDirectory == true)	{
-						path
+			if(!isDirectory(currentUri)) return null
+
+			for(segment in relativePath.split('/'))	{
+				if(exists("$currentUri||$segment"))	{
+					if(!isDirectory("$currentUri||$segment")) {
+						return null
 					}else	{
-						null
+						currentUri = resolveRelativeUri(Uri.parse(currentUri),segment) ?: return null
+						continue
 					}
-				}else	{
-					var currentDocId = getDocumentId(Uri.parse(relativeUri.rootUri)) ?: return null
-					var parentUri = DocumentsContract
-						.buildDocumentUriUsingTree(Uri.parse(relativeUri.rootUri),currentDocId)
-						
-					for(segment in relativeUri.relativePath.split("/"))	{
-						if(segment.isBlank()) continue
+				}
+				
+				val mimeType = DocumentsContract.Document.MIME_TYPE_DIR
 
-						currentDocId = "$currentDocId/$segment"
-						val childUri = DocumentsContract
-							.buildDocumentUriUsingTree(Uri.parse(relativeUri.rootUri),currentDocId)
+				try	{
+					val newUri = DocumentsContract.createDocument(
+						contentResolver,
+						Uri.parse(currentUri),
+						mimeType,
+						segment
+					)
 
-						val childDoc = DocumentFile.fromSingleUri(context,childUri)
-						if(childDoc?.exists() == true)	{
-							if(childDoc?.isDirectory == true)	{
-								parentUri = childUri
-							}else	{
-								return null
-							}
-						}else	{
-							val newFolderUri = DocumentsContract.createDocument(
-								contentResolver,
-								parentUri,
-								DocumentsContract.Document.MIME_TYPE_DIR,
-								segment
-							) ?: return null
-
-							parentUri = newFolderUri
-						}
+					if(newUri != null) {
+						currentUri = resolveRelativeUri(Uri.parse(currentUri),segment) ?: return null
+					}else	{
+						return null
 					}
-
-					return path
+				}catch(_: Exception)	{
+					return null
 				}
 			}
-			return null
+			return path
 		}
 		return super.createDirectory(path)
 	}
@@ -673,71 +660,41 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 */
 	override fun createFile(path: String): String? {
 		if(isSafContext(path))	{
-	    var parentUri: String? = null
-	    var relativeParents: String? = null
-			var fileName = getName(path)
-	    
+			val fileName = getName(path)
 			val relativeUri = relativePathFromUri(path)
-			if(relativeUri.relativePath.isNotEmpty())	{
-				parentUri = relativeUri.rootUri.toString()
-				relativeParents = getParentFile(relativeUri.relativePath)
+			val rootUri = Uri.parse(relativeUri.rootUri)
+			val relativePath = relativeUri.relativePath
+			val relativeParent = super.getParentFile(relativePath) ?: ""
 
-				if(parentUri == relativeParents) relativeParents = null
-			}else	{
-				if(isSafUri(relativeUri.rootUri.toString()))	{
-					parentUri = relativeUri.rootUri.toString()
+			if(!DocumentsContract.isTreeUri(rootUri) || relativePath.isBlank()) return null
+
+			if(exists(path))	{
+				return if(isFile(path))	{
+					path
 				}else	{
-					if(selectedParentUri == null) return null
-
-					parentUri = selectedParentUri.toString()
-					relativeParents = getParentFile(relativeUri.rootUri.toString())
+					null
 				}
 			}
 
-
-			if(relativeParents != null)	{
-				parentUri = "$parentUri||$relativeParents"
+			val parentUri = if(relativeParent.isBlank())	{
+				rootUri.toString()
+			}else	{
+				"$rootUri||$relativeParent"
 			}
 
-    	createDirectory(parentUri)?.let	{ parent ->
-			// throw IllegalStateException("in created file : $parentUri $parent")
-    		val fileUriString = resolveRelativeUri(Uri.parse(parent),fileName)
-    		val fileDoc = DocumentFile.fromSingleUri(context,Uri.parse(fileUriString))
+			return createDirectory(parentUri)?.let	{
+				val resolvedParent = resolveRelativeUri(rootUri,relativeParent) ?: return null
 
-    		return if(fileDoc?.exists() == true)	{
-    			if(fileDoc?.isFile == true)	{
-    				path
-    			}else	{
-    				null
-    			}
-    		}else	{
-    			val finalParent = relativePathFromUri(parent)
-    			var finalParentUri: String? = finalParent.rootUri
-    			if(finalParent.relativePath.isNotEmpty())	{
-    				finalParentUri = resolveRelativeUri(Uri.parse(finalParentUri),"${finalParent.relativePath}/")
-    			}else	{
-    				finalParentUri = resolveRelativeUri(Uri.parse(finalParentUri),"")
-    			}
+				val fileUri = DocumentsContract.createDocument(
+					contentResolver,
+					Uri.parse(resolvedParent),
+					"application/octet-stream",
+					fileName
+				)
 
-    			if(finalParentUri == null)	{
-    				null
-    			}else	{
-	    			val newUri = DocumentsContract.createDocument(
-	    				contentResolver,
-	    				Uri.parse(finalParentUri),
-	    				"application/octet-stream",
-	    				fileName
-	    			)
-
-	    			if(newUri != null)	{
-	    				path
-	    			}else	{
-	    				null
-	    			}
-    			}
-    		}
-    	}
-    	return null
+				if(fileUri != null) path
+				else null
+			}
     }
     return super.createFile(path)
 	}
@@ -813,28 +770,23 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 					.buildChildDocumentsUriUsingTree(Uri.parse(relativeUri.rootUri),parentDocId)
 
 				val projection = arrayOf(
-					DocumentsContract.Document.COLUMN_DOCUMENT_ID,
-					// DocumentsContract.Document.COLUMN_DISPLAY_NAME,
-					// DocumentsContract.Document.COLUMN_MIME_TYPE,
-					// DocumentsContract.Document.COLUMN_SIZE
+					DocumentsContract.Document.COLUMN_DOCUMENT_ID
 				)
 
 				contentResolver.query(childrenUri,projection,null,null,null)?.use { cursor ->
-					val idIndex = cursor.getColumnIndexOrThrow(DocumentsContract.Document.COLUMN_DOCUMENT_ID)
-					// val nameIndex = cursor.getColumnIndexOrThrow(DocumentsContract.Document.COLUMN_DISPLAY_NAME)
-					// val sizeIndex = cursor.getColumnIndexOrThrow(DocumentsContract.Document.COLUMN_SIZE)
-					// val mimeIndex = cursor.getColumnIndexOrThrow(DocumentsContract.Document.COLUMN_MIME_TYPE)
+					if(cursor.count > 0)	{
+						cursor.moveToFirst()
+						
+						val idIndex = cursor.getColumnIndexOrThrow(DocumentsContract.Document.COLUMN_DOCUMENT_ID)
 
-					while(cursor.moveToNext())	{
-						val docId = cursor.getString(idIndex)
-						// val mime = cursor.getString(mimeIndex)
-						// val name = cursor.getString(nameIndex)
-						// val size = cursor.getLong(sizeIndex)
+						do	{
+							val docId = cursor.getString(idIndex)
 
-						val childUri = DocumentsContract
-							.buildDocumentUriUsingTree(Uri.parse(relativeUri.rootUri),docId)
+							val childUri = DocumentsContract
+								.buildDocumentUriUsingTree(Uri.parse(relativeUri.rootUri),docId)
 
-						fileList.add(childUri.toString())
+							fileList.add(childUri.toString())
+						}while(cursor.moveToNext())
 					}
 				}
 			}catch(_: Exception) {}
@@ -857,8 +809,6 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 				?: return false
 
 			val metadata = DocumentsContract.Document.COLUMN_DOCUMENT_ID
-			val result = getDocumentMetadata(Uri.parse(resolvedUri),listOf(metadata))
-
 			return getDocumentMetadata(Uri.parse(resolvedUri),listOf(metadata))[metadata] != null
 		}
 		return super.exists(path)
@@ -985,22 +935,9 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 			val resolvedUri = resolveRelativeUri(Uri.parse(relativeUri.rootUri),relativeUri.relativePath)
 				?: return false
 
-			return try	{
-				contentResolver.query(
-					Uri.parse(resolvedUri),
-					arrayOf(DocumentsContract.Document.COLUMN_MIME_TYPE),
-					null,null,null
-				)?.use { cursor ->
-					if(cursor.moveToFirst())	{
-						val mimeType = cursor.getString(0)
-						mimeType == DocumentsContract.Document.MIME_TYPE_DIR
-					}else	{
-						false
-					}
-				} ?: false
-			}catch(_: Exception)	{
-				false
-			}
+			val mime = DocumentsContract.Document.COLUMN_MIME_TYPE
+			return getDocumentMetadata(Uri.parse(resolvedUri),listOf(mime))[mime] == 
+				DocumentsContract.Document.MIME_TYPE_DIR
 		}
 		return File(path).isDirectory
 	}

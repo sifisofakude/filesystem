@@ -242,8 +242,9 @@ interface FileSystemUtil	{
  			openSource(tmpSource)?.use { source ->
  				openSink(finalDst)?.use { sink ->
  					source.transferTo(sink)
- 				}
- 			}
+ 				} ?: return null
+ 			} ?: return null
+ 			
  			return returnDst
  		}
     return null
