@@ -619,7 +619,7 @@ class AndroidSafFileSystemTest {
             mkdirs()
         }
 
-        fail("${listFiles("source")}")
+        fail("${fs.listFiles("source")}")
     
         // val result = fs.copyByStream(
         //     "$ROOT1||source",
