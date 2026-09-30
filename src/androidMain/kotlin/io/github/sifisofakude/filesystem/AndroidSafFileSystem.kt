@@ -228,19 +228,18 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 		
 		val resolvedUri = if(isTreeDocument || isDocument)	{
 			rootUri
-		}else if(isTree)	{
+		}else	{
 			val treeDocId = DocumentsContract.getTreeDocumentId(rootUri)
 
 			DocumentsContract
 				.buildDocumentUriUsingTree(rootUri,treeDocId)
-		}else	{
-			return emptyMap()
 		}
 
 		val projection = metadata.toTypedArray()
 		val result = mutableMapOf<String,String>()
 
 		try	{
+		throw IllegalStateException("$rootUri $resolvedUri $index")
 			contentResolver.query(resolvedUri,projection,null,null,null)?.use { cursor ->
 				cursor.moveToFirst()
 				
@@ -251,7 +250,6 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 					if(index > -1)	{
 						metadataIndexes[it] = index
 					}
-		// throw IllegalStateException("$rootUri $resolvedUri $index")
 				}
 
 				while(cursor.moveToNext())	{
