@@ -994,8 +994,9 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 */
 	override fun size(path: String): Long	{
 		if(isSafContext(path))	{
-			return getDocumentFile(path)
-				?.length() ?: 0L
+			val sizeColumn = DocumentsContract.Document.COLUMN_SIZE
+			return getDocumentMetadata(path,listOf(sizeColumn))[sizeColumn]
+				?.toLong() ?: 0L
 		}
 		return super.size(path)
 	}
