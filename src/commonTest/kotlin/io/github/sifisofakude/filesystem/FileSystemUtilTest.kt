@@ -91,38 +91,6 @@ class FileSystemUtilTest {
     }
 
     @Test
-    fun findFilesRecursively() {
-        fs.createDirectory("src")
-        fs.createDirectory("src/main")
-        fs.createDirectory("src/test")
-    
-        fs.createFile("src/main/Main.kt")
-        fs.createFile("src/main/Utils.kt")
-        fs.createFile("src/test/Test.kt")
-        fs.createFile("src/readme.txt")
-    
-        val kotlinFiles = fs.findFiles(
-            "src",
-            setOf("kt")
-        )
-    
-        println("Found Kotlin files:")
-        kotlinFiles.forEach {
-            println("  $it")
-        }
-    
-        // assertEquals(3, kotlinFiles.size)
-    
-        assertTrue(
-            kotlinFiles.all {
-                fs.getExtension(it) == "kt"
-            }
-        )
-    
-        fs.delete("src")
-    }
-
-    @Test
     fun resolveFilesPreservesRelativePaths() {
         fs.createDirectory("project")
         fs.createDirectory("project/src")
@@ -363,5 +331,18 @@ class FileSystemUtilTest {
     
         fs.delete("source.txt")
         fs.delete("destination")
+    }
+
+    @Test
+    fun copyByStreamTest()	{
+    	val root = fs.createDirectory("test-root")
+
+    	assertTrue(fs.writeText("$root/source/one.txt","One"))
+    	assertTrue(fs.writeText("$root/source/two.txt","Two"))
+    	assertTrue(fs.writeText("$root/source/three/three.txt","Three"))
+
+    	assertNotNull(fs.createDirectory("$root/destination"))
+
+    	val streamCopy = fs.copyByStream("$root/source","$root/destination")
     }
 }

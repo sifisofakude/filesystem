@@ -373,10 +373,11 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 
 	override fun combinePath(parent: String, child: String): String	{
 		if(isSafUri(parent))	{
-			return if(parent.contains("||"))	{
-				"${parent.trimEnd('/')}/${child.trim('/')}}"
+			return if(isSafUri(parent))	{
+				if(parent.contains("||")) "${parent.trim('/')}/${child.trim('/')}"
+				else "$parent||${child.trim('/')}"
 			}else	{
-				"${parent.trimEnd('/')}||${child.removePrefix("/")}"
+				super.combinePath(parent,child)
 			}
 		}
 		return super.combinePath(parent,child)
@@ -770,22 +771,18 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 					.buildChildDocumentsUriUsingTree(Uri.parse(relativeUri.rootUri),parentDocId)
 
 				val projection = arrayOf(
-					DocumentsContract.Document.COLUMN_DOCUMENT_ID
+					DocumentsContract.Document.COLUMN_DISPLAY_NAME,
 				)
 
 				contentResolver.query(childrenUri,projection,null,null,null)?.use { cursor ->
 					if(cursor.count > 0)	{
 						cursor.moveToFirst()
 						
-						val idIndex = cursor.getColumnIndexOrThrow(DocumentsContract.Document.COLUMN_DOCUMENT_ID)
+						val nameIndex = cursor.getColumnIndexOrThrow(DocumentsContract.Document.COLUMN_DISPLAY_NAME)
 
 						do	{
-							val docId = cursor.getString(idIndex)
-
-							val childUri = DocumentsContract
-								.buildDocumentUriUsingTree(Uri.parse(relativeUri.rootUri),docId)
-
-							fileList.add(childUri.toString())
+							val name = cursor.getString(nameIndex)
+							fileList.add("$name")
 						}while(cursor.moveToNext())
 					}
 				}

@@ -211,15 +211,16 @@ interface FileSystemUtil	{
    		
    		for(file in listFiles(tmpSource))	{
  				val name = getName(file)
- 				val tmp = combinePath(finalDst,name) ?: return null
+ 				val output = combinePath(finalDst,name)
+ 				val input = combinePath(tmpSource,file)
 
-   			if(isDirectory(file))	{
-   				createDirectory(tmp)?.let	{
-   					copyByStream(file,it,overwrite)
+   			if(isDirectory(input))	{
+   				createDirectory(output)?.let	{
+   					copyByStream(input,it,overwrite)
    				}
    			}else	{
-   				createFile(tmp)?.let	{
-   					copyByStream(file,it,true)
+   				createFile(output)?.let	{
+   					copyByStream(input,it,true)
    				}
    			}
    		}

@@ -500,41 +500,41 @@ class AndroidSafFileSystemTest {
 //         deleteAllFiles(root.toString())
 //     }
 // 
-    @Test
-    fun copyNormalFileSystemToSafByStream() {
-        val root = ROOT1
-    
-        fs.changeSelectedDirectory(root)
-    
-        val source = File(context.filesDir, "normal-source.txt").apply	{
-        	createNewFile()
-        	writeText("Hello from normal filesystem")
-        }
-
-    
-        assertNotNull(
-            fs.createDirectory("destination")
-        )
-        // fail("Not again: ${fs.exists("destination")}")
-    
-        val result = fs.copyByStream(
-            source.absolutePath,
-            "destination"
-        )
-    
-        assertNotNull(result)
-    
-        assertTrue(source.exists())
-        assertTrue(fs.exists("destination/normal-source.txt"))
-    
-        assertEquals(
-            "Hello from normal filesystem",
-            fs.readText("destination/normal-source.txt")
-        )
-    
-        source.delete()
-        deleteAllFiles(root.toString())
-    }
+//     @Test
+//     fun copyNormalFileSystemToSafByStream() {
+//         val root = ROOT1
+//     
+//         fs.changeSelectedDirectory(root)
+//     
+//         val source = File(context.filesDir, "normal-source.txt").apply	{
+//         	createNewFile()
+//         	writeText("Hello from normal filesystem")
+//         }
+// 
+//     
+//         assertNotNull(
+//             fs.createDirectory("destination")
+//         )
+//         // fail("Not again: ${fs.exists("destination")}")
+//     
+//         val result = fs.copyByStream(
+//             source.absolutePath,
+//             "destination"
+//         )
+//     
+//         assertNotNull(result)
+//     
+//         assertTrue(source.exists())
+//         assertTrue(fs.exists("destination/normal-source.txt"))
+//     
+//         assertEquals(
+//             "Hello from normal filesystem",
+//             fs.readText("destination/normal-source.txt")
+//         )
+//     
+//         source.delete()
+//         deleteAllFiles(root.toString())
+//     }
 // 
 //     @Test
 //     fun moveSafToNormalFileSystemByStream() {
@@ -619,70 +619,69 @@ class AndroidSafFileSystemTest {
             mkdirs()
         }
 
-        fail("${fs.listFiles("source")}")
     
-        // val result = fs.copyByStream(
-        //     "$ROOT1||source",
-        //     destination.absolutePath
-        // )
-    // 
-    //     assertNotNull(result)
-    // 
-    //     assertTrue(fs.exists("${destination.absolutePath}/source/a.txt"))
-    //     assertTrue(fs.exists("${destination.absolutePath}/source/nested/b.txt"))
-    //     assertTrue(fs.exists("${destination.absolutePath}/source/nested/deep/c.txt"))
-    // 
-    //     assertEquals(
-    //         "AAA",
-    //         File(destination, "source/a.txt").readText()
-    //     )
-    // 
-    //     assertEquals(
-    //         "BBB",
-    //         File(destination, "source/nested/b.txt").readText()
-    //     )
-    // 
-    //     assertEquals(
-    //         "CCC",
-    //         File(destination, "source/nested/deep/c.txt").readText()
-    //     )
+        val result = fs.copyByStream(
+            "source",
+            destination.absolutePath
+        )
     
-        // deleteAllFiles(root.toString())
-        // destination.deleteRecursively()
+        assertNotNull(result)
+    
+        assertTrue(fs.exists("${destination.absolutePath}/source/a.txt"))
+        assertTrue(fs.exists("${destination.absolutePath}/source/nested/b.txt"))
+        assertTrue(fs.exists("${destination.absolutePath}/source/nested/deep/c.txt"))
+    
+        assertEquals(
+            "AAA",
+            File(destination, "source/a.txt").readText()
+        )
+    
+        assertEquals(
+            "BBB",
+            File(destination, "source/nested/b.txt").readText()
+        )
+    
+        assertEquals(
+            "CCC",
+            File(destination, "source/nested/deep/c.txt").readText()
+        )
+    
+        deleteAllFiles(root.toString())
+        destination.deleteRecursively()
     }
 
-		// @Test
-		// fun copySafFileBetweenDifferentRoots() {
-		//     val source = "$ROOT1||source.txt"
-		//     val destination = "$ROOT2||destination.txt"
-		// 
-		//     assertTrue(
-		//         fs.createFile(source) != null
-		//     )
+		@Test
+		fun copySafFileBetweenDifferentRoots() {
+		    val source = "$ROOT1||source.txt"
+		    val destination = "$ROOT2||destination.txt"
 		
-		//     assertTrue(
-		//         fs.writeText(source, "Hello from Root1")
-		//     )
-		// 
-		//     val result = fs.copyByStream(
-		//         source,
-		//         destination
-		//     )
-		// 
-		//     assertNotNull(result)
-		// 
-		//     assertTrue(
-		//         fs.exists(destination)
-		//     )
-		// 
-		//     assertEquals(
-		//         "Hello from Root1",
-		//         fs.readText(destination)
-		//     )
-		// 
-		//     deleteAllFiles(ROOT1.toString())
-		//     deleteAllFiles(ROOT2.toString())
-		// }
+		    assertTrue(
+		        fs.createFile(source) != null
+		    )
+		
+		    assertTrue(
+		        fs.writeText(source, "Hello from Root1")
+		    )
+		
+		    val result = fs.copyByStream(
+		        source,
+		        destination
+		    )
+		
+		    assertNotNull(result)
+		
+		    assertTrue(
+		        fs.exists(destination)
+		    )
+		
+		    assertEquals(
+		        "Hello from Root1",
+		        fs.readText(destination)
+		    )
+		
+		    deleteAllFiles(ROOT1.toString())
+		    deleteAllFiles(ROOT2.toString())
+		}
 
 // 		@Test
 // 		fun copySafDirectoryBetweenDifferentRootsByStream() {

@@ -176,9 +176,9 @@ open class JvmFileSystem : FileSystemUtil	{
 			val contents = dir.listFiles()
 			contents?.forEach	{ file ->
 				if(file.isFile && (extensions.isEmpty() || extensions.contains(file.extension)))	{
-					results.add(file.absolutePath)
+					results.add(file.path)
 				}else if(file.isDirectory)	{
-					results.addAll(findFiles(file.absolutePath,extensions))
+					results.addAll(findFiles(file.path,extensions))
 				}
 			}
 		}
@@ -198,8 +198,9 @@ open class JvmFileSystem : FileSystemUtil	{
 	 *         be read or contains no children
 	 */
 	override open fun listFiles(path: String): List<String>	{
-		return File(path).listFiles()
-			?.map { it.absolutePath }?.toList() 
+		return File(path)
+			.list()
+			.toList()
 			?: emptyList()
 	}
 
