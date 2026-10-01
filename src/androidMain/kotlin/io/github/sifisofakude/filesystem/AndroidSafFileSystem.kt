@@ -461,25 +461,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 * @return URI of the moved document, or `null` if the operation fails.
 	 */
 	override fun move(src: String, dst: String): String?	{
-		val source = getDocumentFile(src) ?: return null
-		val sourceParent = source.parentFile ?: return null
-		val destination = getDocumentFile(dst) ?: return null
-
-		if(!source.exists() || !destination.isDirectory)	{
-			return null
-		}
-
-		return try	{
-			DocumentsContract
-				.moveDocument(
-					context.contentResolver,
-					source.uri,
-					sourceParent.uri,
-					destination.uri
-				)?.toString()
-		}catch(_: FileNotFoundException)	{
-			null
-		}
+		return moveByStream(src,dst)
 	}
 
 	/**
@@ -497,36 +479,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 * @return URI of the copied document, or `null` if the operation fails.
 	 */
 	override fun copy(src: String, dst: String, overwrite: Boolean): String?	{
-		return getDocumentFile(src)?.let	{ source ->
-			if(!isDirectory(dst))	{
-				null
-			}else	{
-				val tmpName = getName(src)
-				val tmpDst = combinePath(dst,tmpName)
-
-				if(exists(tmpDst) && !overwrite)	{
-					null
-				}else	{
-					try	{
-						val tmpName = combinePath(dst,getName(src))
-						if(exists(tmpName) && !overwrite)	{
-							null
-						}else	{
-							DocumentsContract
-								.copyDocument(
-									contentResolver,
-									source.uri,
-									Uri.parse(dst)
-								)
-								?.toString()
-						}
-						
-					}catch(_: FileNotFoundException)	{
-						null
-					}
-				}
-			}
-		}
+		return copyByStream(src,dst,overwrite)
 	}
 
 	/**
@@ -585,7 +538,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 
 	    walkSaf(root,"",extensions,results)
 	    
-    	return results.map { it.absolutePath }.toList()
+    	return results.map { it.relativePath }.toList()
 		}
 		return super.findFiles(directory,extensions)
 	}
@@ -994,8 +947,12 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 */
 	override fun size(path: String): Long	{
 		if(isSafContext(path))	{
+			val relativeUri = relativePathFromUri(path)
+			val resolvedUri = resolveRelativeUri(Uri.parse(relativeUri.rootUri),relativeUri.relativePath)
+				?: return 0L
+				
 			val sizeColumn = DocumentsContract.Document.COLUMN_SIZE
-			return getDocumentMetadata(path,listOf(sizeColumn))[sizeColumn]
+			return getDocumentMetadata(Uri.parse(resolvedUri),listOf(sizeColumn))[sizeColumn]
 				?.toLong() ?: 0L
 		}
 		return super.size(path)

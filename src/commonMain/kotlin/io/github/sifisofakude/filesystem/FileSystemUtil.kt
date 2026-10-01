@@ -579,33 +579,6 @@ interface FileSystemUtil	{
 	}
 
 	/**
-	 * Materializes a filesystem-specific or virtual resource into a physical
-	 * filesystem hierarchy.
-	 *
-	 * This is primarily intended for resources that cannot be consumed directly
-	 * by APIs requiring conventional filesystem paths, such as provider-backed
-	 * or URI-based resources.
-	 *
-	 * Implementations that already operate on physical filesystem paths may
-	 * simply return [path].
-	 *
-	 * @param path source path or filesystem-specific resource identifier
-	 * @param outDir destination directory for materialized data
-	 * @return physical path to the materialized resource
-	 */
-	fun materialize(path: String, outDir: String): String = path
-
-	/**
-	 * Removes resources previously created by [materialize].
-	 *
-	 * Implementations that do not require materialization may leave this method
-	 * empty.
-	 *
-	 * @param path materialized resource or materialization identifier
-	 */
-	fun clearMaterialized(path: String) {}
-
-	/**
 	 * Transfers all bytes from [input] to [output].
 	 *
 	 * Neither [input] nor [output] is closed by this method.
