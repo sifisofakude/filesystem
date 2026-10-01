@@ -344,5 +344,7 @@ class FileSystemUtilTest {
     	assertNotNull(fs.createDirectory("$root/destination"))
 
     	val streamCopy = fs.copyByStream("$root/source","$root/destination")
+
+    	fs.delete(root)
     }
 }
