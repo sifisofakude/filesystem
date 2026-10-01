@@ -1013,7 +1013,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 * @param outDir internal output directory name
 	 * @return path to the materialized file or directory
 	 */
-	override fun materialize(path: String, outDir: String): String {
+	fun materialize(path: String, outDir: String): String {
 		if(isSafContext(path))	{
 			val tmpPath = tempPath(path) ?: return path
 			
@@ -1087,7 +1087,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 * @param path path of the materialized resource relative to the application's
 	 * private files directory.
 	 */
-	override fun clearMaterialized(path: String) {
+	fun clearMaterialized(path: String) {
     val baseDir = getFilesDir() ?: return
     File(baseDir, path).deleteRecursively()
 	}
