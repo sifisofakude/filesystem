@@ -777,39 +777,38 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 */
 	override fun getParentFile(path: String): String?	{
 		if(isSafContext(path))	{
-			var uri = path
 			val relativeUri = relativePathFromUri(path)
-			val fileName = getName(path)
+			val resolvedUri = resolveRelativeUri(Uri.parse(relativeUri.rootUri),relativeUri.relativePath)
+				?: return null
 
-			if(relativeUri.relativePath.isNotEmpty())	{
-				if(relativeUri.relativePath == fileName) return relativeUri.rootUri
-				
-				uri = relativeUri.rootUri
-				val relativeParent = super.getParentFile(relativeUri.relativePath) ?: return null
-				if(uri == selectedParentUri?.toString())	{
-					return relativeParent
+			val isTree = DocumentsContract.isTreeUri(Uri.parse(resolvedUri))
+
+			return if(isTree)	{
+				val uri = Uri.parse(resolvedUri)
+				val treeId = DocumentsContract.getTreeDocumentId(uri)
+				val docId = DocumentsContract.getDocumentId(uri)
+
+				if(treeId == docId)	{
+					null
 				}else	{
-					return combinePath(uri,relativeParent)
-				}
-			}else	{
-				if(!isSafUri(uri) && selectedParentUri != null)	{
-					val relativeParent = super.getParentFile(uri)
-					if(relativeParent == null)	{
-						uri = selectedParentUri.toString()
+					val relativePath = relativeUri.relativePath
+					if(relativePath.isBlank() || !relativePath.contains("/"))	{
+						val parentDocId = docId.substringBeforeLast('/')
+						val treeUri = DocumentsContract.buildTreeDocumentUri(uri.authority,treeId)
+						
+						DocumentsContract
+							.buildDocumentUriUsingTree(treeUri,parentDocId)
+							.toString()
 					}else	{
-						return combinePath(selectedParentUri.toString(),relativeParent)
+						super.getParentFile(relativePath)?.let	{
+							if(isSafUri(path))	{
+								combinePath(relativeUri.rootUri,it)
+							}else	{
+								it
+							}
+						}
 					}
-				}else	{
-					return null
 				}
-			}
-			
-			return getDocumentFile(uri)?.parentFile?.let	{
-				val parentUri = it.uri
-				
-				getDocumentId(parentUri)?.let	{ docId ->
-					resolveRelativeUri(parentUri,"")
-				} ?: null
 			}
 		}
 		return super.getParentFile(path)

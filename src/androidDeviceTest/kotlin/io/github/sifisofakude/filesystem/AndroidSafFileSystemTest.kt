@@ -138,6 +138,9 @@ class AndroidSafFileSystemTest {
 			// Finding files in a directory
 			val found = fs.findFiles("test1",emptySet())
 
+			val parentFile = fs.getParent("$ROOT1||test1/1")
+			fail("$parentFile")
+
 			jvmPath.deleteRecursively()
 			deleteAllFiles("$ROOT1")
 			deleteAllFiles("$ROOT2")
