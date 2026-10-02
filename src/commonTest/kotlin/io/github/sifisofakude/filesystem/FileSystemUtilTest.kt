@@ -337,6 +337,8 @@ class FileSystemUtilTest {
     fun copyByStreamTest()	{
     	val root = fs.createDirectory("test-root")
 
+    	assertNotNull(root)
+    	
     	assertTrue(fs.writeText("$root/source/one.txt","One"))
     	assertTrue(fs.writeText("$root/source/two.txt","Two"))
     	assertTrue(fs.writeText("$root/source/three/three.txt","Three"))
@@ -344,6 +346,28 @@ class FileSystemUtilTest {
     	assertNotNull(fs.createDirectory("$root/destination"))
 
     	val streamCopy = fs.copyByStream("$root/source","$root/destination")
+    	assertTrue(fs.exists("$root/destination/source"))
+
+    	fs.delete(root)
+    }
+
+    @Test
+    fun moveByStreamTest()	{
+    	val root = fs.createDirectory("test-root")
+    	
+    	assertNotNull(root)
+
+    	assertTrue(fs.writeText("$root/source/one.txt","One"))
+    	assertTrue(fs.writeText("$root/source/two.txt","Two"))
+    	assertTrue(fs.writeText("$root/source/three/three.txt","Three"))
+
+    	assertNotNull(fs.createDirectory("$root/destination"))
+
+    	val streamMove = fs.moveByStream("$root/source","$root/new-destination")
+    	assertNotNull(streamMove)
+    	
+    	assertFalse(fs.exists("$root/source"))
+    	assertTrue(fs.exists("$root/new-destination/three/three.txt"))
 
     	fs.delete(root)
     }

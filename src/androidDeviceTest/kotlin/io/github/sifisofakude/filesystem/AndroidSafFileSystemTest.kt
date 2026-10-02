@@ -136,7 +136,7 @@ class AndroidSafFileSystemTest {
 			assertEquals("new-name.txt",files[0])
 
 			// Finding files in a directory
-			// val found = fs.findFiles("test",emptySet())
+			val found = fs.findFiles("test",emptySet())
 
 			jvmPath.deleteRecursively()
 			deleteAllFiles("$ROOT1")

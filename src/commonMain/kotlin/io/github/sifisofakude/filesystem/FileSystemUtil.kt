@@ -412,54 +412,43 @@ interface FileSystemUtil	{
 			}
 		}
 
+		if(!exists(tmpSource)) return null
+
 		var returnDst = dst
-		
-    if (!exists(tmpSource)) return null
-    
-    if (isDirectory(tmpSource)) {
-      if (isFile(tmpDestination)) return null
 
-      val finalDst = if (isDirectory(tmpDestination)) {
-				returnDst = combinePath(returnDst,getName(tmpSource))
-        val target = combinePath(tmpDestination, getName(tmpSource))
-        if (!exists(target)) {
-            createDirectory(target) ?: return null
-        }
-         target
-      } else {
-        createDirectory(tmpDestination) ?: return null
-        tmpDestination
-      }
+		if(isDirectory(tmpSource))	{
+			val newDst = if(!exists(tmpDestination))	{
+				createDirectory(tmpDestination)
+			}else	{
+				if(isFile(tmpDestination)) return null
 
-      for (child in listFiles(tmpSource)) {
-        val childDst = combinePath(finalDst, getName(child))
+				combinePath(tmpDestination,getName(tmpSource))?.let	{
+					returnDst = combinePath(returnDst,getName(src))
+					createDirectory(it)
+				}
+			}
 
-        if (moveByStream(child, childDst) == null) {
-            return null
-        }
-      }
+			if(newDst == null) return null
 
-      return if(delete(tmpSource))	{
-      	returnDst
-      }else	{
-      	null
-      }
-    }
+			for(file in listFiles(tmpSource))	{
+				val newSource = combinePath(tmpSource,file) ?: return null
+				moveByStream(newSource,newDst)
+			}
 
-    val finalDst = if (isDirectory(tmpDestination)) {
-    	returnDst = combinePath(returnDst,getName(tmpSource))
-      combinePath(tmpDestination, getName(tmpSource))
-    } else {
-        tmpDestination
-    }
+			return if(delete(tmpSource))	{
+				returnDst
+			}else	{
+				null
+			}
+		}
 
-    println(finalDst)
-
-    if (copyByStream(tmpSource, finalDst,true) == null) {
-        return null
-    }
-
-    return if (delete(tmpSource)) returnDst else null
+		val copied = copyByStream(src,dst,true)
+		return if(copied != null)	{
+			if(delete(src)) copied
+			else null
+		}else	{
+			null
+		}
 	}
 
 	/**
