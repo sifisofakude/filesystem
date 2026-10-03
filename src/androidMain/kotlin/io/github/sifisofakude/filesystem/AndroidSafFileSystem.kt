@@ -809,6 +809,8 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 						}
 					}
 				}
+			}else	{
+				null
 			}
 		}
 		return super.getParentFile(path)
@@ -899,9 +901,13 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 */
 	override fun lastModified(path: String): Long	{
 		if(isSafContext(path))	{
-			getDocumentFile(path)?.let	{
-				return it.lastModified()
-			} ?: return -1
+			val relativeUri = relativePathFromUri(path)
+			val resolvedUri = resolveRelativeUri(Uri.parse(relativeUri.rootUri),relativeUri.relativePath)
+				?: return -1L
+			
+			val column = DocumentsContract.Document.COLUMN_LAST_MODIFIED
+			return getDocumentMetadata(Uri.parse(resolvedUri),listOf(column))[column]
+				?.toLong() ?: -1L
 		}
 		return File(path).lastModified()
 	}
@@ -930,12 +936,22 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 						currentUri = parent
 					} ?: return ""
 				}else	{
-					currentUri = resolveRelativeUri(Uri.parse(currentUri),segment) ?: return ""
+					currentUri = combinePath(currentUri,segment) ?: return ""
 				}
 			}
-			return currentUri
+
+			return if(isRelative(path))	{
+				val tmpPath = relativePathFromUri(currentUri)
+
+				if(tmpPath.relativePath.isBlank())	{
+					tmpPath.rootUri
+				}else	{
+					tmpPath.relativePath
+				}
+			}else	{
+				currentUri
+			}
     }
-   	return super.resolvePath(path)
 	}
 
 	/**
@@ -970,12 +986,15 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	override fun getName(path: String): String	{
 		if(isSafUri(path))	{
 			val relativeUri = relativePathFromUri(path)
+			val resolvedUri = resolveRelativeUri(Uri.parse(relativeUri.rootUri),relativeUri.relativePath)
+				?: return ""
 
 			if(relativeUri.relativePath.isNotEmpty())	{
 				return super.getName(relativeUri.relativePath)
 			}
 			
-			return getDocumentFile(relativeUri.rootUri)?.name ?: ""
+			val column = DocumentsContract.Document.COLUMN_DISPLAY_NAME
+			return getDocumentMetadata(Uri.parse(resolvedUri),listOf(column))[column] ?: ""
 		}
 		return File(path).name
 	}

@@ -13,6 +13,7 @@ import androidx.test.uiautomator.Until
 
 import android.provider.DocumentsContract
 
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -138,8 +139,15 @@ class AndroidSafFileSystemTest {
 			// Finding files in a directory
 			val found = fs.findFiles("test1",emptySet())
 
-			val parentFile = fs.getParent("$ROOT1||test1/1")
-			fail("$parentFile")
+			val parentFile = fs.getParentFile("$ROOT1||test1/1")
+
+			assertEquals("$ROOT1||test1",parentFile)
+
+			val resolvedPath = fs.resolvePath("test1/1/2/../new-name.txt")
+			assertEquals("test1/1/new-name.txt",resolvedPath)
+
+			val lastModified = fs.lastModified("test1/1")
+			assertNotEquals(-1,lastModified)
 
 			jvmPath.deleteRecursively()
 			deleteAllFiles("$ROOT1")
