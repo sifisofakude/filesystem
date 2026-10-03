@@ -952,6 +952,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 				currentUri
 			}
     }
+    return super.resolvePath(path)
 	}
 
 	/**
