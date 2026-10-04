@@ -411,7 +411,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
         is Uri -> input
         is String ->	{
         	if(isSafContext(input))	{
-        		val tmpPath = tempPath(input)
+        		val tmpPath = tempPath(input) ?: continue
         		val relativeUri = relativePathFromUri(tmpPath)
         		val resolvedUri = resolveRelativeUri(Uri.parse(relativeUri.rootUri),relativeUri.relativePath)
         			?: return emptyList()
@@ -442,7 +442,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
         continue
       }
 
-      if (root.isDirectory) {
+      if (isDirectory("$root")) {
         walkSaf(root, "", extensions, results)
       }
     }
@@ -504,7 +504,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 
 				if(isDirectory("$dir||$file"))	{
 					val resolvedUri = resolveRelativeUri(dir,file) ?: return@forEach
-					walkSaf(Uri.parse(resolvedUri),rel.extensions,out)
+					walkSaf(Uri.parse(resolvedUri),rel,extensions,out)
 				}else	{
 					if(extensions.isEmpty() || getExtension(file) in extensions)	{
 						out += FileSource(
@@ -528,7 +528,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 */
 	override fun findFiles(directory: String, extensions: Set<String>): List<String> {
     if(isSafContext(directory))	{
-    	val tmpPath = tempPath(directory)
+    	val tmpPath = tempPath(directory) ?: return emptyList()
 			val relativeUri = relativePathFromUri(tmpPath)
 			val resolvedUri = resolveRelativeUri(Uri.parse(relativeUri.rootUri),relativeUri.relativePath)
 				?: emptyList()
