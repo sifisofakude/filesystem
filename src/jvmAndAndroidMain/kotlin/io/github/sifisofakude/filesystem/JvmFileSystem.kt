@@ -249,7 +249,7 @@ open class JvmFileSystem : FileSystemUtil	{
 	}
 
 	/**
-	 * Deletes a filesystem resource.
+	 // * Deletes a filesystem resource.
 	 *
 	 * Files are deleted directly. Directories are deleted recursively together
 	 * with their contents.

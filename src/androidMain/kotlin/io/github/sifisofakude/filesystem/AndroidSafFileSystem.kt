@@ -408,15 +408,15 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
     for (input in inputFiles) {
 
       val root = when (input) {
-        is DocumentFile -> input
-        is Uri -> DocumentFile.fromTreeUri(context, input)
+        is Uri -> input
         is String ->	{
         	if(isSafContext(input))	{
-        		val path = tempPath(input)
+        		val tmpPath = tempPath(input)
+        		val relativeUri = relativePathFromUri(tmpPath)
+        		val resolvedUri = resolveRelativeUri(Uri.parse(relativeUri.rootUri),relativeUri.relativePath)
+        			?: return emptyList()
 
-        		path?.let	{
-        			getDocumentFile(path)
-        		}
+        		Uri.parse(resolvedUri)
         	}else	{
         		results += super.resolveFiles(listOf(input),extensions)
         		continue
@@ -425,8 +425,8 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
         else -> null
       } ?: continue
 
-      if (root.isFile) {
-        val name = root.name ?: continue
+      if (isFile("$root")) {
+        val name = getName("$root")
 
         if (extensions.isNotEmpty()) {
           val ext = getExtension(name)
@@ -436,7 +436,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
         results.add(
           FileSource(
             relativePath = name,
-            absolutePath = root.uri.toString()
+            absolutePath = "$root"
           )
         )
         continue
@@ -493,30 +493,28 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 * @param out output list accumulator
 	 */
 	private fun walkSaf(
-	    dir: DocumentFile,
+	    dir: Uri,
 	    basePath: String,
 	    extensions: Set<String>,
 	    out: MutableList<FileSource>
 	) {
-    dir.listFiles().forEach { file ->
+		if(isDirectory("$dir"))	{
+			listFiles("$dir").forEach	{ file ->
+				val rel = if(basePath.isEmpty()) file else "$basePath/$file"
 
-      val name = file.name?.trim('}') ?: return@forEach
-
-      val rel = if (basePath.isEmpty()) name else "$basePath/$name"
-
-      if (file.isDirectory) {
-          walkSaf(file, rel, extensions, out)
-      } else {
-        if (extensions.isEmpty() || getExtension(name) in extensions) {
-          out.add(
-            FileSource(
-              relativePath = rel,
-              absolutePath = file.uri.toString()
-            )
-          )
-        }
-      }
-    }
+				if(isDirectory("$dir||$file"))	{
+					val resolvedUri = resolveRelativeUri(dir,file) ?: return@forEach
+					walkSaf(Uri.parse(resolvedUri),rel.extensions,out)
+				}else	{
+					if(extensions.isEmpty() || getExtension(file) in extensions)	{
+						out += FileSource(
+							relativePath = rel,
+							absolutePath = resolveRelativeUri(dir,file) ?: return@forEach
+						)
+					}
+				}
+			}
+		}
 	}
 
 	/**
@@ -530,13 +528,14 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 */
 	override fun findFiles(directory: String, extensions: Set<String>): List<String> {
     if(isSafContext(directory))	{
-    	val tmpDir = tempPath(directory) ?: return emptyList()
-    	
-	    val root = getDocumentFile(tmpDir) ?: return emptyList()
-
+    	val tmpPath = tempPath(directory)
+			val relativeUri = relativePathFromUri(tmpPath)
+			val resolvedUri = resolveRelativeUri(Uri.parse(relativeUri.rootUri),relativeUri.relativePath)
+				?: emptyList()
+				
    		val results = mutableListOf<FileSource>()
 
-	    walkSaf(root,"",extensions,results)
+	    walkSaf(Uri.parse(resolvedUri),"",extensions,results)
 	    
     	return results.map { it.relativePath }.toList()
 		}
@@ -985,7 +984,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 * @return file or directory name, or an empty string if unavailable
 	 */
 	override fun getName(path: String): String	{
-		if(isSafUri(path))	{
+		if(isSafContext(path))	{
 			val relativeUri = relativePathFromUri(path)
 			val resolvedUri = resolveRelativeUri(Uri.parse(relativeUri.rootUri),relativeUri.relativePath)
 				?: return ""
