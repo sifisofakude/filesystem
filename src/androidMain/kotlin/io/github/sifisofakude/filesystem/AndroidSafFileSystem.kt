@@ -531,7 +531,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
     	val tmpPath = tempPath(directory) ?: return emptyList()
 			val relativeUri = relativePathFromUri(tmpPath)
 			val resolvedUri = resolveRelativeUri(Uri.parse(relativeUri.rootUri),relativeUri.relativePath)
-				?: emptyList()
+				?: return emptyList()
 				
    		val results = mutableListOf<FileSource>()
 
