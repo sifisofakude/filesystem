@@ -150,14 +150,16 @@ class AndroidSafFileSystemTest {
 			assertNotEquals(-1,lastModified)
 
 			jvmPath.deleteRecursively()
-			deleteAllFiles("$ROOT1")
-			deleteAllFiles("$ROOT2")
+			assertTrue(deleteAllFiles("$ROOT1"))
+			assertTrue(deleteAllFiles("$ROOT2"))
 		}
 
-    private fun deleteAllFiles(uri: String)	{
+    private fun deleteAllFiles(uri: String): Boolean	{
     	fs.listFiles(uri).forEach	{
-    		fs.delete(it)
+    		val path = fs.combinePath(uri,file) ?: return false
+    		if(!fs.delete($path)) return false
     	}
+    	return true
     }
 
     private fun selectUri(uri: String): Uri?	{
