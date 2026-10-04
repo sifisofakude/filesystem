@@ -46,7 +46,6 @@ kotlin {
             dependsOn(jvmAndAndroidMain)
 
             dependencies {
-                implementation(libs.androidx.documentfile)
                 implementation(libs.androidx.startup)
             }
         }

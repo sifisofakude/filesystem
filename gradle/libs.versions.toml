@@ -8,8 +8,6 @@ agp = "9.2.0"
 [libraries]
 kotlinx-io-core = {module = "org.jetbrains.kotlinx:kotlinx-io-core", version.ref = "kotlinxIo"}
 
-androidx-documentfile = {module = "androidx.documentfile:documentfile",version.ref = "documentfile"}
-
 androidx-startup = {module = "androidx.startup:startup-runtime",version.ref = "startup"}
 
 [plugins]

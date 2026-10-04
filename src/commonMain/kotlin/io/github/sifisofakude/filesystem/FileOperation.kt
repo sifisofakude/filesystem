@@ -130,10 +130,7 @@ class FileOperation(
 	 * @return `true` if the directory was created successfully, otherwise `false`
 	 */
 	fun mkdirs(): Boolean	{
-		if(!fs.exists(path))	{
-			return fs.createDirectory(path) != null
-		}
-		return false
+		return fs.createDirectory(path) != null
 	}
 
 	/**

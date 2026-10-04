@@ -4,17 +4,7 @@ import android.net.Uri
 import android.content.Context
 import android.provider.DocumentsContract
 
-import androidx.documentfile.provider.DocumentFile
-
-
 import java.io.File
-import java.io.OutputStream
-import java.io.InputStream
-import java.io.FileNotFoundException
-
-import java.nio.file.Paths
-
-import kotlin.io.normalize
 
 import kotlinx.io.Sink
 import kotlinx.io.Source
@@ -25,59 +15,69 @@ import kotlinx.io.buffered
 /**
  * Android Storage Access Framework (SAF) implementation of [FileSystemUtil].
  *
- * This implementation extends [JvmFileSystem] to provide filesystem operations
- * for Android Storage Access Framework resources identified by `content://`
- * URIs.
+ * [AndroidSafFileSystem] extends [JvmFileSystem] and provides filesystem
+ * operations for Android Storage Access Framework resources while retaining
+ * support for conventional JVM filesystem paths.
  *
- * SAF resources are provided by Android [DocumentProvider] implementations and
- * may represent local storage, removable storage, cloud storage, or other
- * document providers available on the device.
+ * SAF resources are identified by `content://` URIs and are accessed through
+ * Android's [DocumentsContract] API. Depending on the
+ * document provider, an SAF resource may represent local storage, removable
+ * storage, cloud storage, or another provider-backed document tree.
  *
- * The implementation allows SAF resources and conventional filesystem paths
- * to be accessed through the same [FileSystemUtil] API. Operations are
- * automatically delegated to the appropriate backend based on the supplied
- * path and the currently selected SAF directory.
+ * ### SAF path resolution
+ *
+ * A path can be represented in several forms:
+ *
+ * - A regular filesystem path, such as `/data/local/tmp/file.txt`.
+ * - A relative path, such as `src/main.kt`, when a SAF directory has been
+ *   selected with [changeSelectedDirectory].
+ * - An explicit SAF URI, such as `content://...`.
+ * - An internal SAF path consisting of an SAF root followed by `||` and a
+ *   relative path.
+ *
+ * The `||` representation is an internal path format used by this
+ * implementation to associate a relative path with a specific SAF root.
+ * Applications normally do not need to construct this representation
+ * themselves.
  *
  * ### Selected SAF directory
  *
- * A directory can be selected as the active SAF root using
- * [changeSelectedDirectory]. Once selected, relative paths are resolved
- * against that directory.
+ * [changeSelectedDirectory] establishes the directory against which relative
+ * paths are resolved.
  *
  * For example:
  *
  * ```kotlin
  * fs.changeSelectedDirectory(treeUri)
  *
- * val file = FileOperation("project/src/Main.kt")
+ * fs.createFile("project/src/Main.kt")
+ * fs.openSource("project/src/Main.kt")
  * ```
  *
- * A path beginning with `content://` is always treated as an SAF resource,
- * while relative paths are resolved against the selected SAF directory when
- * one is configured.
+ * An explicit `content://` URI is resolved independently of the currently
+ * selected directory.
  *
- * ### Cross-filesystem operations
+ * ### SAF and regular filesystem interoperability
  *
- * The implementation supports operations between conventional filesystem
- * paths and SAF resources where supported, allowing applications to copy or
- * move data between Android's traditional filesystem APIs and document
- * providers.
+ * Operations are delegated to the appropriate backend based on the supplied
+ * path. This allows regular filesystem paths and SAF resources to be used
+ * through the same [FileSystemUtil] API where the underlying operation
+ * supports both.
  *
  * ### Materialization
  *
- * Some libraries and APIs require a real filesystem path and cannot operate
- * directly on a `content://` URI. [materialize] can be used to copy an SAF
- * resource into the application's private files directory and obtain a
- * conventional filesystem path.
+ * Some libraries and APIs require a conventional filesystem path and cannot
+ * consume a `content://` URI directly. [materialize] copies an SAF resource
+ * into the application's private files directory and returns the resulting
+ * filesystem path.
  *
- * Materialized resources can later be removed using [clearMaterialized].
+ * Materialized resources can be removed using [clearMaterialized].
  *
- * @param context Android context used to access document providers and SAF
- * resources.
+ * @param context Android context used to access the ContentResolver and
+ * document providers.
  *
  * @see FileSystemUtil
  * @see JvmFileSystem
- * @see DocumentFile
  * @see DocumentsContract
  */
 class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
@@ -96,11 +96,15 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 * @param newParentUri SAF tree URI representing a user-granted directory
 	 */
 	fun changeSelectedDirectory(newParentUri: Uri?)	{
-		newParentUri?.let	{ parent ->
+		selectedParentUri = newParentUri?.let	{ parent ->
 			if(isTreeUri(parent.toString()))	{
-				DocumentFile.fromTreeUri(context,parent)?.let	{
-					if(it.isDirectory) selectedParentUri = newParentUri
+				if(isDirectory(parent.toString()))	{
+					selectedParentUri = parent
+				}else	{
+					null
 				}
+			}else	{
+				null
 			}
 		}
 	}
@@ -163,22 +167,26 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 		}
 	}
 
+	/**
+	 * Returns whether the supplied URI represents a SAF tree URI.
+	 *
+	 * @param uri URI string to inspect.
+	 * @return `true` when the URI represents a document tree.
+	 */
 	fun isTreeUri(uri: String): Boolean	= DocumentsContract.isTreeUri(Uri.parse(uri))
 
 	/**
-	 * Resolves a relative path against an SAF tree URI.
+	 * Resolves a relative path against an SAF tree or document URI.
 	 *
-	 * Each path segment is traversed through the corresponding
-	 * [DocumentFile] hierarchy starting at [rootTreeUri].
+	 * The relative path is converted into a SAF document ID and resolved using
+	 * [DocumentsContract]. The returned URI identifies the corresponding
+	 * document within the provider's tree.
 	 *
-	 * For example, resolving `src/main.kt` against a selected tree causes
-	 * `src` to be located first and `main.kt` to be located within that
-	 * directory.
-	 *
-	 * @param rootTreeUri SAF tree URI used as the resolution root.
-	 * @param relativePath path relative to [rootTreeUri].
-	 * @return URI of the resolved document, or `null` if any path segment
-	 * could not be resolved.
+	 * @param uri SAF tree or document URI used as the resolution root.
+	 * @param relativePath path relative to [uri].
+	 * @return resolved document URI, or `null` if [uri] cannot be used as a
+	 * resolution root or does not represent a directory when a relative path
+	 * is supplied.
 	 */
 	fun resolveRelativeUri(uri: Uri, relativePath: String): String?	{
 		if(!isSafUri(uri.toString())) return null
@@ -187,7 +195,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 		val isDocument = DocumentsContract.isDocumentUri(context,uri)
 		val isTreeDocument = isTree && isDocument
 
-		val docId = if(isTree || isTreeDocument)	{
+		val docId = if(isTreeDocument)	{
 			DocumentsContract.getTreeDocumentId(uri)
 		}else if(isDocument)	{
 			DocumentsContract.getDocumentId(uri)
@@ -195,7 +203,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 			return null
 		}
 
-		val completeDocId = if(isTreeDocument || isTree)	{
+		val completeDocId = if(isTreeDocument)	{
 			val metadata = DocumentsContract.Document.COLUMN_MIME_TYPE
 			val mime = getDocumentMetadata(uri,listOf(metadata))[metadata]
 
@@ -221,6 +229,14 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 			.toString()
 	}
 
+	/**
+	 * Queries metadata columns for an SAF document.
+	 *
+	 * @param rootUri SAF tree or document URI.
+	 * @param metadata document metadata columns to query.
+	 * @return map of requested column names to their values. Returns an empty map
+	 * if the document cannot be queried or the requested metadata is unavailable.
+	 */
 	fun getDocumentMetadata(rootUri: Uri,metadata: List<String>): Map<String,String>	{
 		val isTree = DocumentsContract.isTreeUri(rootUri)
 		val isDocument = DocumentsContract.isDocumentUri(context,rootUri)
@@ -238,50 +254,48 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 		val projection = metadata.toTypedArray()
 		val result = mutableMapOf<String,String>()
 
-		try	{
-			contentResolver.query(resolvedUri,projection,null,null,null)?.use { cursor ->
-				if(cursor.count > 0)	{
-					cursor.moveToFirst()
-					
-					val metadataIndexes = mutableMapOf<String,Int>()
+		contentResolver.query(resolvedUri,projection,null,null,null)?.use { cursor ->
+			if(cursor.count > 0)	{
+				cursor.moveToFirst()
+				
+				val metadataIndexes = mutableMapOf<String,Int>()
 
-					metadata.forEach	{
-						val index = cursor.getColumnIndex(it)
-						if(index > -1)	{
-							metadataIndexes[it] = index
-						}
+				metadata.forEach	{
+					val index = cursor.getColumnIndex(it)
+					if(index > -1)	{
+						metadataIndexes[it] = index
 					}
-
-					do	{
-						for((k,v) in metadataIndexes)	{
-							val md = cursor.getString(v)
-
-							result[k] = md
-						}
-					}while(cursor.moveToNext())
 				}
+
+				do	{
+					for((k,v) in metadataIndexes)	{
+						val md = cursor.getString(v)
+
+						result[k] = md
+					}
+				}while(cursor.moveToNext())
 			}
-		}catch(e: Exception) {}
+		}
 
 		return result
 	}
 
 	/**
-	 * Resolves an SAF URI into a tree root and a path relative to that root.
+	 * Splits an SAF path into its root URI and relative path components.
 	 *
-	 * The URI is traversed from the leaf toward its parent until a URI that can
-	 * be resolved as an SAF tree is found. The returned [SafRelativePath]
-	 * contains that tree URI together with the path from the tree root to the
-	 * original document.
+	 * SAF paths may use the internal `||` separator to represent a path relative
+	 * to a tree URI:
 	 *
-	 * This allows document URIs nested below a tree URI to be resolved using
-	 * [DocumentFile] traversal rather than relying on the URI path itself as a
-	 * filesystem path.
+	 * ```
+	 * content://...||directory/file.txt
+	 * ```
 	 *
-	 * @param uri SAF `content://` URI to resolve.
-	 * @return the discovered SAF tree root and the relative path to [uri].
-	 * If no tree root can be resolved, the original URI is returned as the root
-	 * with an empty relative path.
+	 * For ordinary relative paths, the currently selected SAF directory is used
+	 * as the root.
+	 *
+	 * @param uri SAF URI or relative path.
+	 * @return parsed SAF root and relative path, or an empty [SafRelativePath]
+	 * if the path is outside the SAF context.
 	 */
 	fun relativePathFromUri(uri: String): SafRelativePath	{
 		if(isSafContext(uri))	{
@@ -305,6 +319,16 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 		return SafRelativePath("","")
 	}
 
+	/**
+	 * Returns the document ID associated with an SAF URI.
+	 *
+	 * Tree URIs are resolved using [DocumentsContract.getTreeDocumentId], while
+	 * document URIs are resolved using [DocumentsContract.getDocumentId].
+	 *
+	 * @param uri SAF URI to inspect.
+	 * @return document ID, or `null` when the URI cannot be interpreted as a
+	 * supported SAF URI.
+	 */
 	fun getDocumentId(uri: Uri): String?	{
 		return if(isTreeUri(uri.toString()))	{
 			DocumentsContract.getTreeDocumentId(uri)
@@ -423,32 +447,41 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	}
 
 	/**
-	 * Moves an SAF document to another SAF directory.
+	 * Moves a file or directory to a destination.
 	 *
-	 * The source must resolve to an existing SAF document and the destination
-	 * must identify the target SAF directory.
+	 * This implementation delegates to [FileSystemUtil.moveByStream], providing
+	 * a provider-independent move operation for SAF resources. This avoids
+	 * relying on provider-specific support for native SAF move operations.
 	 *
-	 * @param src URI or path identifying the source document.
-	 * @param dst URI identifying the destination directory.
-	 * @return URI of the moved document, or `null` if the operation fails.
+	 * Directories are moved recursively.
+	 *
+	 * @param src source file or directory path.
+	 * @param dst destination  path.
+	 * @return the resulting path of the moved resource, or `null` if the
+	 * operation fails.
+	 *
+	 * @see FileSystemUtil.moveByStream
 	 */
 	override fun move(src: String, dst: String): String?	{
 		return moveByStream(src,dst)
 	}
 
 	/**
-	 * Copies an SAF document into a destination SAF directory.
+	 * Copies a file or directory to a destination.
 	 *
-	 * The destination must identify an existing SAF directory. When [overwrite]
-	 * is `false`, the operation fails if a document with the same name already
-	 * exists in the destination.
+	 * This implementation delegates to [FileSystemUtil.copyByStream], providing
+	 * a provider-independent copy operation for SAF resources. This avoids
+	 * relying on provider-specific support for native SAF copy operations.
 	 *
-	 * The operation is performed using [DocumentsContract.copyDocument].
+	 * Directories are copied recursively.
 	 *
-	 * @param src source SAF URI or path.
-	 * @param dst destination SAF directory URI.
+	 * @param src source file or directory path.
+	 * @param dst destination path.
 	 * @param overwrite whether an existing destination may be replaced.
-	 * @return URI of the copied document, or `null` if the operation fails.
+	 * @return the resulting path of the copied resource, or `null` if the
+	 * operation fails.
+	 *
+	 * @see FileSystemUtil.copyByStream
 	 */
 	override fun copy(src: String, dst: String, overwrite: Boolean): String?	{
 		return copyByStream(src,dst,overwrite)
@@ -490,13 +523,17 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	}
 
 	/**
-	 * Recursively searches for files in a SAF directory using URI traversal.
+	 * Recursively finds files beneath a directory.
 	 *
-	 * Only files matching the given extensions are returned.
+	 * SAF directories are traversed recursively and matching files are returned
+	 * as paths relative to the supplied directory.
 	 *
-	 * @param directory SAF tree URI string
-	 * @param extensions allowed file extensions (empty = all files)
-	 * @return list of file URIs as strings
+	 * For regular filesystem paths, the implementation delegates to
+	 * [JvmFileSystem.findFiles].
+	 *
+	 * @param directory directory to search.
+	 * @param extensions allowed file extensions. An empty set includes all files.
+	 * @return list of relative paths for matching files.
 	 */
 	override fun findFiles(directory: String, extensions: Set<String>): List<String> {
     if(isSafContext(directory))	{
@@ -515,16 +552,18 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	}
 
 	/**
-	 * Creates a directory structure inside the selected SAF root.
+	 * Creates a directory structure in the current SAF context.
 	 *
-	 * The provided path is treated as a relative path, and all missing
-	 * intermediate directories will be created.
+	 * Missing intermediate directories are created automatically. Existing
+	 * directories are reused, while an existing file occupying a required
+	 * directory name causes the operation to fail.
 	 *
-	 * If a file exists with the same name as a required directory segment,
-	 * creation fails.
+	 * For regular filesystem paths, the implementation delegates to
+	 * [JvmFileSystem.createDirectory].
 	 *
-	 * @param path relative directory path (e.g. "a/b/c")
-	 * @return URI string of the final directory, or null if creation failed
+	 * @param path directory path to create.
+	 * @return the supplied [path] when the directory exists or was successfully
+	 * created, or `null` when creation fails.
 	 */
 	override fun createDirectory(path: String): String? {
 		if(isSafContext(path))	{
@@ -552,20 +591,16 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 				
 				val mimeType = DocumentsContract.Document.MIME_TYPE_DIR
 
-				try	{
-					val newUri = DocumentsContract.createDocument(
-						contentResolver,
-						Uri.parse(currentUri),
-						mimeType,
-						segment
-					)
+				val newUri = DocumentsContract.createDocument(
+					contentResolver,
+					Uri.parse(currentUri),
+					mimeType,
+					segment
+				)
 
-					if(newUri != null) {
-						currentUri = resolveRelativeUri(Uri.parse(currentUri),segment) ?: return null
-					}else	{
-						return null
-					}
-				}catch(_: Exception)	{
+				if(newUri != null) {
+					currentUri = resolveRelativeUri(Uri.parse(currentUri),segment) ?: return null
+				}else	{
 					return null
 				}
 			}
@@ -575,13 +610,18 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	}
 
 	/**
-	 * Creates a file inside the selected SAF root directory.
+	 * Creates a file in the current SAF context.
 	 *
-	 * Missing parent directories are automatically created.
-	 * If a file already exists, its URI is returned instead of creating a new one.
+	 * Missing parent directories are created automatically. If a file with the
+	 * requested name already exists, its path is returned. If a directory already
+	 * occupies that path, creation fails.
 	 *
-	 * @param path relative file path (e.g. "a/b/file.txt")
-	 * @return URI string of the file, or null if creation failed
+	 * For regular filesystem paths, the implementation delegates to
+	 * [JvmFileSystem.createFile].
+	 *
+	 * @param path file path to create.
+	 * @return the supplied [path] when the file exists or was successfully
+	 * created, or `null` when creation fails.
 	 */
 	override fun createFile(path: String): String? {
 		if(isSafContext(path))	{
@@ -865,10 +905,14 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	}
 
 	/**
-	 * Returns last modified timestamp of a SAF file.
+	 * Returns the last-modified timestamp of a file or directory.
 	 *
-	 * @param path file URI string
-	 * @return timestamp in millis, or -1 if unavailable
+	 * SAF timestamps are obtained from
+	 * [DocumentsContract.Document.COLUMN_LAST_MODIFIED].
+	 *
+	 * @param path file or directory path.
+	 * @return last-modified time in milliseconds since the Unix epoch, or `-1`
+	 * if the value is unavailable.
 	 */
 	override fun lastModified(path: String): Long	{
 		if(isSafContext(path))	{
@@ -912,12 +956,13 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 			}
 
 			return if(isRelative(path))	{
-				val tmpPath = relativePathFromUri(currentUri)
+				var relativeUri = currentUri.substringBefore("||","")
+				val relativePath = currentUri.substringAfter("||","")
 
-				if(tmpPath.relativePath.isBlank())	{
-					tmpPath.rootUri
+				if(relativePath.isBlank())	{
+					relativeUri
 				}else	{
-					tmpPath.relativePath
+					relativePath
 				}
 			}else	{
 				currentUri
@@ -948,12 +993,16 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	/**
 	 * Returns the display name of a file or directory.
 	 *
-	 * For SAF documents this is the provider-reported document name.
-	 * For regular filesystem paths this is equivalent to
-	 * `File(path).name`.
+	 * For SAF resources, the name is obtained from
+	 * [DocumentsContract.Document.COLUMN_DISPLAY_NAME]. For paths containing a
+	 * relative SAF component, the final path component is used.
 	 *
-	 * @param path filesystem path or SAF URI
-	 * @return file or directory name, or an empty string if unavailable
+	 * For regular filesystem paths, the implementation returns the filesystem
+	 * file name.
+	 *
+	 * @param path file, directory, SAF URI, or relative path.
+	 * @return display name, or an empty string if the SAF resource cannot be
+	 * resolved.
 	 */
 	override fun getName(path: String): String	{
 		if(isSafContext(path))	{

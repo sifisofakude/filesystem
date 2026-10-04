@@ -100,33 +100,29 @@ class AndroidSafFileSystemTest {
 			
 			assertEquals("",fs.readText("$ROOT2||test2/1/2/test-file.txt"))
 
-			// Native copy
+			// Copy
 			assertNotNull(fs.copy("test1/test-file.txt","test1/1"))
-			// assertNotNull(fs.copy("test1","test1/1/2"))
 			
 			assertTrue(fs.exists("test1/1/test-file.txt"))
-			// assertTrue(fs.exists("test1/1/2/test1"))
 
-			// Stream copy
 			val jvmPath = File(context.filesDir,"jvm-testing-dir").apply	{
 				deleteRecursively()
 				mkdirs()
 			}
 			
-			assertNotNull(fs.copyByStream("test1",jvmPath.absolutePath))
-			assertNotNull(fs.copyByStream("test1","$ROOT2||test2/1/2"))
+			assertNotNull(fs.copy("test1",jvmPath.absolutePath))
+			assertNotNull(fs.copy("test1","$ROOT2||test2/1/2"))
 
 			assertTrue(fs.exists("${jvmPath.absolutePath}/test1"))
 			assertTrue(fs.exists("$ROOT2||test2/1/2/test1"))
 
-			// Native move
+			// Move
 			assertNotNull(fs.move("test1/test-file.txt","test1/1/new-name.txt"))
 
 			assertTrue(!fs.exists("test1/test-file.txt"))
 			assertTrue(fs.exists("test1/1/new-name.txt"))
 
-			// Move by stream
-			assertNotNull(fs.moveByStream("$ROOT1||test1/1/2","$ROOT2||test2"))
+			assertNotNull(fs.move("$ROOT1||test1/1/2","$ROOT2||test2"))
 
 			assertTrue(fs.isDirectory("$ROOT2||test2/2"))
 
@@ -134,7 +130,7 @@ class AndroidSafFileSystemTest {
 			val files = fs.listFiles("test1/1")
 
 			assertEquals(2,files.size)
-			// assertEquals("new-name.txt",files[0])
+			assertTrue(files.contains("new-name.txt"))
 
 			// Finding files in a directory
 			val found = fs.findFiles("test1",emptySet())
