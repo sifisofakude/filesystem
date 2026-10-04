@@ -305,34 +305,6 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 		return SafRelativePath("","")
 	}
 
-	/**
-	 * Resolves a path to a [DocumentFile] when the path belongs to the current
-	 * SAF context.
-	 *
-	 * The path may be an explicit `content://` URI or a relative path resolved
-	 * against the directory selected by [changeSelectedDirectory].
-	 *
-	 * @param path SAF URI or relative path to resolve.
-	 * @return resolved [DocumentFile], or `null` if the resource cannot be
-	 * resolved.
-	 */
-	fun getDocumentFile(path: String): DocumentFile?	{
-		if(isSafContext(path))	{
-			val tmpRelativeUri = relativePathFromUri(path)
-			val resolvedUri = resolveRelativeUri(
-				uri = Uri.parse(tmpRelativeUri.rootUri),
-				relativePath = tmpRelativeUri.relativePath
-			) ?: return null
-
-			return if(isTreeUri(resolvedUri))	{
-				DocumentFile.fromTreeUri(context, Uri.parse(resolvedUri))
-			}else	{
-				DocumentFile.fromSingleUri(context, Uri.parse(resolvedUri))
-			}
-		}
-		return null
-	}
-
 	fun getDocumentId(uri: Uri): String?	{
 		return if(isTreeUri(uri.toString()))	{
 			DocumentsContract.getTreeDocumentId(uri)

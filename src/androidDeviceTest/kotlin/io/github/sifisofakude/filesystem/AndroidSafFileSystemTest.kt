@@ -155,9 +155,9 @@ class AndroidSafFileSystemTest {
 		}
 
     private fun deleteAllFiles(uri: String): Boolean	{
-    	fs.listFiles(uri).forEach	{
+    	fs.listFiles(uri).forEach	{ file ->
     		val path = fs.combinePath(uri,file) ?: return false
-    		if(!fs.delete($path)) return false
+    		if(!fs.delete(path)) return false
     	}
     	return true
     }
