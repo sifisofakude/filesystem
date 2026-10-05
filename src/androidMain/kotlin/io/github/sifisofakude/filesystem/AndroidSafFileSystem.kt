@@ -96,15 +96,13 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 * @param newParentUri SAF tree URI representing a user-granted directory
 	 */
 	fun changeSelectedDirectory(newParentUri: Uri?)	{
-		selectedParentUri = newParentUri?.let	{ parent ->
+		newParentUri?.let	{ parent ->
 			if(isTreeUri(parent.toString()))	{
 				if(isDirectory(parent.toString()))	{
-					parent
+					selectedParentUri = newParentUri
 				}else	{
-					null
+					selectedParentUri = null
 				}
-			}else	{
-				null
 			}
 		}
 	}

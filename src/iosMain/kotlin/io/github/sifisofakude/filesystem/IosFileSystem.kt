@@ -6,12 +6,16 @@ import kotlinx.io.buffered
 import kotlinx.io.files.SystemFileSystem
 import kotlinx.io.files.Path
 import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.ObjCObjVar
+import kotlinx.cinterop.alloc
+import kotlinx.cinterop.memScoped
 
 import platform.Foundation.NSFileManager
 import platform.Foundation.NSURL
 import platform.Foundation.NSDate
 import platform.Foundation.NSNumber
 import platform.Foundation.NSString
+import platform.Foundation.NSError
 import platform.Foundation.NSFileSize
 import platform.Foundation.NSFileModificationDate
 import platform.Foundation.NSFileType
@@ -342,12 +346,15 @@ class IosFileSystem : FileSystemUtil {
 	override fun listFiles(path: String): List<String> {
 		val resolved = resolveSelectedPath(path)
 
-		return try {
-			fileManager
-				.contentsOfDirectoryAtPath(resolved, error = null)
-				?: emptyList()
-		} catch (e: Exception) {
-			emptyList()
+		return memScoped {
+			val errorPointer = alloc<ObjCObjVar<NSError?>>()
+			val contents = fileManager.contentsOfDirectoryAtPath(resolved, error = errorPointer.ptr)
+			if(errorPointer.value != null)	{
+				emptyList()
+			}else	{
+				@Suppress("UNCHECKED_CAST")
+				(contents as? List<String>) ?: emptyList()
+			}
 		}
 	}
 
