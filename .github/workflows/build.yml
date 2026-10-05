@@ -106,3 +106,14 @@ jobs:
       - name: Build and Test Apple Targets
         run: |
           ./gradlew iosSimulatorArm64Test
+          
+  maven-publish-test:
+    name: Maven Publish Test
+    runs-on: macos-latest
+
+    steps:
+      - name: Publish Test
+        run: |
+          ./gradlew publishToMavenLocal
+
+    

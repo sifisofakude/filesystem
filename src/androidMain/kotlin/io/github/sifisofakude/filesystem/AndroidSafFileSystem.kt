@@ -436,7 +436,6 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
         walkSaf(root, "", extensions, results)
       }
     }
-
     return results
 	}
 

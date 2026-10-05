@@ -302,7 +302,11 @@ class FileOperation(
 	 * @return the immediate child resources, or an empty list if the directory
 	 *         cannot be listed or contains no children
 	 */
-	fun listFiles(): List<FileOperation> = fs.listFiles(path).map(::FileOperation)
+	fun listFiles(): List<FileOperation>	{
+		return fs.listFiles(path).map	{
+			FileOperation(fs.combinePath(path,it))
+		}
+	}
 
 	/**
 	 * Determines whether this resource exists.
