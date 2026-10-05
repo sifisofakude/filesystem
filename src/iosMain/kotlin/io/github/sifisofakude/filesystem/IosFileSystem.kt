@@ -6,7 +6,7 @@ import kotlinx.io.buffered
 import kotlinx.io.files.SystemFileSystem
 import kotlinx.io.files.Path
 import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.cinterop.ObjCObjVar
+import kotlinx.cinterop.ObjCObjectVar
 import kotlinx.cinterop.alloc
 import kotlinx.cinterop.memScoped
 
@@ -347,7 +347,7 @@ class IosFileSystem : FileSystemUtil {
 		val resolved = resolveSelectedPath(path)
 
 		return memScoped {
-			val errorPointer = alloc<ObjCObjVar<NSError?>>()
+			val errorPointer = alloc<ObjCObjectVar<NSError?>>()
 			val contents = fileManager.contentsOfDirectoryAtPath(resolved, error = errorPointer.ptr)
 			if(errorPointer.value != null)	{
 				emptyList()
