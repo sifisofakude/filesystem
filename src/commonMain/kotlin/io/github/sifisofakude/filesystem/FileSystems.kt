@@ -24,11 +24,10 @@ package io.github.sifisofakude.filesystem
   */
  expect object FileSystems {
      /**
-      * Returns the filesystem implementation provided by the current platform.
-      *
-      * The returned implementation may represent a conventional filesystem,
-      * an Android Storage Access Framework filesystem, or another
-      * platform-specific storage backend.
-      */
+     * Returns the filesystem implementation provided by the current platform.
+     *
+     * The returned implementation represents the filesystem backend available
+     * on the current platform.
+     */
      val current: FileSystemUtil
  }

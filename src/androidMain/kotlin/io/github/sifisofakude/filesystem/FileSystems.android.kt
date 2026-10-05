@@ -9,8 +9,19 @@ actual object FileSystems	{
 	}
 }
 
+/**
+ * Provides the application context used to initialize the Android filesystem.
+ *
+ * AndroidX Startup initializes this provider before [FileSystems.current]
+ * is accessed, allowing the filesystem implementation to use an application
+ * scoped [Context] without requiring application code to perform manual
+ * initialization.
+ */
 class ContextProvider : Initializer<Unit>	{
 	companion object	{
+		/**
+		 * Application-scoped context used by the Android filesystem implementation.
+		 */
 		lateinit var appContext: Context
 			private set
 	}

@@ -6,8 +6,12 @@ import kotlinx.io.buffered
 import kotlinx.io.files.SystemFileSystem
 import kotlinx.io.files.Path
 import kotlinx.cinterop.ExperimentalForeignApi
+
 import kotlinx.cinterop.ObjCObjectVar
 import kotlinx.cinterop.alloc
+import kotlinx.cinterop.pointed
+import kotlinx.cinterop.ptr
+import kotlinx.cinterop.value
 import kotlinx.cinterop.memScoped
 
 import platform.Foundation.NSFileManager
@@ -144,16 +148,15 @@ class IosFileSystem : FileSystemUtil {
 	}
 
 	/**
-	 * Creates a new empty file.
+	 * Creates a directory.
 	 *
 	 * Missing parent directories are created automatically.
 	 *
-	 * If a resource already exists at [path], no file is created and `null`
-	 * is returned.
+	 * If a directory already exists at [path], its path is returned.
 	 *
-	 * @param path file path.
-	 * @return resolved file path when creation succeeds, or `null` if creation
-	 * fails or the path already exists.
+	 * @param path directory path.
+	 * @return resolved directory path when creation succeeds, or `null` if creation
+	 * fails.
 	 */
 	override fun createDirectory(path: String): String? {
 		val resolved = resolveSelectedPath(path)
@@ -347,7 +350,7 @@ class IosFileSystem : FileSystemUtil {
 		val resolved = resolveSelectedPath(path)
 
 		return memScoped {
-			val errorPointer = alloc<ObjCObjectVar<NSError?>>()
+			val errorPointer: ObjCObjectVar<NSError?> = alloc<ObjCObjectVar<NSError?>>()
 			val contents = fileManager.contentsOfDirectoryAtPath(resolved, error = errorPointer.ptr)
 			if(errorPointer.value != null)	{
 				emptyList()
@@ -509,9 +512,9 @@ class IosFileSystem : FileSystemUtil {
 					"$basePath/$name"
 				}
 
-			if (isDirectory(file)) {
+			if (isDirectory("$directory/$file")) {
 				resolveDirectory(
-					file,
+					"$directory/$file",
 					relativePath,
 					extensions,
 					results
@@ -523,7 +526,7 @@ class IosFileSystem : FileSystemUtil {
 				results.add(
 					FileSource(
 						relativePath = relativePath,
-						absolutePath = file
+						absolutePath = "$directory/$file"
 					)
 				)
 			}

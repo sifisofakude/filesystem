@@ -144,7 +144,29 @@ interface FileSystemUtil	{
 	 * @return resulting destination path or URI, or `null` if copying failed
 	 */
 	fun copy(src: String, dst: String,overwrite: Boolean = true): String?
-	
+
+	/**
+	 * Copies a file or directory using stream-based filesystem operations.
+	 *
+	 * This implementation performs the copy using the filesystem abstraction's
+	 * primitive operations such as [openSource], [openSink], [listFiles],
+	 * [createFile], and [createDirectory].
+	 *
+	 * Unlike platform-specific copy operations, this implementation does not
+	 * require the underlying storage provider to support a native copy operation.
+	 * This allows resources to be copied between different filesystem roots or
+	 * storage representations when supported by the implementation.
+	 *
+	 * Directories are copied recursively.
+	 *
+	 * If [dst] refers to an existing directory, the source is copied into that
+	 * directory using the source resource's name.
+	 *
+	 * @param src source file or directory
+	 * @param dst destination file or directory
+	 * @param overwrite whether an existing destination file may be overwritten
+	 * @return resulting destination path or URI, or `null` if copying failed
+	 */
 	fun copyByStream(
     src: String,
     dst: String,
@@ -385,7 +407,27 @@ interface FileSystemUtil	{
 	 * @return resulting destination path or URI, or `null` if the move failed
 	 */
 	fun move(src: String, dst: String): String?
-	
+
+	/**
+	 * Moves a file or directory using stream-based filesystem operations.
+	 *
+	 * The resource is copied using [copyByStream] and the source is deleted only
+	 * after the copy succeeds.
+	 *
+	 * Directories are moved recursively. The source directory is deleted only
+	 * after all child resources have been successfully moved.
+	 *
+	 * This implementation does not rely on platform-specific move or rename
+	 * operations, allowing resources to be moved between different filesystem
+	 * roots or storage representations when supported by the implementation.
+	 *
+	 * If [dst] refers to an existing directory, the source is moved into that
+	 * directory using the source resource's name.
+	 *
+	 * @param src source file or directory
+	 * @param dst destination file or directory
+	 * @return resulting destination path or URI, or `null` if the move failed
+	 */
 	fun moveByStream(src: String, dst: String): String? {
 		var tmpSource = src
 		val sourceParent = getParentFile(src)

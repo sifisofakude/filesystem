@@ -56,7 +56,7 @@ class FileOperation(
 	 * - `.gitignore` → ``
 	 */
 	val extension
-	    get() = name.substringAfterLast('.', "")
+	    get() = fs.getExtension(name)
 
 	/**
 	 * Returns the resource name without its file extension.
@@ -71,7 +71,11 @@ class FileOperation(
 	 * - `.gitignore` → `.gitignore`
 	 */
 	val nameWithoutExtension
-	    get() = name.substringBeforeLast('.', name)
+	    get() = if(extension.isEmpty())	{
+	    	name
+	    }else	{
+	    	name.substringBefore(".")
+	    }
 
 	/**
 	 * Returns the parent directory, or `null` if this resource has no parent.
@@ -243,7 +247,8 @@ class FileOperation(
 	/**
 	 * Creates a new empty file represented by this resource.
 	 *
-	 * Parent directories may be created by the active filesystem implementation.
+	 * Parent directory creation is determined by the active filesystem
+	 * implementation.
 	 *
 	 * @return `true` if the file was created successfully, otherwise `false`
 	 */

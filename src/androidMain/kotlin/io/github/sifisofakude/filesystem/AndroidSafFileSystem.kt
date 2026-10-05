@@ -191,7 +191,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 		val isDocument = DocumentsContract.isDocumentUri(context,uri)
 		val isTreeDocument = isTree && isDocument
 
-		val docId = if(isTreeDocument)	{
+		val docId = if(isTreeDocument || isTree)	{
 			DocumentsContract.getTreeDocumentId(uri)
 		}else if(isDocument)	{
 			DocumentsContract.getDocumentId(uri)
@@ -199,7 +199,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 			return null
 		}
 
-		val completeDocId = if(isTreeDocument)	{
+		val completeDocId = if(isTreeDocument || isTree)	{
 			val metadata = DocumentsContract.Document.COLUMN_MIME_TYPE
 			val mime = getDocumentMetadata(uri,listOf(metadata))[metadata]
 
@@ -250,28 +250,30 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 		val projection = metadata.toTypedArray()
 		val result = mutableMapOf<String,String>()
 
-		contentResolver.query(resolvedUri,projection,null,null,null)?.use { cursor ->
-			if(cursor.count > 0)	{
-				cursor.moveToFirst()
-				
-				val metadataIndexes = mutableMapOf<String,Int>()
+		try	{
+			contentResolver.query(resolvedUri,projection,null,null,null)?.use { cursor ->
+				if(cursor.count > 0)	{
+					cursor.moveToFirst()
+					
+					val metadataIndexes = mutableMapOf<String,Int>()
 
-				metadata.forEach	{
-					val index = cursor.getColumnIndex(it)
-					if(index > -1)	{
-						metadataIndexes[it] = index
+					metadata.forEach	{
+						val index = cursor.getColumnIndex(it)
+						if(index > -1)	{
+							metadataIndexes[it] = index
+						}
 					}
+
+					do	{
+						for((k,v) in metadataIndexes)	{
+							val md = cursor.getString(v)
+
+							result[k] = md
+						}
+					}while(cursor.moveToNext())
 				}
-
-				do	{
-					for((k,v) in metadataIndexes)	{
-						val md = cursor.getString(v)
-
-						result[k] = md
-					}
-				}while(cursor.moveToNext())
 			}
-		}
+		}catch(_: Exception) {}
 
 		return result
 	}
@@ -321,9 +323,8 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 * Tree URIs are resolved using [DocumentsContract.getTreeDocumentId], while
 	 * document URIs are resolved using [DocumentsContract.getDocumentId].
 	 *
-	 * @param uri SAF URI to inspect.
-	 * @return document ID, or `null` when the URI cannot be interpreted as a
-	 * supported SAF URI.
+	 * @param uri SAF tree or document URI.
+	 * @return document ID, or `null` when the URI is not a supported SAF URI.
 	 */
 	fun getDocumentId(uri: Uri): String?	{
 		return if(isTreeUri(uri.toString()))	{
@@ -334,19 +335,18 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	}
 
 	/**
-	 * Constructs the intermediate URI representation used to resolve a path
+	 * Constructs the intermediate path representation used to resolve a path
 	 * within the current SAF context.
 	 *
 	 * Explicit SAF URIs are returned unchanged. Relative paths are combined
-	 * with the currently selected SAF directory so that the resulting URI can
-	 * be decomposed by [relativePathFromUri] and resolved through
-	 * [DocumentFile].
+	 * with the currently selected SAF directory using the internal `||`
+	 * representation.
 	 *
-	 * The resulting value is an internal representation and is not assumed to
-	 * be the final document URI exposed by the SAF provider.
+	 * The resulting value is an internal path representation and is not assumed
+	 * to be the final document URI exposed by the SAF provider.
 	 *
 	 * @param path SAF URI or relative path.
-	 * @return intermediate SAF URI representation, or `null` when no SAF root
+	 * @return intermediate SAF path representation, or `null` when no SAF root
 	 * is available for a relative path.
 	 */
 	private fun tempPath(path: String): String?	{
@@ -365,11 +365,10 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 
 	override fun combinePath(parent: String, child: String): String	{
 		if(isSafUri(parent))	{
-			return if(isSafUri(parent))	{
-				if(parent.contains("||")) "${parent.trim('/')}/${child.trim('/')}"
-				else "$parent||${child.trim('/')}"
-			}else	{
-				super.combinePath(parent,child)
+			return if(parent.contains("||"))	{
+				"${parent.trim('/')}/${child.trim('/')}"
+			}else {
+				"$parent||${child.trim('/')}"
 			}
 		}
 		return super.combinePath(parent,child)
@@ -379,7 +378,6 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 * Resolves a list of SAF inputs into structured [FileSource] entries.
 	 *
 	 * Supports:
-	 * - [DocumentFile]
 	 * - [Uri]
 	 * - String URIs
 	 *
@@ -713,10 +711,14 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	}
 
 	/**
-	 * Lists immediate children of a SAF directory.
+	 * Lists the immediate children of a SAF directory.
 	 *
-	 * @param path directory URI string
-	 * @return list of child file URIs
+	 * The returned values are child names relative to [path], rather than
+	 * resolved document URIs. These names can be combined with the directory
+	 * path using [combinePath] to address the corresponding child resources.
+	 *
+	 * @param path SAF directory path or URI.
+	 * @return list of immediate child names.
 	 */
 	override fun listFiles(path: String): List<String>	{
 		if(isSafContext(path))	{
@@ -924,13 +926,17 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	}
 
 	/**
-	 * Normalizes and reconstructs a SAF tree URI.
+	 * Resolves and normalizes a path within the active filesystem context.
 	 *
-	 * Attempts to resolve and clean up relative segments such as ".."
-	 * inside SAF document IDs.
+	 * For SAF resources, relative path segments such as `.` and `..` are resolved
+	 * against the applicable SAF root. The returned representation preserves
+	 * whether the original path was relative or an explicit SAF path.
 	 *
-	 * @param path SAF URI string
-	 * @return normalized SAF URI string
+	 * For regular filesystem paths, the implementation delegates to
+	 * [JvmFileSystem.resolvePath].
+	 *
+	 * @param path path or filesystem-specific resource identifier.
+	 * @return resolved and normalized path or URI.
 	 */
 	override fun resolvePath(path: String): String {
 		if(isSafContext(path))	{
