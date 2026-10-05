@@ -133,29 +133,27 @@ jobs:
         run: |
           ./gradlew publish
 
-      - name: Inspect Maven staging repository
+      - name: Remove Maven metadata
         run: |
-          echo "=== Files ==="
-          find build/central-staging -type f | sort
-      
-          echo
-          echo "=== POM files ==="
-          find build/central-staging -name "*.pom" -type f | sort
-      
-          echo
-          echo "=== Directory tree ==="
-          find build/central-staging -type d | sort
+          find build/central-staging \
+            \( -name "maven-metadata.xml" \
+            -o -name "maven-metadata-local.xml" \) \
+            -print -delete
 
       - name: Generate Maven checksums
         run: |
           find build/central-staging -type f \
             ! -name "*.md5" \
             ! -name "*.sha1" \
+            ! -name "*.sha256" \
+            ! -name "*.sha512" \
             ! -name "*.asc" \
             -print0 |
           while IFS= read -r -d '' file; do
             printf '%s' "$(md5 -q "$file")" > "$file.md5"
             shasum -a 1 "$file" | awk '{print $1}' > "$file.sha1"
+            shasum -a 256 "$file" | awk '{print $1}' > "$file.sha256"
+            shasum -a 512 "$file" | awk '{print $1}' > "$file.sha512"
           done
 
       - name: Create Central bundle
@@ -164,7 +162,6 @@ jobs:
           zip -r ../central-bundle.zip .
 
       - name: Upload to Central Publisher
-        id: upload
         env:
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
           SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
@@ -175,62 +172,9 @@ jobs:
             base64 |
             tr -d '\n')
 
-          DEPLOYMENT_ID=$(curl --fail-with-body \
+          curl --fail-with-body \
             --silent \
             --request POST \
             --header "Authorization: Bearer $TOKEN" \
             --form "bundle=@build/central-bundle.zip" \
-            "https://central.sonatype.com/api/v1/publisher/upload?publishingType=AUTOMATIC")
-
-          echo "Deployment ID: $DEPLOYMENT_ID"
-          echo "deployment_id=$DEPLOYMENT_ID" >> "$GITHUB_OUTPUT"
-
-      - name: Wait for Maven Central
-        env:
-          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
-          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
-          DEPLOYMENT_ID: ${{ steps.upload.outputs.deployment_id }}
-        run: |
-          TOKEN=$(printf '%s:%s' \
-            "$SONATYPE_USERNAME" \
-            "$SONATYPE_PASSWORD" |
-            base64 |
-            tr -d '\n')
-
-          for i in {1..60}; do
-            RESPONSE=$(curl --fail-with-body \
-              --silent \
-              --request POST \
-              --header "Authorization: Bearer $TOKEN" \
-              "https://central.sonatype.com/api/v1/publisher/status?id=$DEPLOYMENT_ID")
-
-            echo "$RESPONSE"
-
-            STATE=$(echo "$RESPONSE" |
-              python3 -c 'import json,sys; print(json.load(sys.stdin)["deploymentState"])')
-
-            case "$STATE" in
-              PUBLISHED)
-                echo "Successfully published to Maven Central."
-                exit 0
-                ;;
-
-              FAILED)
-                echo "Maven Central deployment failed."
-                exit 1
-                ;;
-
-              PENDING|VALIDATING|PUBLISHING)
-                echo "Deployment state: $STATE"
-                sleep 10
-                ;;
-
-              *)
-                echo "Unknown deployment state: $STATE"
-                exit 1
-                ;;
-            esac
-          done
-
-          echo "Timed out waiting for Maven Central."
-          exit 1
+            "https://central.sonatype.com/api/v1/publisher/upload?publishingType=AUTOMATIC"
