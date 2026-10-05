@@ -4,6 +4,9 @@ plugins {
     alias(libs.plugins.maven.publish)
 }
 
+version = "1.0.0"
+group = "io.github.sifisofakude.filesystem"
+
 kotlin {
     jvm()
 

@@ -126,6 +126,6 @@ jobs:
         
       - name: Publish Test
         run: |
-          ./gradlew publishToMavenLocal
+          ./gradlew clean publishToMavenLocal
 
     
