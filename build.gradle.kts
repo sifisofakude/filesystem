@@ -68,15 +68,8 @@ kotlin {
 publishing {
     repositories {
         maven {
-            name = "MavenCentral"
-            url = uri(
-                "https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/"
-            )
-
-            credentials {
-                username = providers.environmentVariable("SONATYPE_USERNAME").orNull
-                password = providers.environmentVariable("SONATYPE_PASSWORD").orNull
-            }
+            name = "CentralStaging"
+            url = uri(layout.buildDirectory.dir("central-staging"))
         }
     }
 }
