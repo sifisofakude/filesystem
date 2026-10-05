@@ -132,3 +132,17 @@ jobs:
           GPG_SIGNING_KEY: ${{ secrets.GPG_SIGNING_KEY }}
         run: |
           ./gradlew publish
+
+      - name: Publish deployment to Central Portal
+        env:
+          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
+        run: |
+          TOKEN=$(printf '%s:%s' \
+            "$SONATYPE_USERNAME" \
+            "$SONATYPE_PASSWORD" | base64)
+      
+          curl --fail-with-body \
+            --request POST \
+            --header "Authorization: Bearer $TOKEN" \
+            "https://ossrh-staging-api.central.sonatype.com/service/local/staging/manual/upload/defaultRepository/io.github.sifisofakude?publishing_type=automatic"
