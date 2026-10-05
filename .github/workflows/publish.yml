@@ -28,8 +28,8 @@ jobs:
           gpg-passphrase: MAVEN_GPG_PASSPHRASE
         env:
           MAVEN_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
-          MAVEN_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
           MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+          MAVEN_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v5
