@@ -133,6 +133,19 @@ jobs:
         run: |
           ./gradlew publish
 
+      - name: Inspect Maven staging repository
+        run: |
+          echo "=== Files ==="
+          find build/central-staging -type f | sort
+      
+          echo
+          echo "=== POM files ==="
+          find build/central-staging -name "*.pom" -type f | sort
+      
+          echo
+          echo "=== Directory tree ==="
+          find build/central-staging -type d | sort
+
       - name: Generate Maven checksums
         run: |
           find build/central-staging -type f \
