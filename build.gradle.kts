@@ -82,6 +82,10 @@ publishing {
 }
 
 signing {
-		useGpgCmd()
+		useInMemoryPgpKeys(
+        providers.environmentVariable("GPG_SIGNING_KEY").orNull,
+        providers.environmentVariable("GPG_PASSPHRASE").orNull
+    )
+    
     sign(publishing.publications)
 }
