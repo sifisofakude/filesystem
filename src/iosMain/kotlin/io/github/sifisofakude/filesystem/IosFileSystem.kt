@@ -319,13 +319,14 @@ class IosFileSystem : FileSystemUtil {
 		}
 
 		listFiles(resolved).forEach { file ->
-			if (isDirectory(file)) {
-				results.addAll(findFiles(file, extensions))
+			val tmpFile = combinePath(resolved,file)
+			if (isDirectory(tmpFile)) {
+				results.addAll(findFiles(tmpFile, extensions))
 			} else if (
 				extensions.isEmpty() ||
 				getExtension(file) in extensions
 			) {
-				results.add(file)
+				results.add(tmpFile)
 			}
 		}
 
@@ -344,9 +345,6 @@ class IosFileSystem : FileSystemUtil {
 		return try {
 			fileManager
 				.contentsOfDirectoryAtPath(resolved, error = null)
-				?.map {
-					combinePath(resolved, it as String)
-				}
 				?: emptyList()
 		} catch (e: Exception) {
 			emptyList()
