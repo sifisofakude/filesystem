@@ -1,6 +1,5 @@
 [versions]
 kotlinxIo = "0.9.1"
-documentfile = "1.1.0"
 startup = "1.2.0"
 kotlin = "2.4.10"
 agp = "9.2.0"

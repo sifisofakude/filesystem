@@ -2,9 +2,10 @@ plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.android.kmp)
     alias(libs.plugins.maven.publish)
+    signing
 }
 
-version = "1.0.0"
+version = "1.0.0-beta"
 group = "io.github.sifisofakude.filesystem"
 
 kotlin {
@@ -33,8 +34,8 @@ kotlin {
             implementation(libs.kotlinx.io.core)
         }
 
-        commonTest.dependencies 	{
-        	implementation(kotlin("test"))
+        commonTest.dependencies {
+            implementation(kotlin("test"))
         }
 
         val jvmAndAndroidMain = create("jvmAndAndroidMain") {
@@ -54,12 +55,37 @@ kotlin {
         }
 
         val androidDeviceTest by getting {
-        	dependencies {
-	            implementation("androidx.test.ext:junit:1.2.1")
-	            implementation("androidx.test:core:1.6.1")
-	            implementation("androidx.test:runner:1.6.1")
-	            implementation("androidx.test.uiautomator:uiautomator:2.3.0")
-	        }
+            dependencies {
+                implementation("androidx.test.ext:junit:1.2.1")
+                implementation("androidx.test:core:1.6.1")
+                implementation("androidx.test:runner:1.6.1")
+                implementation("androidx.test.uiautomator:uiautomator:2.3.0")
+            }
         }
     }
+}
+
+publishing {
+    repositories {
+        maven {
+            name = "MavenCentral"
+            url = uri(
+                "https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/"
+            )
+
+            credentials {
+                username = providers.environmentVariable("SONATYPE_USERNAME").orNull
+                password = providers.environmentVariable("SONATYPE_PASSWORD").orNull
+            }
+        }
+    }
+}
+
+signing {
+    useInMemoryPgpKeys(
+        providers.environmentVariable("GPG_SIGNING_KEY").orNull,
+        providers.environmentVariable("GPG_PASSPHRASE").orNull
+    )
+
+    sign(publishing.publications)
 }

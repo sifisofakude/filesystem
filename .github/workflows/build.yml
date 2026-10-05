@@ -123,10 +123,12 @@ jobs:
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
-        
-      - name: Publish Test
-        run: |
-          ./gradlew clean publishToMavenLocal
-          find ~/.m2/repository/io/github/sifisofakude -path '*1.0.0*' -type f
 
-    
+      - name: Test Maven Publish
+        env:
+          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME}}
+          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD}}
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE}}
+          GPG_SIGNING_KEY: ${{ secrets.GPG_SIGNING_KEY}}
+        run: |
+          ./gradlew publish
