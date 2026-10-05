@@ -106,6 +106,7 @@ jobs:
       - name: Build and Test Apple Targets
         run: |
           ./gradlew iosSimulatorArm64Test
+          find ~/.m2/repository/io/github/sifisofakude -path '*1.0.0*' -type f
           
   maven-publish-test:
     name: Maven Publish Test
