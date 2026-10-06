@@ -14,7 +14,7 @@ version = "1.0.0-beta"
 group = "io.github.sifisofakude.filesystem"
 
 val dokkaTask = tasks.named<DokkaGenerateTask>("dokkaGeneratePublicationHtml")
-val dokkaJavadocJar by tasks.registering<Jar::class>	{
+val dokkaJavadocJar by tasks.registering(Jar::class)	{
 	dependsOn(dokkaTask)
 	archiveClassifier.set("javadoc")
 	from(dokkaTask.flatMap { it.outputDirectory })
