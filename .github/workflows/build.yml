@@ -131,54 +131,54 @@ jobs:
           GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
           GPG_SIGNING_KEY: ${{ secrets.GPG_SIGNING_KEY }}
         run: |
-          ./gradlew publishAllPublicationsToMavenCentralRepository
+          ./gradlew publish
 
-      # - name: Remove Maven metadata
-      #   run: |
-      #     find build/central-staging \
-      #       \( -name "maven-metadata.xml" \
-      #       -o -name "maven-metadata-local.xml" \) \
-      #       -print -delete
+      - name: Remove Maven metadata
+        run: |
+          find build/central-staging \
+            \( -name "maven-metadata.xml" \
+            -o -name "maven-metadata-local.xml" \) \
+            -print -delete
 
       # - name: Generate docs
       #   run: |
       #     ./gradlew publish
 
-#       - name: Generate Maven checksums
-#         run: |
-#           find build/central-staging -type f \
-#             ! -name "*.md5" \
-#             ! -name "*.sha1" \
-#             ! -name "*.sha256" \
-#             ! -name "*.sha512" \
-#             ! -name "*.asc" \
-#             -print0 |
-#           while IFS= read -r -d '' file; do
-#             printf '%s' "$(md5 -q "$file")" > "$file.md5"
-#             shasum -a 1 "$file" | awk '{print $1}' > "$file.sha1"
-#             shasum -a 256 "$file" | awk '{print $1}' > "$file.sha256"
-#             shasum -a 512 "$file" | awk '{print $1}' > "$file.sha512"
-#           done
-# 
-#       - name: Create Central bundle
-#         run: |
-#           cd build/central-staging
-#           zip -r ../central-bundle.zip .
-# 
-#       - name: Upload to Central Publisher
-#         env:
-#           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
-#           SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
-#         run: |
-#           TOKEN=$(printf '%s:%s' \
-#             "$SONATYPE_USERNAME" \
-#             "$SONATYPE_PASSWORD" |
-#             base64 |
-#             tr -d '\n')
-# 
-#           curl --fail-with-body \
-#             --silent \
-#             --request POST \
-#             --header "Authorization: Bearer $TOKEN" \
-#             --form "bundle=@build/central-bundle.zip" \
-#             "https://central.sonatype.com/api/v1/publisher/upload?publishingType=AUTOMATIC"
+      - name: Generate Maven checksums
+        run: |
+          find build/central-staging -type f \
+            ! -name "*.md5" \
+            ! -name "*.sha1" \
+            ! -name "*.sha256" \
+            ! -name "*.sha512" \
+            ! -name "*.asc" \
+            -print0 |
+          while IFS= read -r -d '' file; do
+            printf '%s' "$(md5 -q "$file")" > "$file.md5"
+            shasum -a 1 "$file" | awk '{print $1}' > "$file.sha1"
+            shasum -a 256 "$file" | awk '{print $1}' > "$file.sha256"
+            shasum -a 512 "$file" | awk '{print $1}' > "$file.sha512"
+          done
+
+      - name: Create Central bundle
+        run: |
+          cd build/central-staging
+          zip -r ../central-bundle.zip .
+
+      - name: Upload to Central Publisher
+        env:
+          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
+        run: |
+          TOKEN=$(printf '%s:%s' \
+            "$SONATYPE_USERNAME" \
+            "$SONATYPE_PASSWORD" |
+            base64 |
+            tr -d '\n')
+
+          curl --fail-with-body \
+            --silent \
+            --request POST \
+            --header "Authorization: Bearer $TOKEN" \
+            --form "bundle=@build/central-bundle.zip" \
+            "https://central.sonatype.com/api/v1/publisher/upload?publishingType=AUTOMATIC"
