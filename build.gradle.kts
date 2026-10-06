@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.android.kmp)
     alias(libs.plugins.maven.publish)
     alias(libs.plugins.dokka)
+    alias(libs.plugins.dokka.javadoc)
     signing
 }
 
