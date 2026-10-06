@@ -142,7 +142,7 @@ jobs:
 
       - name: Generate docs
         run: |
-          ./gradlew dokkaGeneratePublicationJavadoc
+          ./gradlew publish
 
       - name: Generate Maven checksums
         run: |

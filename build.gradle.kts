@@ -1,3 +1,4 @@
+import org.gradle.jvm.tasks.Jar
 import org.gradle.api.publish.maven.MavenPublication
 
 plugins {
@@ -5,7 +6,6 @@ plugins {
     alias(libs.plugins.android.kmp)
     alias(libs.plugins.maven.publish)
     alias(libs.plugins.dokka)
-    alias(libs.plugins.dokka.javadoc)
     signing
 }
 
@@ -69,8 +69,47 @@ kotlin {
     }
 }
 
+
+val javadocJar by tasks.registering(Jar::class) {
+    archiveClassifier.set("javadoc")
+
+    val readme = layout.buildDirectory.file(
+        "javadoc-placeholder/README.md"
+    )
+
+    doFirst {
+        val file = readme.get().asFile
+
+        file.parentFile.mkdirs()
+
+        file.writeText(
+            """
+            # Javadoc
+
+            This artifact is a placeholder Javadoc JAR for the
+            `io.github.sifisofakude.filesystem` Kotlin Multiplatform library.
+
+            The library provides Kotlin Multiplatform documentation through
+            the project's documentation:
+
+            https://github.com/sifisofakude/filesystem
+
+            Kotlin Multiplatform publications cannot currently be generated
+            using Dokka's Javadoc output format.
+
+            """.trimIndent()
+        )
+    }
+
+    from(readme.map { it.asFile.parentFile })
+}
+
 publishing {
     publications.withType<MavenPublication>().configureEach {
+    		if (name != "kotlinMultiplatform") {
+            artifact(javadocJar)
+        }
+        
         pom {
             name.set("filesystem")
             description.set(
