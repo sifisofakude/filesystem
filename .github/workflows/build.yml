@@ -140,9 +140,9 @@ jobs:
             -o -name "maven-metadata-local.xml" \) \
             -print -delete
 
-      - name: Generate docs
-        run: |
-          ./gradlew publish
+      # - name: Generate docs
+      #   run: |
+      #     ./gradlew publish
 
       - name: Generate Maven checksums
         run: |
