@@ -142,7 +142,7 @@ jobs:
 
       - name: Generate docs
         run: |
-          ./gradlew dokkaGenerate
+          ./gradlew dokkaGenerate --stacktrace
           find build -type f | grep -i javadoc
 
       - name: Generate Maven checksums
