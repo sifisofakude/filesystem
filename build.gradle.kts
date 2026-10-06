@@ -10,7 +10,7 @@ plugins {
     signing
 }
 
-version = "1.0.0-beta"
+version = "1.0.1-beta"
 group = "io.github.sifisofakude.filesystem"
 
 kotlin {
@@ -68,12 +68,6 @@ kotlin {
             }
         }
     }
-    
-    // publishing {
-    //     publications.withType<MavenPublication> {
-    //         artifact(dokkaJavadocJar)
-    //     }
-    // }
 }
 
 val dokkaTask = tasks.named<DokkaGenerateTask>("dokkaGeneratePublicationHtml")
@@ -89,7 +83,7 @@ publishing {
         
         destinationDirectory.set(layout.buildDirectory.dir("libs/javadoc/$publicationName"))
       }
-    	val publication = this
+
     	artifact(uniqueJavadocJarTask)
         
         pom {

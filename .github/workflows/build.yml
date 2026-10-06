@@ -140,9 +140,13 @@ jobs:
             -o -name "maven-metadata-local.xml" \) \
             -print -delete
 
-      # - name: Generate docs
-      #   run: |
-      #     ./gradlew publish
+      - name: Verify Javadoc artifacts
+        run: |
+          echo "Javadoc artifacts:"
+          find build/central-staging \
+            -type f \
+            -name "*-javadoc.jar" \
+            -print
 
       - name: Generate Maven checksums
         run: |
