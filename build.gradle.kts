@@ -90,7 +90,7 @@ publishing {
         destinationDirectory.set(layout.buildDirectory.dir("libs/javadoc/$publicationName"))
       }
     	val publication = this
-    	artifact(dokkaJavadocJar)
+    	artifact(uniqueJavadocJarTask)
         
         pom {
             name.set("filesystem")
