@@ -70,89 +70,106 @@ kotlin {
 }
 
 
-publishing {
-    publications.withType<MavenPublication>().configureEach {
-    	val publication = this
-    	
-			val javadocJar = tasks.register(
-			    "${publication.name}JavadocJar",
-			    Jar::class
-			) {
-			    archiveBaseName.set(publication.artifactId)
-			    archiveVersion.set(project.version.toString())
-			    archiveClassifier.set("javadoc")
+// Create a task that packages Dokka output into a JAR file
+val dokkaJavadocJar by tasks.registering(Jar::class) {
+    archiveClassifier.set("javadoc")
+    from(tasks.named("dokkaGenerate")) // Or "dokkaHtml" depending on your Dokka version
+}
 
-			    val readme = layout.buildDirectory.file(
-			        "javadoc-placeholder/${publication.name}/README.md"
-			    )
-
-			    doFirst {
-			        val file = readme.get().asFile
-
-			        file.parentFile.mkdirs()
-
-			        file.writeText(
-			            """
-			            # Javadoc
-
-			            This artifact is a placeholder Javadoc JAR for the
-			            `io.github.sifisofakude.filesystem` Kotlin Multiplatform library.
-
-			            Documentation is available at:
-
-			            https://github.com/sifisofakude/filesystem
-
-			            Kotlin Multiplatform publications cannot currently be
-			            generated using Dokka's Javadoc output format.
-
-			            """.trimIndent()
-			        )
-			    }
-
-			    from(readme.map { it.asFile.parentFile })
-			}
-        
-        pom {
-            name.set("filesystem")
-            description.set(
-                "Android-first cross-platform file system abstraction library with Android Storage Access Framework support."
-            )
-            url.set("https://github.com/sifisofakude/filesystem")
-
-            licenses {
-                license {
-                    name.set("MIT License")
-                    url.set("https://opensource.org/licenses/MIT")
-                    distribution.set("repo")
-                }
-            }
-
-            developers {
-                developer {
-                    id.set("sifisofakude")
-                    name.set("Sifiso Fakude")
-                }
-            }
-
-            scm {
-                connection.set(
-                    "scm:git:git://github.com/sifisofakude/filesystem.git"
-                )
-                developerConnection.set(
-                    "scm:git:ssh://github.com/sifisofakude/filesystem.git"
-                )
-                url.set("https://github.com/sifisofakude/filesystem")
-            }
-        }
-    }
-
-    repositories {
-        maven {
-            name = "CentralStaging"
-            url = uri(layout.buildDirectory.dir("central-staging"))
+// Attach the Javadoc JAR to your multiplatform publications
+kotlin {
+    publishing {
+        publications.withType<MavenPublication> {
+            artifact(dokkaJavadocJar)
         }
     }
 }
+
+
+
+// publishing {
+//     publications.withType<MavenPublication>().configureEach {
+//     	val publication = this
+//     	
+// 			val javadocJar = tasks.register(
+// 			    "${publication.name}JavadocJar",
+// 			    Jar::class
+// 			) {
+// 			    archiveBaseName.set(publication.artifactId)
+// 			    archiveVersion.set(project.version.toString())
+// 			    archiveClassifier.set("javadoc")
+// 
+// 			    val readme = layout.buildDirectory.file(
+// 			        "javadoc-placeholder/${publication.name}/README.md"
+// 			    )
+// 
+// 			    doFirst {
+// 			        val file = readme.get().asFile
+// 
+// 			        file.parentFile.mkdirs()
+// 
+// 			        file.writeText(
+// 			            """
+// 			            # Javadoc
+// 
+// 			            This artifact is a placeholder Javadoc JAR for the
+// 			            `io.github.sifisofakude.filesystem` Kotlin Multiplatform library.
+// 
+// 			            Documentation is available at:
+// 
+// 			            https://github.com/sifisofakude/filesystem
+// 
+// 			            Kotlin Multiplatform publications cannot currently be
+// 			            generated using Dokka's Javadoc output format.
+// 
+// 			            """.trimIndent()
+// 			        )
+// 			    }
+// 
+// 			    from(readme.map { it.asFile.parentFile })
+// 			}
+//         
+//         pom {
+//             name.set("filesystem")
+//             description.set(
+//                 "Android-first cross-platform file system abstraction library with Android Storage Access Framework support."
+//             )
+//             url.set("https://github.com/sifisofakude/filesystem")
+// 
+//             licenses {
+//                 license {
+//                     name.set("MIT License")
+//                     url.set("https://opensource.org/licenses/MIT")
+//                     distribution.set("repo")
+//                 }
+//             }
+// 
+//             developers {
+//                 developer {
+//                     id.set("sifisofakude")
+//                     name.set("Sifiso Fakude")
+//                 }
+//             }
+// 
+//             scm {
+//                 connection.set(
+//                     "scm:git:git://github.com/sifisofakude/filesystem.git"
+//                 )
+//                 developerConnection.set(
+//                     "scm:git:ssh://github.com/sifisofakude/filesystem.git"
+//                 )
+//                 url.set("https://github.com/sifisofakude/filesystem")
+//             }
+//         }
+//     }
+// 
+//     repositories {
+//         maven {
+//             name = "CentralStaging"
+//             url = uri(layout.buildDirectory.dir("central-staging"))
+//         }
+//     }
+// }
 
 signing {
 		useInMemoryPgpKeys(
