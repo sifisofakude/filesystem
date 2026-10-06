@@ -70,43 +70,47 @@ kotlin {
 }
 
 
-val javadocJar by tasks.registering(Jar::class) {
-    archiveClassifier.set("javadoc")
-
-    val readme = layout.buildDirectory.file(
-        "javadoc-placeholder/README.md"
-    )
-
-    doFirst {
-        val file = readme.get().asFile
-
-        file.parentFile.mkdirs()
-
-        file.writeText(
-            """
-            # Javadoc
-
-            This artifact is a placeholder Javadoc JAR for the
-            `io.github.sifisofakude.filesystem` Kotlin Multiplatform library.
-
-            The library provides Kotlin Multiplatform documentation through
-            the project's documentation:
-
-            https://github.com/sifisofakude/filesystem
-
-            Kotlin Multiplatform publications cannot currently be generated
-            using Dokka's Javadoc output format.
-
-            """.trimIndent()
-        )
-    }
-
-    from(readme.map { it.asFile.parentFile })
-}
-
 publishing {
     publications.withType<MavenPublication>().configureEach {
-    		if (name != "kotlinMultiplatform") {
+    		val publication = this
+    		
+        if (name != "kotlinMultiplatform") {
+            val javadocJar = tasks.register(
+                "${publication.name}JavadocJar",
+                Jar::class
+            ) {
+                archiveClassifier.set("javadoc")
+
+                val readme = layout.buildDirectory.file(
+                    "javadoc-placeholder/${publication.name}/README.md"
+                )
+
+                doFirst {
+                    val file = readme.get().asFile
+
+                    file.parentFile.mkdirs()
+
+                    file.writeText(
+                        """
+                        # Javadoc
+
+                        This artifact is a placeholder Javadoc JAR for the
+                        `io.github.sifisofakude.filesystem` Kotlin Multiplatform library.
+
+                        Documentation is available at:
+
+                        https://github.com/sifisofakude/filesystem
+
+                        Kotlin Multiplatform publications cannot currently
+                        be generated using Dokka's Javadoc output format.
+
+                        """.trimIndent()
+                    )
+                }
+
+                from(readme.map { it.asFile.parentFile })
+            }
+
             artifact(javadocJar)
         }
         
