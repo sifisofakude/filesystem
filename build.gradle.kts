@@ -1,4 +1,5 @@
-import org.gradle.jvm.tasks.Jar
+import org.gradle.api.tasks.bundling.Jar
+import org.jetbrains.dokka.gradle.tasks.DokkaGenerateTask
 import org.gradle.api.publish.maven.MavenPublication
 
 plugins {
