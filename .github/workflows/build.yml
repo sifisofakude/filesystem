@@ -140,6 +140,11 @@ jobs:
             -o -name "maven-metadata-local.xml" \) \
             -print -delete
 
+      - name: Generate docs
+        run: |
+          ./gradlew dokkaGenerate
+          find build -type f | grep -i javadoc
+
       - name: Generate Maven checksums
         run: |
           find build/central-staging -type f \
