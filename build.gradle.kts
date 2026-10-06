@@ -13,13 +13,6 @@ plugins {
 version = "1.0.0-beta"
 group = "io.github.sifisofakude.filesystem"
 
-val dokkaTask = tasks.named<DokkaGenerateTask>("dokkaGeneratePublicationHtml")
-val dokkaJavadocJar by tasks.registering(Jar::class)	{
-	dependsOn(dokkaTask)
-	archiveClassifier.set("javadoc")
-	from(dokkaTask.flatMap { it.outputDirectory })
-}
-
 kotlin {
     jvm()
 
@@ -83,9 +76,19 @@ kotlin {
     // }
 }
 
+val dokkaTask = tasks.named<DokkaGenerateTask>("dokkaGeneratePublicationHtml")
 
 publishing {
     publications.withType<MavenPublication>().configureEach {
+    	val publicationName = name 
+    	
+      val uniqueJavadocJarTask = tasks.register("${publicationName}DokkaJavadocJar", Jar::class.java) {
+        dependsOn(dokkaTask)
+        archiveClassifier.set("javadoc")
+        from(dokkaTask.flatMap { it.outputDirectory })
+        
+        destinationDirectory.set(layout.buildDirectory.dir("libs/javadoc/$publicationName"))
+      }
     	val publication = this
     	artifact(dokkaJavadocJar)
         
