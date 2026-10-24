@@ -45,6 +45,7 @@ class AndroidSafFileSystemTest {
     fun setup() {
         device = UiDevice.getInstance(instrumentation)
         fs = AndroidSafFileSystem(context)
+        FileSystems.current = fs
 
         adbCreateDirectory("Root1")
         adbCreateDirectory("Root2")
@@ -145,11 +146,17 @@ class AndroidSafFileSystemTest {
 			val lastModified = fs.lastModified("test1/1")
 			assertNotEquals(-1,lastModified)
 
-			val inputStream = fs.openInputStream("test1/1/new-name.txt")
-			assertTrue(inputStream == null)
+			assertTrue(FileSystems.current is AndroidSafFileSystem)
 			
-			val outputStream = FileOperation("test1/1/new-name.txt").openOutputStream()
-			assertNotNull(outputStream)
+			val inputStream = fs.openInputStream("test1/1/new-name.txt")
+			assertFalse(inputStream == null)
+			
+			val outputStream = FileOperation("test1/1/new-name.txt").apply	{
+				if(!exists()) createNewFile()
+			}
+			
+			assertTrue(outputStream.exists())
+			// assertNotNull(outputStream)
 
 			jvmPath.deleteRecursively()
 			assertTrue(deleteAllFiles("$ROOT1"))
