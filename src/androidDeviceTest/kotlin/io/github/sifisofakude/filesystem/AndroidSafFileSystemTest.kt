@@ -145,7 +145,7 @@ class AndroidSafFileSystemTest {
 			val lastModified = fs.lastModified("test1/1")
 			assertNotEquals(-1,lastModified)
 
-			val inputStream = FileOperation("test1/1/new-name.txt").openInputStream()
+			val inputStream = fs.openSource("test1/1/new-name.txt")
 			assertTrue(inputStream == null)
 			
 			val outputStream = FileOperation("test1/1/new-name.txt").openOutputStream()
