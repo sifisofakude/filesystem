@@ -3,7 +3,7 @@
 ![Kotlin](https://img.shields.io/badge/Kotlin-2.4-blue)
 ![Platform](https://img.shields.io/badge/platform-JVM%20%7C%20Android%20%7C%20iOS-green)
 ![License](https://img.shields.io/badge/license-MIT-orange)
-[![Maven Central](https://img.shields.io/maven-central/v/io.github.sifisofakude.filesystem/filesystem-jvm)](https://central.sonatype.com/artifact/io.github.sifisofakude.filesystem/filesystem-jvm)
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.sifisofakude.filesystem/filesystem/1.0.0)](https://central.sonatype.com/artifact/io.github.sifisofakude.filesystem/filesystem-jvm)
 
 A lightweight filesystem abstraction library primarily designed for **Android**, with JVM and iOS support for compatibility.
 

@@ -145,6 +145,12 @@ class AndroidSafFileSystemTest {
 			val lastModified = fs.lastModified("test1/1")
 			assertNotEquals(-1,lastModified)
 
+			val inputStream = FileOperation("test1/1/new-name.txt").openInputStream()
+			assertTrue(inputStream == null)
+			
+			val outputStream = FileOperation("test1/1/new-name.txt").openOutputStream()
+			assertNotNull(outputStream)
+
 			jvmPath.deleteRecursively()
 			assertTrue(deleteAllFiles("$ROOT1"))
 			assertTrue(deleteAllFiles("$ROOT2"))

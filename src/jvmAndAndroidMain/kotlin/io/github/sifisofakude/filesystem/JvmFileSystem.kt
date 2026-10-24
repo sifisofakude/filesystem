@@ -11,6 +11,8 @@ import java.nio.file.Paths
 
 import kotlinx.io.asSink
 import kotlinx.io.asSource
+import kotlinx.io.asOutputStream
+import kotlinx.io.asInputStream
 import kotlinx.io.buffered
 import kotlinx.io.Sink
 import kotlinx.io.Source
@@ -136,6 +138,11 @@ open class JvmFileSystem : FileSystemUtil	{
 			null
 		}
 	}
+
+	@JvmOverloads
+	fun openOutputStream(path: String, append: Boolean = false): OutputStream?	{
+		return openSink(path,append)?.asOutputStream()
+	}
 	
 
 	/**
@@ -154,6 +161,10 @@ open class JvmFileSystem : FileSystemUtil	{
 		}catch(_: Exception)	{
 			null
 		}
+	}
+
+	fun openInputStream(path: String): InputStream?	{
+		return openSource(path)?.asInputStream()
 	}
 
 	/**

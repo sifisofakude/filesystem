@@ -74,7 +74,7 @@ class FileOperation(
 	    get() = if(extension.isEmpty())	{
 	    	name
 	    }else	{
-	    	name.substringBefore(".")
+	    	name.substringBeforeLast(".")
 	    }
 
 	/**

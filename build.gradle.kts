@@ -1,16 +1,16 @@
 import org.gradle.jvm.tasks.Jar
-import org.jetbrains.dokka.gradle.tasks.DokkaGenerateTask
+// import org.jetbrains.dokka.gradle.tasks.DokkaGenerateTask
 import org.gradle.api.publish.maven.MavenPublication
 
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.android.kmp)
     alias(libs.plugins.maven.publish)
-    alias(libs.plugins.dokka)
+    // alias(libs.plugins.dokka)
     signing
 }
 
-version = "1.0.1-beta"
+version = "1.0.0"
 group = "io.github.sifisofakude.filesystem"
 
 kotlin {
@@ -70,69 +70,69 @@ kotlin {
     }
 }
 
-val dokkaTask = tasks.named<DokkaGenerateTask>("dokkaGeneratePublicationHtml")
-
-publishing {
-    publications.withType<MavenPublication>().configureEach {
-    	val publicationName = name 
-    	
-      val uniqueJavadocJarTask = tasks.register("${publicationName}DokkaJavadocJar", Jar::class.java) {
-        dependsOn(dokkaTask)
-        archiveClassifier.set("javadoc")
-        from(dokkaTask.flatMap { it.outputDirectory })
-        
-        destinationDirectory.set(layout.buildDirectory.dir("libs/javadoc/$publicationName"))
-      }
-
-    	artifact(uniqueJavadocJarTask)
-        
-        pom {
-            name.set("filesystem")
-            description.set(
-                "Android-first cross-platform file system abstraction library with Android Storage Access Framework support."
-            )
-            url.set("https://github.com/sifisofakude/filesystem")
-
-            licenses {
-                license {
-                    name.set("MIT License")
-                    url.set("https://opensource.org/licenses/MIT")
-                    distribution.set("repo")
-                }
-            }
-
-            developers {
-                developer {
-                    id.set("sifisofakude")
-                    name.set("Sifiso Fakude")
-                }
-            }
-
-            scm {
-                connection.set(
-                    "scm:git:git://github.com/sifisofakude/filesystem.git"
-                )
-                developerConnection.set(
-                    "scm:git:ssh://github.com/sifisofakude/filesystem.git"
-                )
-                url.set("https://github.com/sifisofakude/filesystem")
-            }
-        }
-    }
-
-    repositories {
-        maven {
-            name = "CentralStaging"
-            url = uri(layout.buildDirectory.dir("central-staging"))
-        }
-    }
-}
-
-signing {
-		useInMemoryPgpKeys(
-        providers.environmentVariable("GPG_SIGNING_KEY").orNull,
-        providers.environmentVariable("GPG_PASSPHRASE").orNull
-    )
-    
-    sign(publishing.publications)
-}
+// val dokkaTask = tasks.named<DokkaGenerateTask>("dokkaGeneratePublicationHtml")
+// 
+// publishing {
+//     publications.withType<MavenPublication>().configureEach {
+//     	val publicationName = name 
+//     	
+//       val uniqueJavadocJarTask = tasks.register("${publicationName}DokkaJavadocJar", Jar::class.java) {
+//         dependsOn(dokkaTask)
+//         archiveClassifier.set("javadoc")
+//         from(dokkaTask.flatMap { it.outputDirectory })
+//         
+//         destinationDirectory.set(layout.buildDirectory.dir("libs/javadoc/$publicationName"))
+//       }
+// 
+//     	artifact(uniqueJavadocJarTask)
+//         
+//         pom {
+//             name.set("filesystem")
+//             description.set(
+//                 "Android-first cross-platform file system abstraction library with Android Storage Access Framework support."
+//             )
+//             url.set("https://github.com/sifisofakude/filesystem")
+// 
+//             licenses {
+//                 license {
+//                     name.set("MIT License")
+//                     url.set("https://opensource.org/licenses/MIT")
+//                     distribution.set("repo")
+//                 }
+//             }
+// 
+//             developers {
+//                 developer {
+//                     id.set("sifisofakude")
+//                     name.set("Sifiso Fakude")
+//                 }
+//             }
+// 
+//             scm {
+//                 connection.set(
+//                     "scm:git:git://github.com/sifisofakude/filesystem.git"
+//                 )
+//                 developerConnection.set(
+//                     "scm:git:ssh://github.com/sifisofakude/filesystem.git"
+//                 )
+//                 url.set("https://github.com/sifisofakude/filesystem")
+//             }
+//         }
+//     }
+// 
+//     repositories {
+//         maven {
+//             name = "CentralStaging"
+//             url = uri(layout.buildDirectory.dir("central-staging"))
+//         }
+//     }
+// }
+// 
+// signing {
+// 		useInMemoryPgpKeys(
+//         providers.environmentVariable("GPG_SIGNING_KEY").orNull,
+//         providers.environmentVariable("GPG_PASSPHRASE").orNull
+//     )
+//     
+//     sign(publishing.publications)
+// }
