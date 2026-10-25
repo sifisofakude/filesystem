@@ -34,23 +34,14 @@ Add the published artifact for the platform you are targeting. Check the
 project's Maven Central page or repository README for the current
 coordinates and version:
 
--   GitHub repository: https://github.com/sifisofakude/filesystem
--   Maven Central:
-    https://central.sonatype.com/search?q=io.github.sifisofakude.filesystem
-
 For example, in a Gradle Kotlin DSL dependency block, use the
 appropriate published artifact:
 
 ``` kotlin
 dependencies {
-    implementation("io.github.sifisofakude.filesystem:<platform-artifact>:<version>")
+    implementation("io.github.sifisofakude.filesystem:filesystem:1.0.0")
 }
 ```
-
-Replace `<platform-artifact>` and `<version>` with the artifact and
-version appropriate to your target. Do not use a JVM artifact for
-Android or iOS unless the published artifact explicitly supports that
-target.
 
 ## Quick start
 
@@ -119,11 +110,8 @@ Commonly used properties and operations include:
 -   `delete()` --- delete the target.
 -   `copy(dst)` --- copy the target to a destination.
 -   `move(dst)` --- move the target to a destination.
--   `renameTo(...)` --- rename the target where supported.
--   `listFiles()` --- list child entries where supported.
-
-Check the implementation for your target platform for exact return
-values and overwrite behavior.
+-   `renameTo(...)` --- rename the target.
+-   `listFiles()` --- list child entries.
 
 ### Creating directories and files
 
@@ -148,10 +136,7 @@ source.copy("documents/copy.txt")
 source.move("documents/archive/source.txt")
 ```
 
-Destination interpretation can differ by platform. Confirm whether a
-destination is treated as a final file path or an existing destination
-directory in the implementation you are using. Do not assume that copy
-or move is atomic across storage providers.
+Do not assume that copy or move is atomic across storage providers.
 
 ## `FileSystemUtil`
 
@@ -166,9 +151,9 @@ val fs = FileSystems.current
 
 Use the current implementation for operations that need to work with the
 active platform's storage provider. The implementation may use regular
-filesystem paths, SAF document URIs, or platform-native APIs.
+filesystem paths, or platform-native APIs.
 
-Typical responsibilities of the filesystem abstraction include:
+Responsibilities of the filesystem abstraction include:
 
 -   Resolving and normalizing paths.
 -   Checking whether a path exists and whether it represents a file or
@@ -183,7 +168,7 @@ Not every platform or storage provider has identical capabilities. For
 example, Android SAF providers may impose restrictions that do not apply
 to ordinary filesystem paths.
 
-### Raw `FileSystemUtil` examples
+### `FileSystemUtil` examples
 
 `FileOperation` is the convenient wrapper; `FileSystemUtil` is the lower-level API when you want to call the filesystem implementation directly.
 
@@ -223,7 +208,8 @@ val appended = fs.appendText(
 val contents = fs.readText("project/README.txt")
 ```
 
-These methods operate on paths understood by the active implementation. On Android, a path may refer to a SAF-backed document; on JVM it normally refers to a conventional filesystem path.
+These methods operate on paths understood by the active implementation. On Android, a path may refer to a 
+SAF-backed document; on JVM it normally refers to a conventional filesystem path.
 
 #### Open streams and copy data
 
@@ -267,13 +253,11 @@ val moved = fs.move(
 
 val renamed = fs.rename(
     src = "project/README.txt",
-    dst = "project/README-old.txt"
+    target = "README-old.txt"
 )
 
 val deleted = fs.delete("project/README-old.txt")
 ```
-
-The path-operation overloads and their return types can vary with the published API version. Check your version's declaration if your IDE reports a different signature. Copy/move operations across providers are not necessarily atomic.
 
 #### Check paths and read metadata
 
@@ -312,7 +296,8 @@ sources.forEach { source ->
 }
 ```
 
-`findFiles` returns matching paths. `resolveFiles` returns `FileSource` entries, which preserve relative and absolute path information for later processing.
+`findFiles` returns matching paths. `resolveFiles` returns `FileSource` entries, which preserve relative and 
+absolute path information for later processing.
 
 #### Work with `kotlinx-io` sources and sinks
 
@@ -323,8 +308,8 @@ val source = fs.openSource("project/input.txt")
 val sink = fs.openSink("project/output.txt")
 
 if (source != null && sink != null) {
-    source.buffered().use { input ->
-        sink.buffered().use { output ->
+    source.use { input ->
+        sink.use { output ->
             input.transferTo(output)
         }
     }
@@ -338,19 +323,20 @@ abstract fun openSource(path: String): Source?
 abstract fun openSink(path: String, append: Boolean = false): Sink?
 ```
 
-Use the exact stream helpers available in the version you have installed. Close sources and sinks when finished.
-
 #### Android-specific materialization
 
-The Android SAF implementation can expose helpers for materializing SAF content into app-managed local storage when a downstream API requires a conventional file path. The available API also includes materialization cleanup helpers such as `clearMaterialized` in versions that expose them. Refer to the Android implementation's actual method signatures for the destination and cleanup behavior.
+The Android SAF implementation expose helpers for materializing SAF content into app-managed local storage 
+when a downstream API requires a conventional file path. The available API also includes materialization cleanup 
+helper such as `clearMaterialized`. Refer to the Android implementation's actual 
+method signatures for the destination and cleanup behavior.
 
 ## `FileSource`
 
-`FileSource` represents a discovered file and can carry both a relative
+`FileSource` represents a discovered file and carry both a relative
 path and an absolute path.
 
 ``` kotlin
-// Example shape; obtain FileSource instances from the library's discovery APIs.
+// obtain FileSource instances from resolveFiles().
 val relativePath = fileSource.relativePath
 val absolutePath = fileSource.absolutePath
 ```
@@ -361,11 +347,7 @@ filesystem implementation.
 
 ## File discovery and filtering
 
-Use the filesystem discovery APIs to find files under a directory. Where
-recursive discovery and extension filtering are supported, they can help
-locate only the files relevant to an operation.
-
-Conceptually, a discovery workflow looks like this:
+A discovery workflow looks like this:
 
 ``` kotlin
 val root = FileOperation("documents")
@@ -376,10 +358,6 @@ entries.forEach { entry ->
 }
 ```
 
-Use the actual discovery method exposed by the version and platform
-artifact you have installed. Directory enumeration and recursion may be
-limited by permissions or by the backing document provider.
-
 ## Streams and text I/O
 
 Use the common stream APIs when you want to process content without
@@ -388,7 +366,9 @@ loading an entire file into memory.
 ``` kotlin
 val file = FileOperation("documents/data.txt")
 file.writeText("Some content")
-val text = file.readText()
+file.openSource()?.use {
+	// read from source
+}
 ```
 
 The JVM implementation also provides JVM-specific `InputStream` and
@@ -396,8 +376,7 @@ The JVM implementation also provides JVM-specific `InputStream` and
 These APIs are platform-specific and should be used only from compatible
 source sets.
 
-For large files, prefer streaming rather than `readText()` or other APIs
-that load the whole file into memory.
+For large files, prefer streaming rather than `readText()`.
 
 ## Android: Storage Access Framework (SAF)
 
@@ -418,17 +397,12 @@ val safFileSystem = AndroidSafFileSystem(context)
 safFileSystem.changeSelectedDirectory(treeUri)
 ```
 
-Use the actual Android implementation class and imports provided by your
-selected artifact. The application must obtain the appropriate URI
-permissions from Android; a URI by itself does not grant permanent
-access.
-
 Once a directory is selected, relative paths can be resolved against
-that selected directory according to the implementation's path rules.
+that selected directory.
 
 ### SAF path representation
 
-The implementation may use an internal representation such as:
+The implementation use an internal representation such as:
 
 ``` text
 treeUri||relative/path/to/file.txt
@@ -450,8 +424,7 @@ renaming, deleting, or creating files.
 Some workflows need a regular local file instead of a SAF URI---for
 example, when a third-party API requires a filesystem path. The Android
 implementation includes materialization support for copying accessible
-SAF content into app-managed storage. Check the API available in your
-artifact for the exact method and destination behavior.
+SAF content into app-managed storage.
 
 Remember that materializing a file creates a local copy; it does not
 make that copy automatically synchronize with the original document.
@@ -487,13 +460,14 @@ expose Java stream interoperability helpers such as `InputStream` and
 ``` kotlin
 val file = FileOperation("documents/example.txt")
 
-// Common text operations
-file.writeText("Hello")
-val contents = file.readText()
-```
+file.openInputStream()?.use 	{
+	// read stream
+}
 
-JVM-only helpers should remain in JVM-compatible source sets rather than
-common Kotlin Multiplatform code.
+file.openOutputStream()?.use {
+	// write to stream
+}
+```
 
 ## Platform detection
 
@@ -532,7 +506,6 @@ spreading platform checks throughout shared business logic.
 
 ## Project
 
--   Source code and issues: https://github.com/sifisofakude/filesystem
 -   Maven Central search:
     https://central.sonatype.com/search?q=io.github.sifisofakude.filesystem
 
