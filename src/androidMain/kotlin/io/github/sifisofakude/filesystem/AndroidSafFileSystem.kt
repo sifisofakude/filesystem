@@ -275,10 +275,8 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 					projection.forEach	{
 						val index = cursor.getColumnIndex(it)
 						if(index > -1)	{
-							if(it == DocumentsContract.Document.COLUMN_FLAGS)	{
-								if(metadata.contains(Permissions.CAN_READ))	{
-									result[Permissions.CAN_READ] = "true"
-								}
+							if(it == DocumentsContract.Document.COLUMN_FLAGS && metadata.contains(Permissions.CAN_READ))	{
+								result[Permissions.CAN_READ] = "true"
 							}else	{
 								metadataIndexes[it] = index
 							}
