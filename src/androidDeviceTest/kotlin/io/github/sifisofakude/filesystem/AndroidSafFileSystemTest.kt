@@ -165,8 +165,8 @@ class AndroidSafFileSystemTest {
 			val file = fs.createFile("test/test-file.txt")
 			assertNotNull(file)
 
-			assertTrue(fs.canRead(file))
-			assertTrue(fs.canWrite(file))
+			assertTrue(fs.canRead(file!!))
+			assertTrue(fs.canWrite(file!!))
 		}
 		
     private fun deleteAllFiles(uri: String): Boolean	{
