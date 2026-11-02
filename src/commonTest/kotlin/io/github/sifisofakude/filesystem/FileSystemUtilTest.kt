@@ -345,6 +345,9 @@ class FileSystemUtilTest {
 
     	assertNotNull(fs.createDirectory("$root/destination"))
 
+    	assertTrue(fs.canRead("$root/destination"))
+    	assertTrue(fs.canWrite("$root/destination"))
+
     	val streamCopy = fs.copyByStream("$root/source","$root/destination")
     	assertTrue(fs.exists("$root/destination/source"))
 

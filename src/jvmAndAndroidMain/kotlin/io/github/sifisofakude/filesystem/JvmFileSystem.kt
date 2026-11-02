@@ -115,6 +115,22 @@ open class JvmFileSystem : FileSystemUtil	{
 		return "$sanitizedParent${File.separator}$sanitizedChild"
 	}
 
+	override fun canRead(path: String): Boolean	{
+		return try	{
+			File(path).canRead()
+		}catch(_: Exception)	{
+			false
+		}
+	}
+
+	override fun canWrite(path: String): Boolean	{
+		return try	{
+			File(path).canWrite()
+		}catch(_: Exception)	{
+			false
+		}
+	}
+
 	/**
 	 * Opens a writable stream for a file.
 	 *
@@ -132,6 +148,8 @@ open class JvmFileSystem : FileSystemUtil	{
 		path: String, 
 		append: Boolean
 	): Sink?	{
+		if(!exists(path)) createFile(path)
+		
 		return  try	{
 			FileOutputStream(path,append).asSink().buffered()
 		}catch(_: Exception)	{

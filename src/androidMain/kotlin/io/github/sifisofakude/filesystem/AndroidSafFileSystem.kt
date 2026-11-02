@@ -87,6 +87,11 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	@Volatile
 	private var selectedParentUri: Uri? = null
 
+	companion object Permissions	{
+		val CAN_READ = "can_read"
+		val CAN_WRITE = "can_write"
+	}
+
 	/**
 	 * Sets the active SAF root directory used for all relative file operations.
 	 *
@@ -247,28 +252,42 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 				.buildDocumentUriUsingTree(rootUri,treeDocId)
 		}
 
-		val projection = metadata.toTypedArray()
+		val projection = if(metadata.contains(Permissions.CAN_READ) || metadata.contains(Permissions.CAN_WRITE))	{
+			arrayOf(
+				DocumentsContract.Document.COLUMN_FLAGS,
+				*metadata.filter	{ it != Permissions.CAN_WRITE && it != Permissions.CAN_READ }
+			)
+		}
 		val result = mutableMapOf<String,String>()
 
 		try	{
 			contentResolver.query(resolvedUri,projection,null,null,null)?.use { cursor ->
 				if(cursor.count > 0)	{
 					cursor.moveToFirst()
-					
+
 					val metadataIndexes = mutableMapOf<String,Int>()
 
-					metadata.forEach	{
+					projection.forEach	{
 						val index = cursor.getColumnIndex(it)
 						if(index > -1)	{
-							metadataIndexes[it] = index
+							if(it == DocumentsContract.Document.COLUMN_FLAGS)	{
+								if(metadata.contains(Permissions.CAN_READ))	{
+									result[Permissions.CAN_READ] = true
+								}
+							}else	{
+								metadataIndexes[it] = index
+							}
 						}
 					}
 
 					do	{
 						for((k,v) in metadataIndexes)	{
 							val md = cursor.getString(v)
-
-							result[k] = md
+							if(md == DocumentsContract.Document.COLUMN_FLAGS && metadata.contains(Permissions.CAN_WRITE))	{
+								result[Permissions.CAN_WRITE] == (md and DocumentsContract.Document.FLAG_SUPPORTS_WRITE) != 0
+							}else	{
+								result[k] = md
+							}
 						}
 					}while(cursor.moveToNext())
 				}
@@ -372,6 +391,40 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 			}
 		}
 		return super.combinePath(parent,child)
+	}
+
+	override fun canRead(path: String): Boolean	{
+		if(isSafContext(path))	{
+			if(!exists(path)) return false
+			
+			val tmpPath = tempPath(path)
+			val relativePath = relativePathFromUri(tmpPath)
+			val resolvedUri = resolveRelativeUri(Uri.parse(relativePath.rootUri),relativePath.relativePath)
+				?: return false
+			
+			val metadata = Permissions.CAN_READ
+			return getDocumentMetadata(
+				Uri.parse(resolvedUri),listOf(metadata)
+			)[metadata] ?: false
+		}
+		return super.canRead(path)
+	}
+
+	override fun canWrite(path: String): Boolean	{
+		if(isSafContext(path))	{
+			if(!exists(path)) return false
+			
+			val tmpPath = tempPath(path)
+			val relativePath = relativePathFromUri(tmpPath)
+			val resolvedUri = resolveRelativeUri(Uri.parse(relativePath.rootUri),relativePath.relativePath)
+				?: return false
+			
+			val metadata = Permissions.CAN_WRITE
+			return getDocumentMetadata(
+				Uri.parse(resolvedUri),listOf(metadata)
+			)[metadata] ?: false
+		}
+		return super.canWrite(path)
 	}
 
 	/**

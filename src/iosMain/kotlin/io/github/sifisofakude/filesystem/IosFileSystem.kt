@@ -373,6 +373,14 @@ class IosFileSystem : FileSystemUtil {
 		return fileManager.fileExistsAtPath(resolved)
 	}
 
+	override fun canRead(path: String): Boolean	{
+		return fileManager.isReadableFileAtPath(path)
+	}
+
+	override fun canWrite(path: String): Boolean	{
+		return fileManager.isWrittableFileAtPath(path)
+	}
+
 	/**
 	 * Deletes a file or directory recursively.
 	 *

@@ -1,3 +1,5 @@
+@file:JvmName("FileOperationJvm")
+
 package io.github.sifisofakude.filesystem
 
 import java.io.InputStream

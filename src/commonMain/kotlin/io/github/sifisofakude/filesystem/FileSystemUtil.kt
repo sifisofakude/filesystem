@@ -116,6 +116,10 @@ interface FileSystemUtil	{
 	 */
 	fun combinePath(parent: String, child: String): String
 
+	fun canRead(path: String): Boolean
+	
+	fun canWrite(path: String): Boolean
+
 	/**
 	 * Copies a file or directory from [src] to [dst].
 	 *

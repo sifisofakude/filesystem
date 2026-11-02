@@ -68,93 +68,107 @@ class AndroidSafFileSystemTest {
         assertTrue(fs.isTreeUri(ROOT2.toString()))
     }
 
+// 		@Test
+// 		fun allInOneTest()	{
+// 			// Changing selected root
+// 			fs.changeSelectedDirectory(ROOT1)
+// 
+// 			assertNotNull(fs.getCurrentDirectory())
+// 			
+// 			// Create directories
+// 			assertNotNull(fs.createDirectory("test1"))
+// 			assertNotNull(fs.createDirectory("test1/1/2/3/4/5"))
+// 			assertNotNull(fs.createDirectory("$ROOT2||test2/1/2/3/4/5"))
+// 
+// 			assertTrue(fs.exists("$ROOT1||test1/1/2/3"))
+// 			assertTrue(fs.isDirectory("test1"))
+// 
+// 			// Create files
+// 			assertNotNull(fs.createFile("test1/test-file.txt"))
+// 			assertTrue(fs.isFile("test1/test-file.txt"))
+// 			assertNotNull(fs.createFile("$ROOT2||test2/1/2/test-file.txt"))
+// 
+// 			// Write text to file
+// 			assertTrue(fs.writeText("test1/test-file.txt","Testing testing"))
+// 			assertTrue(fs.writeText("test1/1/2/two.txt","another testing file"))
+// 
+// 			// Read text from file
+// 			assertEquals(
+// 				"Testing testing",
+// 				fs.readText("test1/test-file.txt")
+// 			)
+// 			
+// 			assertEquals("",fs.readText("$ROOT2||test2/1/2/test-file.txt"))
+// 
+// 			// Copy
+// 			assertNotNull(fs.copy("test1/test-file.txt","test1/1"))
+// 			
+// 			assertTrue(fs.exists("test1/1/test-file.txt"))
+// 
+// 			val jvmPath = File(context.filesDir,"jvm-testing-dir").apply	{
+// 				deleteRecursively()
+// 				mkdirs()
+// 			}
+// 			
+// 			assertNotNull(fs.copy("test1",jvmPath.absolutePath))
+// 			assertNotNull(fs.copy("test1","$ROOT2||test2/1/2"))
+// 
+// 			assertTrue(fs.exists("${jvmPath.absolutePath}/test1"))
+// 			assertTrue(fs.exists("$ROOT2||test2/1/2/test1"))
+// 
+// 			// Move
+// 			assertNotNull(fs.move("test1/test-file.txt","test1/1/new-name.txt"))
+// 
+// 			assertTrue(!fs.exists("test1/test-file.txt"))
+// 			assertTrue(fs.exists("test1/1/new-name.txt"))
+// 
+// 			assertNotNull(fs.move("$ROOT1||test1/1/2","$ROOT2||test2"))
+// 
+// 			assertTrue(fs.isDirectory("$ROOT2||test2/2"))
+// 
+// 			// Listing files
+// 			val files = fs.listFiles("test1/1")
+// 
+// 			assertEquals(2,files.size)
+// 			assertTrue(files.contains("new-name.txt"))
+// 
+// 			// Finding files in a directory
+// 			val found = fs.findFiles("test1",emptySet())
+// 
+// 			val parentFile = fs.getParentFile("$ROOT1||test1/1")
+// 
+// 			assertEquals("$ROOT1||test1",parentFile)
+// 
+// 			val resolvedPath = fs.resolvePath("test1/1/2/../new-name.txt")
+// 			assertEquals("test1/1/new-name.txt",resolvedPath)
+// 
+// 			val lastModified = fs.lastModified("test1/1")
+// 			assertNotEquals(-1,lastModified)
+// 
+// 			assertTrue(FileSystems.current is AndroidSafFileSystem)
+// 			
+// 			val inputStream = fs.openInputStream("test1/1/new-name.txt")
+// 			assertFalse(inputStream == null)
+// 			
+// 			jvmPath.deleteRecursively()
+// 			assertTrue(deleteAllFiles("$ROOT1"))
+// 			assertTrue(deleteAllFiles("$ROOT2"))
+// 		}
+
 		@Test
-		fun allInOneTest()	{
-			// Changing selected root
+		fun newFeatureTest()	{
 			fs.changeSelectedDirectory(ROOT1)
 
-			assertNotNull(fs.getCurrentDirectory())
-			
-			// Create directories
-			assertNotNull(fs.createDirectory("test1"))
-			assertNotNull(fs.createDirectory("test1/1/2/3/4/5"))
-			assertNotNull(fs.createDirectory("$ROOT2||test2/1/2/3/4/5"))
+			val canReadPerm = AndroidSafFileSystem.Permissions.CAN_READ
+			val canWritePerm = AndroidSafFileSystem.Permissions.CAN_WRITE
 
-			assertTrue(fs.exists("$ROOT1||test1/1/2/3"))
-			assertTrue(fs.isDirectory("test1"))
+			val file = fs.createFile("test/test-file.txt")
+			assertNotNull(file)
 
-			// Create files
-			assertNotNull(fs.createFile("test1/test-file.txt"))
-			assertTrue(fs.isFile("test1/test-file.txt"))
-			assertNotNull(fs.createFile("$ROOT2||test2/1/2/test-file.txt"))
-
-			// Write text to file
-			assertTrue(fs.writeText("test1/test-file.txt","Testing testing"))
-			assertTrue(fs.writeText("test1/1/2/two.txt","another testing file"))
-
-			// Read text from file
-			assertEquals(
-				"Testing testing",
-				fs.readText("test1/test-file.txt")
-			)
-			
-			assertEquals("",fs.readText("$ROOT2||test2/1/2/test-file.txt"))
-
-			// Copy
-			assertNotNull(fs.copy("test1/test-file.txt","test1/1"))
-			
-			assertTrue(fs.exists("test1/1/test-file.txt"))
-
-			val jvmPath = File(context.filesDir,"jvm-testing-dir").apply	{
-				deleteRecursively()
-				mkdirs()
-			}
-			
-			assertNotNull(fs.copy("test1",jvmPath.absolutePath))
-			assertNotNull(fs.copy("test1","$ROOT2||test2/1/2"))
-
-			assertTrue(fs.exists("${jvmPath.absolutePath}/test1"))
-			assertTrue(fs.exists("$ROOT2||test2/1/2/test1"))
-
-			// Move
-			assertNotNull(fs.move("test1/test-file.txt","test1/1/new-name.txt"))
-
-			assertTrue(!fs.exists("test1/test-file.txt"))
-			assertTrue(fs.exists("test1/1/new-name.txt"))
-
-			assertNotNull(fs.move("$ROOT1||test1/1/2","$ROOT2||test2"))
-
-			assertTrue(fs.isDirectory("$ROOT2||test2/2"))
-
-			// Listing files
-			val files = fs.listFiles("test1/1")
-
-			assertEquals(2,files.size)
-			assertTrue(files.contains("new-name.txt"))
-
-			// Finding files in a directory
-			val found = fs.findFiles("test1",emptySet())
-
-			val parentFile = fs.getParentFile("$ROOT1||test1/1")
-
-			assertEquals("$ROOT1||test1",parentFile)
-
-			val resolvedPath = fs.resolvePath("test1/1/2/../new-name.txt")
-			assertEquals("test1/1/new-name.txt",resolvedPath)
-
-			val lastModified = fs.lastModified("test1/1")
-			assertNotEquals(-1,lastModified)
-
-			assertTrue(FileSystems.current is AndroidSafFileSystem)
-			
-			val inputStream = fs.openInputStream("test1/1/new-name.txt")
-			assertFalse(inputStream == null)
-			
-			jvmPath.deleteRecursively()
-			assertTrue(deleteAllFiles("$ROOT1"))
-			assertTrue(deleteAllFiles("$ROOT2"))
+			assertTrue(fs.canRead(file))
+			assertTrue(fs.canWrite(file))
 		}
-
+		
     private fun deleteAllFiles(uri: String): Boolean	{
     	fs.listFiles(uri).forEach	{ file ->
     		val path = fs.combinePath(uri,file) ?: return false

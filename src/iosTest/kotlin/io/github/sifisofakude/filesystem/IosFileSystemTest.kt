@@ -327,6 +327,8 @@ class IosFileSystemTest {
             )
 
             assertFalse(fs.exists(source))
+            assertTrue(fs.canRead(source))
+            assertTrue(fs.canWrite(source))
 
             assertTrue(
                 fs.exists(

@@ -28,6 +28,13 @@ import kotlinx.io.Source
 class FileOperation(
 	val path: String
 )	{
+
+	private val parentInstance: FileOperation? = null
+
+	constructor(private val parent: FileOperation, val path: String)	{
+		parentInstance = parent
+	}
+	
 	private val fs
 			get() = FileSystems.current
 
@@ -81,7 +88,11 @@ class FileOperation(
 	 * Returns the parent directory, or `null` if this resource has no parent.
 	 */
 	val parent
-			get() = fs.getParentFile(path)?.let(::FileOperation)
+			get() = if(parentInstance != null)	{
+				parentInstance
+			}else	{
+				fs.getParentFile(path)?.let(::FileOperation)
+			}
 
 	/**
 	 * Returns the size of the file in bytes.
@@ -108,6 +119,12 @@ class FileOperation(
 	 */
 	val absolutePath
 			get() = fs.resolvePath(path)
+
+	val canRead
+			get() = fs.canRead(path)
+
+	val canWrite 
+			get() = fs.canWrite(path)
 
 	/**
 	 * Creates this directory when its parent already exists.
@@ -223,6 +240,7 @@ class FileOperation(
 	 * @return the resource contents, or `null` if the resource could not be read
 	 */
 	fun readText(): String? = fs.readText(path)
+
 
 	/**
 	 * Writes text to this resource.
