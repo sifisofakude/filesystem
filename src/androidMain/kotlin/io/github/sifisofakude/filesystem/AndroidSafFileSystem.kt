@@ -289,7 +289,8 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 						for((k,v) in metadataIndexes)	{
 							val md = cursor.getString(v)
 							if(md == DocumentsContract.Document.COLUMN_FLAGS && metadata.contains(Permissions.CAN_WRITE))	{
-								result[Permissions.CAN_WRITE] = "${(md and DocumentsContract.Document.FLAG_SUPPORTS_WRITE) != BigInteger.ZERO}"
+								val flags = md.toIntOrNull() ?: continue
+								result[Permissions.CAN_WRITE] = "${(flags and DocumentsContract.Document.FLAG_SUPPORTS_WRITE) != 0}"
 							}else	{
 								result[k] = md
 							}
