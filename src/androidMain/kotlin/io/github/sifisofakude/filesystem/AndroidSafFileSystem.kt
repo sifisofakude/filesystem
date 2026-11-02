@@ -256,7 +256,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 		val projection = if(metadata.contains(Permissions.CAN_READ) || metadata.contains(Permissions.CAN_WRITE))	{
 			arrayOf(
 				DocumentsContract.Document.COLUMN_FLAGS,
-				*metadata.filter	{ it != Permissions.CAN_WRITE || it != Permissions.CAN_READ }
+				*metadata.filter	{ it != Permissions.CAN_WRITE && it != Permissions.CAN_READ }
 					.toTypedArray()
 			)
 		}else	{
@@ -288,7 +288,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 					do	{
 						for((k,v) in metadataIndexes)	{
 							val md = cursor.getString(v)
-							if(md == DocumentsContract.Document.COLUMN_FLAGS && metadata.contains(Permissions.CAN_WRITE))	{
+							if(k == DocumentsContract.Document.COLUMN_FLAGS && metadata.contains(Permissions.CAN_WRITE))	{
 								val flags = md.toIntOrNull() ?: continue
 								result[Permissions.CAN_WRITE] = "${(flags and DocumentsContract.Document.FLAG_SUPPORTS_WRITE) != 0}"
 							}else	{
