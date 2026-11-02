@@ -428,7 +428,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 			val metadata = Permissions.CAN_WRITE
 			return getDocumentMetadata(
 				Uri.parse(resolvedUri),listOf(metadata)
-			)[metadata].toBoolean() ?: false
+			)[metadata]?.toBoolean() ?: false
 		}
 		return super.canWrite(path)
 	}
