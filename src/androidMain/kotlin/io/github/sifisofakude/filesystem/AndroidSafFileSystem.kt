@@ -5,6 +5,7 @@ import android.content.Context
 import android.provider.DocumentsContract
 
 import java.io.File
+import java.math.BigInteger
 
 import kotlinx.io.Sink
 import kotlinx.io.Source
@@ -255,9 +256,13 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 		val projection = if(metadata.contains(Permissions.CAN_READ) || metadata.contains(Permissions.CAN_WRITE))	{
 			arrayOf(
 				DocumentsContract.Document.COLUMN_FLAGS,
-				*metadata.filter	{ it != Permissions.CAN_WRITE && it != Permissions.CAN_READ }
+				*metadata.filter	{ it != Permissions.CAN_WRITE || it != Permissions.CAN_READ }
+					.toTypedArray()
 			)
+		}else	{
+			metadata.toTypedArray()
 		}
+		
 		val result = mutableMapOf<String,String>()
 
 		try	{
@@ -272,7 +277,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 						if(index > -1)	{
 							if(it == DocumentsContract.Document.COLUMN_FLAGS)	{
 								if(metadata.contains(Permissions.CAN_READ))	{
-									result[Permissions.CAN_READ] = true
+									result[Permissions.CAN_READ] = "true"
 								}
 							}else	{
 								metadataIndexes[it] = index
@@ -284,7 +289,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 						for((k,v) in metadataIndexes)	{
 							val md = cursor.getString(v)
 							if(md == DocumentsContract.Document.COLUMN_FLAGS && metadata.contains(Permissions.CAN_WRITE))	{
-								result[Permissions.CAN_WRITE] == (md and DocumentsContract.Document.FLAG_SUPPORTS_WRITE) != 0
+								result[Permissions.CAN_WRITE] = "${(md and DocumentsContract.Document.FLAG_SUPPORTS_WRITE) != BigInteger.ZERO}"
 							}else	{
 								result[k] = md
 							}
@@ -397,7 +402,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 		if(isSafContext(path))	{
 			if(!exists(path)) return false
 			
-			val tmpPath = tempPath(path)
+			val tmpPath = tempPath(path) ?: return false
 			val relativePath = relativePathFromUri(tmpPath)
 			val resolvedUri = resolveRelativeUri(Uri.parse(relativePath.rootUri),relativePath.relativePath)
 				?: return false
@@ -405,7 +410,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 			val metadata = Permissions.CAN_READ
 			return getDocumentMetadata(
 				Uri.parse(resolvedUri),listOf(metadata)
-			)[metadata] ?: false
+			)[metadata]?.toBoolean() ?: false
 		}
 		return super.canRead(path)
 	}
@@ -414,7 +419,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 		if(isSafContext(path))	{
 			if(!exists(path)) return false
 			
-			val tmpPath = tempPath(path)
+			val tmpPath = tempPath(path) ?: return false
 			val relativePath = relativePathFromUri(tmpPath)
 			val resolvedUri = resolveRelativeUri(Uri.parse(relativePath.rootUri),relativePath.relativePath)
 				?: return false
@@ -422,7 +427,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 			val metadata = Permissions.CAN_WRITE
 			return getDocumentMetadata(
 				Uri.parse(resolvedUri),listOf(metadata)
-			)[metadata] ?: false
+			)[metadata].toBoolean() ?: false
 		}
 		return super.canWrite(path)
 	}

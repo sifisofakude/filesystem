@@ -29,9 +29,9 @@ class FileOperation(
 	val path: String
 )	{
 
-	private val parentInstance: FileOperation? = null
+	private var parentInstance: FileOperation? = null
 
-	constructor(private val parent: FileOperation, val path: String)	{
+	constructor(parent: FileOperation, path: String): this(path)	{
 		parentInstance = parent
 	}
 	

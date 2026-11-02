@@ -378,7 +378,7 @@ class IosFileSystem : FileSystemUtil {
 	}
 
 	override fun canWrite(path: String): Boolean	{
-		return fileManager.isWrittableFileAtPath(path)
+		return fileManager.isWritableFileAtPath(path)
 	}
 
 	/**
