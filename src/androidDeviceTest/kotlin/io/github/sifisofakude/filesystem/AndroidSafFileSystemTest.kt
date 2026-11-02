@@ -168,8 +168,8 @@ class AndroidSafFileSystemTest {
 			assertTrue(fs.canRead(file!!))
 			assertTrue(fs.canWrite(file!!))
 
-			assertNotNull(file.openInputStream())
-			assertNotNull(file.openOutputStream())
+			assertNotNull(fs.openInputStream(file!!))
+			assertNotNull(fs.openOutputStream(file!!))
 		}
 		
     private fun deleteAllFiles(uri: String): Boolean	{
