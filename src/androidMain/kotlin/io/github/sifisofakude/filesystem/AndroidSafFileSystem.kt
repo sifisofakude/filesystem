@@ -861,7 +861,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 				?: return false
 
 			val metadata = DocumentsContract.Document.COLUMN_DOCUMENT_ID
-			// throw IllegalArgumentException(resolvedUri +" "+ getDocumentMetadata(Uri.parse(resolvedUri),listOf(metadata)))
+			throw IllegalArgumentException(resolvedUri +" "+ getDocumentMetadata(Uri.parse(resolvedUri),listOf(metadata)))
 			return getDocumentMetadata(Uri.parse(resolvedUri),listOf(metadata))[metadata] != null
 		}
 		return super.exists(path)
