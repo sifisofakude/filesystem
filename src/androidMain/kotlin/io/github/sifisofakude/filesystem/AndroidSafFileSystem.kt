@@ -208,7 +208,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 			return resolveCloudUri(uri, relativePath)
 		}
 		
-		val isTree = DocumentsContract.isTreeUri(rootUri)
+		val isTree = DocumentsContract.isTreeUri(uri)
 
 		val rootUri = if(isTree)	{
 			val docId = DocumentsContract.getTreeDocumentId(uri)
