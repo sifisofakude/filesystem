@@ -282,33 +282,17 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 * if the document cannot be queried or the requested metadata is unavailable.
 	 */
 	fun getDocumentMetadata(rootUri: Uri,metadata: List<String>): Map<String,String>	{
-		val resolvedUri = try	{
-			if(DocumentsContract.isTreeUri(rootUri))	{
-				val docId = DocumentsContract.getTreeDocumentId(rootUri)
-				DocumentsContract.buildDocumentUriUsingTree(rootUri,docId)
-			}else	{
-				val treeDocId = DocumentsContract.getDocumentId(rootUri)
-
-				DocumentsContract.buildDocumentUri(rootUri.authority,treeDocId)
-			}
-		}catch(e: Exception)	{
-			Log.w("MetadataEngine", "Provided URI cannot be resolved")
-			return emptyMap()
-		}
-
-		return getMetadata(resolvedUri,metadata).getOrNull(0) ?: emptyMap()
+		return getMetadata(rootUri,metadata).getOrNull(0) ?: emptyMap()
 	}
 
 	fun getChildrenMetadata(rootUri: Uri, metadata: List<String>): List<Map<String, String>> {
-	  if (rootUri == null) return emptyList()
-
 	  val childrenUri = try {
-	    if (DocumentsContract.isTreeUri(rootUri)) {
-	      val docId = DocumentsContract.getTreeDocumentId(rootUri)
-	      DocumentsContract.buildChildDocumentsUriUsingTree(rootUri, docId)
-	    } else {
+	    if (DocumentsContract.isDocumentUri(context,rootUri)) {
 	      val docId = DocumentsContract.getDocumentId(rootUri)
 	      DocumentsContract.buildChildDocumentsUri(rootUri.authority, docId)
+	    } else {
+	      val docId = DocumentsContract.getTreeDocumentId(rootUri)
+	      DocumentsContract.buildChildDocumentsUriUsingTree(rootUri, docId)
 	    }
 	  } catch (e: Exception) {
 	    Log.w("MetadataEngine", "Provided URI cannot be resolved to a directory hierarchy: $rootUri")
