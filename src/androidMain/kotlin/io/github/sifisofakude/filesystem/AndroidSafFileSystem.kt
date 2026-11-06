@@ -246,7 +246,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 			DocumentsContract.getTreeDocumentId(rootUri)
 		}
 
-		val treeUri = DocumentsContract.buildDocumentUriUsingTree(authority,treeDocId)
+		val treeUri = DocumentsContract.buildTreeDocumentUri(authority,treeDocId)
 
 		var currentUri = treeUri
 		val metadata = listOf(
