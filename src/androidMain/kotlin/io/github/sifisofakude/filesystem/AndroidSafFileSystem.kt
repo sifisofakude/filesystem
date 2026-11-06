@@ -1,6 +1,7 @@
 package io.github.sifisofakude.filesystem
 
 import android.net.Uri
+import android.util.Log
 import android.content.Context
 import android.provider.DocumentsContract
 
@@ -84,6 +85,10 @@ import kotlinx.io.buffered
 class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	private val context = context.applicationContext
 	private val contentResolver = context.contentResolver
+	private val localStorage = "com.android.externalstorage.documents"
+	private val unSupportedAuthorities = listOf(
+		"com.android.providers.downloads.documents"
+	)
 
 	@Volatile
 	private var selectedParentUri: Uri? = null
@@ -177,6 +182,10 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 */
 	fun isTreeUri(uri: String): Boolean	= DocumentsContract.isTreeUri(Uri.parse(uri))
 
+	fun isLocalStorage(authority: String): Boolean = authority == localStorage
+
+	fun isSupported(authority: String): Boolean = authority !in unSupportedAuthorities
+
 	/**
 	 * Resolves a relative path against an SAF tree or document URI.
 	 *
@@ -191,44 +200,69 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 * is supplied.
 	 */
 	fun resolveRelativeUri(uri: Uri, relativePath: String): String?	{
-		if(!isSafUri(uri.toString())) return null
+		val authority = uri.authority ?: return null
+		
+		if(!isSafUri(uri.toString()) || !isSupported(authority)) return null
 
-		val isTree = DocumentsContract.isTreeUri(uri)
-		val isDocument = DocumentsContract.isDocumentUri(context,uri)
-		val isTreeDocument = isTree && isDocument
+		if(!isLocalStorage(authority))	{
+			return resolveCloudUri(uri, relativePath)
+		}
 
-		val docId = if(isTreeDocument || isTree)	{
+		val docId = if(DocumentsContract.isTreeUri(uri))	{
 			DocumentsContract.getTreeDocumentId(uri)
-		}else if(isDocument)	{
+		}else	{
 			DocumentsContract.getDocumentId(uri)
-		}else	{
-			return null
 		}
-
-		val completeDocId = if(isTreeDocument || isTree)	{
+		
+		val completeDocId = if(!relativePath.isBlank())	{
+			val tmpRoot = DocumentsContract.buildDocumentUriUsingTree(authority,docId)
+			
 			val metadata = DocumentsContract.Document.COLUMN_MIME_TYPE
-			val mime = getDocumentMetadata(uri,listOf(metadata))[metadata]
+			val mime = getDocumentMetadata(tmpRoot,listOf(metadata))[metadata]
 
-			if(mime != DocumentsContract.Document.MIME_TYPE_DIR) return null
-
-			if(!relativePath.isBlank())	{
-				if(isTreeDocument)	{
-					"${DocumentsContract.getDocumentId(uri)}/${relativePath.trim('/')}"
-				}else	{
-					"$docId/${relativePath.trim('/')}"
-				}
-			}else	{
-				docId
+			if(mime != DocumentsContract.Document.MIME_TYPE_DIR)	{
+				return null
 			}
+
+			docId + "/" + relativePath.trim('/')
 		}else	{
-			return uri.toString()
+			docId
 		}
 
-		val treeUri = DocumentsContract.buildTreeDocumentUri(uri.authority,docId)
+		val treeUri = DocumentsContract.buildTreeDocumentUri(authority,docId)
 
 		return DocumentsContract
 			.buildDocumentUriUsingTree(treeUri,completeDocId)
 			.toString()
+	}
+
+	fun resolveCloudUri(rootUri: Uri, relativePath: String): String?	{
+		val authority = rootUri.authority ?: return null
+		if(!isSafUri(rootUri.toString()) || isLocalStorage(authority) || !isSupported(authority)) return null
+
+		var currentUri = rootUri
+		val metadata = listOf(
+			DocumentsContract.Document.COLUMN_DISPLAY_NAME,
+			DocumentsContract.Document.COLUMN_DOCUMENT_ID
+		)
+		
+		for(segment in relativePath.split('/'))	{
+			var segmentFound = false
+			val tmpMetadata = getChildrenMetadata(currentUri,metadata)
+			
+			tmpMetadata.forEach	{
+				val name = it[metadata[0]]
+				if(name == segment)	{
+					val docId = it[metadata[1]]
+					currentUri = DocumentsContract.buildTreeDocumentUri(authority,docId)
+					segmentFound = true
+					return@forEach
+				}
+			}
+
+			if(!segmentFound) return null
+		}
+		return currentUri.toString()
 	}
 
 	/**
@@ -240,65 +274,87 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 * if the document cannot be queried or the requested metadata is unavailable.
 	 */
 	fun getDocumentMetadata(rootUri: Uri,metadata: List<String>): Map<String,String>	{
-		val isTree = DocumentsContract.isTreeUri(rootUri)
-		val isDocument = DocumentsContract.isDocumentUri(context,rootUri)
-		val isTreeDocument = isTree && isDocument
-		
-		val resolvedUri = if(isTreeDocument || isDocument)	{
-			rootUri
-		}else	{
-			val treeDocId = DocumentsContract.getTreeDocumentId(rootUri)
+		val resolvedUri = try	{
+			if(DocumentsContract.isTreeUri(rootUri))	{
+				val docId = DocumentsContract.getTreeDocumentId(rootUri)
+				DocumentsContract.buildDocumentUriUsingTree(rootUri,docId)
+			}else	{
+				val treeDocId = DocumentsContract.getDocumentId(rootUri)
 
-			DocumentsContract
-				.buildDocumentUriUsingTree(rootUri,treeDocId)
-		}
-
-		val projection = if(metadata.contains(Permissions.CAN_READ) || metadata.contains(Permissions.CAN_WRITE))	{
-			arrayOf(
-				DocumentsContract.Document.COLUMN_FLAGS,
-				*metadata.filter	{ it != Permissions.CAN_WRITE && it != Permissions.CAN_READ }
-					.toTypedArray()
-			)
-		}else	{
-			metadata.toTypedArray()
-		}
-		
-		val result = mutableMapOf<String,String>()
-
-		try	{
-			contentResolver.query(resolvedUri,projection,null,null,null)?.use { cursor ->
-				if(cursor.count > 0)	{
-					cursor.moveToFirst()
-
-					val metadataIndexes = mutableMapOf<String,Int>()
-
-					projection.forEach	{
-						val index = cursor.getColumnIndex(it)
-						if(index > -1)	{
-							if(it == DocumentsContract.Document.COLUMN_FLAGS && metadata.contains(Permissions.CAN_READ))	{
-								result[Permissions.CAN_READ] = "true"
-							}else	{
-								metadataIndexes[it] = index
-							}
-						}
-					}
-
-					do	{
-						for((k,v) in metadataIndexes)	{
-							val md = cursor.getString(v)
-							if(k == DocumentsContract.Document.COLUMN_FLAGS && metadata.contains(Permissions.CAN_WRITE))	{
-								val flags = md.toIntOrNull() ?: continue
-								result[Permissions.CAN_WRITE] = "${(flags and DocumentsContract.Document.FLAG_SUPPORTS_WRITE) != 0}"
-							}else	{
-								result[k] = md
-							}
-						}
-					}while(cursor.moveToNext())
-				}
+				DocumentsContract.buildDocumentUri(rootUri.authority,treeDocId)
 			}
-		}catch(_: Exception) {}
+		}catch(e: Exception)	{
+			Log.w("MetadataEngine", "Provided URI cannot be resolved")
+			return emptyMap()
+		}
 
-		return result
+		return getMetadata(resolvedUri,metadata).getOrNull(0) ?: emptyMap()
+	}
+
+	fun getChildrenMetadata(rootUri: Uri, metadata: List<String>): List<Map<String, String>> {
+	  if (rootUri == null) return emptyList()
+
+	  val childrenUri = try {
+	    if (DocumentsContract.isTreeUri(rootUri)) {
+	      val docId = DocumentsContract.getTreeDocumentId(rootUri)
+	      DocumentsContract.buildChildDocumentsUriUsingTree(rootUri, docId)
+	    } else {
+	      val docId = DocumentsContract.getDocumentId(rootUri)
+	      DocumentsContract.buildChildDocumentsUri(rootUri.authority, docId)
+	    }
+	  } catch (e: Exception) {
+	    Log.w("MetadataEngine", "Provided URI cannot be resolved to a directory hierarchy: $rootUri")
+	    return emptyList()
+	  }
+
+		return getMetadata(childrenUri, metadata)
+	}
+
+	fun getMetadata(uri: Uri, metadata: List<String>): List<Map<String, String>>	{
+    val resultsList = mutableListOf<Map<String, String>>()
+	  val requiresFlags = metadata.contains(Permissions.CAN_READ) || metadata.contains(Permissions.CAN_WRITE)
+	  val projectionList = metadata.filter { it != Permissions.CAN_WRITE && it != Permissions.CAN_READ }.toMutableList()
+	  
+	  if (requiresFlags && !projectionList.contains(DocumentsContract.Document.COLUMN_FLAGS)) {
+    	projectionList.add(DocumentsContract.Document.COLUMN_FLAGS)
+	  }
+	  
+	  val projection = projectionList.toTypedArray()
+
+	  try {
+	    context.contentResolver.query(uri, projection, null, null, null)?.use { cursor ->
+	      while (cursor.moveToNext()) {
+	        val childMetadata = mutableMapOf<String, String>()
+	        
+	        if (metadata.contains(Permissions.CAN_READ)) {
+          	childMetadata[Permissions.CAN_READ] = "true"
+	        }
+
+	        projection.forEach { columnName ->
+	          val index = cursor.getColumnIndex(columnName)
+	          if (index > -1 && !cursor.isNull(index)) {
+	            if (columnName == DocumentsContract.Document.COLUMN_FLAGS) {
+	              val flags = cursor.getInt(index)
+	              if (metadata.contains(Permissions.CAN_WRITE)) {
+	                val supportsWrite = (flags and DocumentsContract.Document.FLAG_SUPPORTS_WRITE) != 0
+	                childMetadata[Permissions.CAN_WRITE] = supportsWrite.toString()
+	              }
+	              if (metadata.contains(DocumentsContract.Document.COLUMN_FLAGS)) {
+                	childMetadata[columnName] = flags.toString()
+	              }
+	            } else {
+	              childMetadata[columnName] = cursor.getString(index) ?: ""
+	            }
+	        		resultsList.add(childMetadata)
+	          }
+	        }
+	      }
+	    }
+	  } catch (e: Exception) {
+    	android.util.Log.w("MetadataEngine", "Failed to query children for authority: ${uri.authority}", e)
+    	throw e
+	  }
+	  return resultsList
 	}
 
 	/**
@@ -684,6 +740,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 			if(!DocumentsContract.isTreeUri(rootUri) || relativePath.isBlank()) return null
 
 			if(exists(path))	{
+				// throw IllegalArgumentException("i'm here $relativeParent $path")
 				return if(isFile(path))	{
 					path
 				}else	{
@@ -694,11 +751,12 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 			val parentUri = if(relativeParent.isBlank())	{
 				rootUri.toString()
 			}else	{
-				"$rootUri||$relativeParent"
+				combinePath("$rootUri",relativeParent)
 			}
 
 			return createDirectory(parentUri)?.let	{
 				val resolvedParent = resolveRelativeUri(rootUri,relativeParent) ?: return null
+
 
 				val fileUri = DocumentsContract.createDocument(
 					contentResolver,
@@ -778,35 +836,14 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	 */
 	override fun listFiles(path: String): List<String>	{
 		if(isSafContext(path))	{
-			val fileList = mutableListOf<String>()
-
 			val relativeUri = relativePathFromUri(path)
 			val resolvedUri = resolveRelativeUri(Uri.parse(relativeUri.rootUri),relativeUri.relativePath)
+				?: return emptyList()
 
-			try	{
-				val parentDocId = DocumentsContract.getDocumentId(Uri.parse(resolvedUri))
-				val childrenUri = DocumentsContract
-					.buildChildDocumentsUriUsingTree(Uri.parse(relativeUri.rootUri),parentDocId)
-
-				val projection = arrayOf(
-					DocumentsContract.Document.COLUMN_DISPLAY_NAME,
-				)
-
-				contentResolver.query(childrenUri,projection,null,null,null)?.use { cursor ->
-					if(cursor.count > 0)	{
-						cursor.moveToFirst()
-						
-						val nameIndex = cursor.getColumnIndexOrThrow(DocumentsContract.Document.COLUMN_DISPLAY_NAME)
-
-						do	{
-							val name = cursor.getString(nameIndex)
-							fileList.add("$name")
-						}while(cursor.moveToNext())
-					}
-				}
-			}catch(_: Exception) {}
-
-			return fileList
+			val metadata = DocumentsContract.Document.COLUMN_DISPLAY_NAME
+			
+			return getChildrenMetadata(Uri.parse(resolvedUri),listOf(metadata))
+				.mapNotNull { it[metadata] }
 		}
 		return super.listFiles(path)
 	}
@@ -824,6 +861,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 				?: return false
 
 			val metadata = DocumentsContract.Document.COLUMN_DOCUMENT_ID
+			throw IllegalArgumentException(""+ getDocumentMetadata(Uri.parse(resolvedUri),listOf(metadata)))
 			return getDocumentMetadata(Uri.parse(resolvedUri),listOf(metadata))[metadata] != null
 		}
 		return super.exists(path)
@@ -845,6 +883,9 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 			val relativeUri = relativePathFromUri(path)
 			val resolvedUri = resolveRelativeUri(Uri.parse(relativeUri.rootUri),relativeUri.relativePath)
 				?: return null
+
+			val authority = Uri.parse(resolvedUri).authority ?: return null
+			if(!isLocalStorage(authority)) return null
 
 			val isTree = DocumentsContract.isTreeUri(Uri.parse(resolvedUri))
 
@@ -896,6 +937,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 			return try	{
 				DocumentsContract.deleteDocument(contentResolver,Uri.parse(resolvedUri))
 			}catch(_: Exception)	{
+				Log.w("AndroidSafFileSystem","Delete operation unsupported $resolvedUri")
 				false
 			}
 		}

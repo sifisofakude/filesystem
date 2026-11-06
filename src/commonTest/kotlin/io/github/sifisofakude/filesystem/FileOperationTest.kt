@@ -24,6 +24,9 @@ class FileOperationTest {
         assertTrue(file.isFile())
         assertFalse(file.isDirectory())
 
+        assertTrue(file.canRead)
+        assertTrue(file.canWrite)
+
         file.delete()
 
         assertFalse(file.exists())

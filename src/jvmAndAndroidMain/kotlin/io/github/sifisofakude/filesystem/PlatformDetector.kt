@@ -35,22 +35,35 @@ class PlatformDetector	{
 	fun detectPlatform(): String?	{
 		val os = System.getProperty("os.name")?.lowercase()
 		val vm = System.getProperty("java.vm.name")?.lowercase()
+		val runtime = System.getProperty("java.runtime.name")?.lowercase()
 	
 		var platform: String? = null
 
 		if(os == null) return null
 		
-		when	{
-			os.contains("win") -> platform = "Windows"
-			os.contains("mac") -> platform = "Mac"
+		return when	{
+			os.contains("win") -> "Windows"
+			os.contains("mac") -> "Mac"
 			os.contains("linux") ->	{
-				platform = "Linux"
-				val vendor = System.getProperty("java.vendor")
-				if(vendor == "Termux") platform = "Termux"
-				if(vm != null && vm.contains("dalvik")) platform = "Android"
+				when	{
+					System.getenv("TERMUX_VERSION") != null -> "Termux"
+					vm?.contains("dalvik") == true -> "Android"
+					runtime?.contains("android") == true -> "Android"
+					else -> "Linux"
+				}
 			}
+			else -> null
 		}
-		return platform
+	}
+
+	fun detectArchitecture(): String? {
+	  return when (System.getProperty("os.arch")?.lowercase()) {
+	    "amd64", "x86_64" -> "x86_64"
+	    "aarch64", "arm64" -> "arm64"
+	    "arm", "armv7l" -> "arm"
+	    "x86", "i386", "i686" -> "x86"
+	    else -> null
+	  }
 	}
 	
 	/**
