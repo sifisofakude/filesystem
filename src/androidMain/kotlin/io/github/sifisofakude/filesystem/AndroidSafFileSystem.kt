@@ -214,7 +214,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 			val docId = DocumentsContract.getTreeDocumentId(uri)
 			DocumentsContract.buildDocumentUriUsingTree(uri,docId)
 		}else	{
-			val docId = DocumentsContract.getDocumentId(rootUri)
+			val docId = DocumentsContract.getDocumentId(uri)
 			DocumentsContract.buildDocumentUri(uri.authority,docId)
 		}
 
