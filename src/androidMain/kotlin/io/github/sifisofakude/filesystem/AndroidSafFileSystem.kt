@@ -207,38 +207,39 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 		if(!isLocalStorage(authority))	{
 			return resolveCloudUri(uri, relativePath)
 		}
-
-		val docId = if(DocumentsContract.isDocumentUri(context,uri))	{
-			DocumentsContract.getDocumentId(uri)
-		}else	{
-			DocumentsContract.getTreeDocumentId(uri)
-		}
 		
+		val isTree = DocumentsContract.isTreeUri(rootUri)
+
+		val rootUri = if(isTree)	{
+			val docId = DocumentsContract.getTreeDocumentId(uri)
+			DocumentsContract.buildDocumentUriUsingTree(uri,docId)
+		}else	{
+			val docId = DocumentsContract.getDocumentId(rootUri)
+			DocumentsContract.buildDocumentUri(uri.authority,docId)
+		}
+
 		val completeDocId = if(!relativePath.isBlank())	{
-			val tmpRoot = DocumentsContract.buildDocumentUriUsingTree(uri,docId)
-			
 			val metadata = DocumentsContract.Document.COLUMN_MIME_TYPE
-			val mime = getDocumentMetadata(tmpRoot,listOf(metadata))[metadata]
+			val mime = getDocumentMetadata(rootUri,listOf(metadata))[metadata]
 
 			if(mime != DocumentsContract.Document.MIME_TYPE_DIR)	{
 				return null
 			}
 
-			docId + "/" + relativePath.trim('/')
+			DocumentsContract.getDocumentId(rootUri) + "/" + relativePath.trim('/')
 		}else	{
-			docId
+			return rootUri.toString()
 		}
 
-		val treeUri = DocumentsContract.buildTreeDocumentUri(authority,docId)
-
 		return DocumentsContract
-			.buildDocumentUriUsingTree(treeUri,completeDocId)
+			.buildDocumentUriUsingTree(rootUri,completeDocId)
 			.toString()
 	}
 
 	fun resolveCloudUri(rootUri: Uri, relativePath: String): String?	{
 		val authority = rootUri.authority ?: return null
 		if(!isSafUri(rootUri.toString()) || isLocalStorage(authority) || !isSupported(authority)) return null
+
 
 		val treeDocId = if(DocumentsContract.isDocumentUri(context,rootUri))	{
 			DocumentsContract.getDocumentId(rootUri)
