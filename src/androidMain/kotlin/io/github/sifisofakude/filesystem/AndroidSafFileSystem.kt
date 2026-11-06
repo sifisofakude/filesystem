@@ -212,10 +212,11 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 
 		val rootUri = if(isTree)	{
 			val docId = DocumentsContract.getTreeDocumentId(uri)
-			DocumentsContract.buildTreeDocumentUri(authority,docId)
+			DocumentsContract.buildDocumentUriUsingTree(uri,docId)
 		}else	{
 			val docId = DocumentsContract.getDocumentId(uri)
-			DocumentsContract.buildTreeDocumentUri(authority,docId)	
+			val tmpTree = DocumentsContract.buildTreeDocumentUri(authority,docId)
+			DocumentsContract.buildDocumentUriUsingTree(tmpTree,docId)
 		}
 
 		val completeDocId = if(!relativePath.isBlank())	{
