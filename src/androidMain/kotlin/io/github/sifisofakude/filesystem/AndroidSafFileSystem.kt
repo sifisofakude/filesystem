@@ -210,30 +210,29 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 		
 		val isTree = DocumentsContract.isTreeUri(uri)
 
-		val rootUri = if(isTree)	{
-			val docId = DocumentsContract.getTreeDocumentId(uri)
-			DocumentsContract.buildDocumentUriUsingTree(uri,docId)
+		val treeUri = if(isTree)	{
+			uri
 		}else	{
 			val docId = DocumentsContract.getDocumentId(uri)
-			val tmpTree = DocumentsContract.buildTreeDocumentUri(authority,docId)
-			DocumentsContract.buildDocumentUriUsingTree(tmpTree,docId)
+			DocumentsContract.buildTreeDocumentUri(authority,docId)
 		}
 
-		val completeDocId = if(!relativePath.isBlank())	{
-			val metadata = DocumentsContract.Document.COLUMN_MIME_TYPE
-			val mime = getDocumentMetadata(rootUri,listOf(metadata))[metadata]
-
-			if(mime != DocumentsContract.Document.MIME_TYPE_DIR)	{
-				return null
-			}
-
-			DocumentsContract.getDocumentId(rootUri) + "/" + relativePath.trim('/')
+		val rootDocId = if(DocumentsContract.isDocumentUri(context,uri))	{
+			DocumentsContract.getDocumentId(treeUri)
 		}else	{
-			return rootUri.toString()
+			DocumentsContract.getTreeDocumentId(uri)
 		}
+
+		if(relativePath.isBlank())	{
+			DocumentsContract
+				.buildDocumentUriUsingTree(treeUri,rootDocId)
+				.toString()
+		}
+
+		val completeDocId = rootDocId + "/" + relativePath.trim('/')
 
 		return DocumentsContract
-			.buildDocumentUriUsingTree(rootUri,completeDocId)
+			.buildDocumentUriUsingTree(treeUri,completeDocId)
 			.toString()
 	}
 
