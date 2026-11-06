@@ -208,10 +208,10 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 			return resolveCloudUri(uri, relativePath)
 		}
 
-		val docId = if(DocumentsContract.isTreeUri(uri))	{
-			DocumentsContract.getTreeDocumentId(uri)
-		}else	{
+		val docId = if(DocumentsContract.isDocumentUri(context,uri))	{
 			DocumentsContract.getDocumentId(uri)
+		}else	{
+			DocumentsContract.getTreeDocumentId(uri)
 		}
 		
 		val completeDocId = if(!relativePath.isBlank())	{
@@ -240,7 +240,15 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 		val authority = rootUri.authority ?: return null
 		if(!isSafUri(rootUri.toString()) || isLocalStorage(authority) || !isSupported(authority)) return null
 
-		var currentUri = rootUri
+		val treeDocId = if(DocumentsContract.isDocumentUri(context,rootUri))	{
+			DocumentsContract.getDocumentId(rootUri)
+		}else	{
+			DocumentsContract.getTreeDocumentId(rootUri)
+		}
+
+		val treeUri = DocumentsContract.buildDocumentUriUsingTree(authority,treeDocId)
+
+		var currentUri = treeUri
 		val metadata = listOf(
 			DocumentsContract.Document.COLUMN_DISPLAY_NAME,
 			DocumentsContract.Document.COLUMN_DOCUMENT_ID
@@ -254,7 +262,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 				val name = it[metadata[0]]
 				if(name == segment)	{
 					val docId = it[metadata[1]]
-					currentUri = DocumentsContract.buildTreeDocumentUri(authority,docId)
+					currentUri = DocumentsContract.buildDocumentUriUsingTree(treeUri,docId)
 					segmentFound = true
 					return@forEach
 				}
