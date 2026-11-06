@@ -215,7 +215,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 		}
 		
 		val completeDocId = if(!relativePath.isBlank())	{
-			val tmpRoot = DocumentsContract.buildDocumentUriUsingTree(authority,docId)
+			val tmpRoot = DocumentsContract.buildDocumentUriUsingTree(uri,docId)
 			
 			val metadata = DocumentsContract.Document.COLUMN_MIME_TYPE
 			val mime = getDocumentMetadata(tmpRoot,listOf(metadata))[metadata]
