@@ -107,24 +107,10 @@ jobs:
             RANGE="${CURRENT_TAG}"
           fi
 
-          declare -A SEEN
-
           get_commits() {
             git log "$RANGE" --format='%h|%s' |
-              while IFS='|' read -r hash subject; do
-                # Remove CI skip markers.
-                subject=$(printf '%s' "$subject" |
-                  sed -E 's/\[skip [^]]+\]//g; s/  +/ /g; s/^ //; s/ $//')
-
-                # Normalize message for duplicate detection.
-                key=$(printf '%s' "$subject" |
-                  tr '[:upper:]' '[:lower:]')
-
-                if [ -z "${SEEN[$key]+x}" ]; then
-                  SEEN["$key"]=1
-                  printf '%s|%s\n' "$hash" "$subject"
-                fi
-              done
+              sed -E 's/\[skip [^]]+\]//g; s/  +/ /g; s/^ //; s/ $//' |
+              awk -F'|' '!seen[tolower($2)]++'
           }
 
           COMMITS=$(get_commits)
