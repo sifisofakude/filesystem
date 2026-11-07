@@ -104,7 +104,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 		val authority = rootUri.authority ?: return null
 		if(!isSafUri(rootUri.toString()) || isLocalStorage(authority) || !isSupported(authority)) return null
 
-		val treeUri = if(DocumentsContract.isTree(rootUri))	{
+		val treeUri = if(DocumentsContract.isTreeUri(rootUri))	{
 			rootUri
 		}else	{
 			val docId = DocumentsContract.getDocumentId(rootUri)
