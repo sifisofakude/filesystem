@@ -162,8 +162,8 @@ class AndroidSafFileSystemTest {
 			val canReadPerm = AndroidSafFileSystem.Permissions.CAN_READ
 			val canWritePerm = AndroidSafFileSystem.Permissions.CAN_WRITE
 
-			// val folder = fs.createDirectory("test/folder")
-			// assertNotNull(folder)
+			val folder = fs.createDirectory("test/folder")
+			assertNotNull(folder)
 
 			assertTrue(fs.isLocalStorage("${ROOT1.authority}"))
 			assertTrue(fs.isSupported("${ROOT1.authority}"))
@@ -180,7 +180,7 @@ class AndroidSafFileSystemTest {
 
 			val column = DocumentsContract.Document.COLUMN_DISPLAY_NAME
 			// fail("${fs.getChildrenMetadata(ROOT1,listOf(column))}")
-			fail("${fs.listFiles("$ROOT1")}")
+			// fail("${fs.listFiles("$ROOT1")}")
 			
 			val file = fs.createFile("test/file-test.txt")
 			assertNotNull(file)

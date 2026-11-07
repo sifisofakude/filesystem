@@ -523,7 +523,6 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 			val resolvedUri = resolveRelativeUri(Uri.parse(relativeUri.rootUri),relativeUri.relativePath)
 				?: return emptyList()
 
-
 			val metadata = DocumentsContract.Document.COLUMN_DISPLAY_NAME
 
 			return getChildrenMetadata(Uri.parse(resolvedUri),listOf(metadata))
