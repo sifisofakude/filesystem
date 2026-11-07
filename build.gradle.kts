@@ -10,7 +10,7 @@ plugins {
     signing
 }
 
-version = "1.0.1-beta04"
+version = "1.0.1-beta05"
 group = "io.github.sifisofakude.filesystem"
 
 kotlin {
