@@ -162,8 +162,8 @@ class AndroidSafFileSystemTest {
 			val canReadPerm = AndroidSafFileSystem.Permissions.CAN_READ
 			val canWritePerm = AndroidSafFileSystem.Permissions.CAN_WRITE
 
-			val folder = fs.createDirectory("test/folder")
-			assertNotNull(folder)
+			// val folder = fs.createDirectory("test/folder")
+			// assertNotNull(folder)
 
 			assertTrue(fs.isLocalStorage("${ROOT1.authority}"))
 			assertTrue(fs.isSupported("${ROOT1.authority}"))
@@ -171,8 +171,16 @@ class AndroidSafFileSystemTest {
 			val docId = DocumentsContract.getTreeDocumentId(ROOT1)
 			val uri = DocumentsContract.buildDocumentUriUsingTree(ROOT1,docId)
 
-			val column = DocumentsContract.Document.COLUMN_MIME_TYPE
+			fs.createDirectory("test1")
+			fs.createDirectory("test2")
+			fs.createDirectory("test3")
+			
+			fs.createFile("test-file.txt")
+			fs.createFile("test-file2.txt")
+
+			val column = DocumentsContract.Document.COLUMN_DISPLAY_NAME
 			// fail("${fs.getChildrenMetadata(ROOT1,listOf(column))}")
+			fail("${fs.listFiles("$ROOT1")}")
 			
 			val file = fs.createFile("test/file-test.txt")
 			assertNotNull(file)
@@ -187,7 +195,7 @@ class AndroidSafFileSystemTest {
 		
     private fun deleteAllFiles(uri: String): Boolean	{
     	fs.listFiles(uri).forEach	{ file ->
-    		val path = fs.combinePath(uri,file) ?: return false
+    		val path = fs.combinePath(uri,file)
     		if(!fs.delete(path)) return false
     	}
     	return true

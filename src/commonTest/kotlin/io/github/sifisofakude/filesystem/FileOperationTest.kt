@@ -298,4 +298,21 @@ class FileOperationTest {
         fs.delete("source.txt")
         fs.delete("destination")
     }
+
+    @Test
+    fun fileOperationInsideTest()	{
+    	val parent = FileOperation("test/dest").apply	{
+    		mkdirs()
+    	}
+
+    	assertTrue(parent.exists())
+
+    	val child = FileOperation(parent,"another/child").apply	{
+    		mkdirs()
+    	}
+
+    	assertTrue(child.exists())
+
+    	assertEquals(child.parent?.parent?.parent?.path,"test")
+    }
 }
