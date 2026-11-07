@@ -73,9 +73,9 @@ kotlin {
 // val dokkaTask = tasks.named<DokkaGenerateTask>("dokkaGeneratePublicationHtml")
 // 
 publishing {
-//     publications.withType<MavenPublication>().configureEach {
-//     	val publicationName = name 
-//     	
+    publications.withType<MavenPublication>().configureEach {
+    	val publicationName = name 
+    	
 //       val uniqueJavadocJarTask = tasks.register("${publicationName}DokkaJavadocJar", Jar::class.java) {
 //         dependsOn(dokkaTask)
 //         archiveClassifier.set("javadoc")
@@ -86,40 +86,40 @@ publishing {
 // 
 //     	artifact(uniqueJavadocJarTask)
 //         
-//         pom {
-//             name.set("filesystem")
-//             description.set(
-//                 "Android-first cross-platform file system abstraction library with Android Storage Access Framework support."
-//             )
-//             url.set("https://github.com/sifisofakude/filesystem")
-// 
-//             licenses {
-//                 license {
-//                     name.set("MIT License")
-//                     url.set("https://opensource.org/licenses/MIT")
-//                     distribution.set("repo")
-//                 }
-//             }
-// 
-//             developers {
-//                 developer {
-//                     id.set("sifisofakude")
-//                     name.set("Sifiso Fakude")
-//                 }
-//             }
-// 
-//             scm {
-//                 connection.set(
-//                     "scm:git:git://github.com/sifisofakude/filesystem.git"
-//                 )
-//                 developerConnection.set(
-//                     "scm:git:ssh://github.com/sifisofakude/filesystem.git"
-//                 )
-//                 url.set("https://github.com/sifisofakude/filesystem")
-//             }
-//         }
-//     }
-// 
+        pom {
+            name.set("filesystem")
+            description.set(
+                "Android-first cross-platform file system abstraction library with Android Storage Access Framework support."
+            )
+            url.set("https://github.com/sifisofakude/filesystem")
+
+            licenses {
+                license {
+                    name.set("MIT License")
+                    url.set("https://opensource.org/licenses/MIT")
+                    distribution.set("repo")
+                }
+            }
+
+            developers {
+                developer {
+                    id.set("sifisofakude")
+                    name.set("Sifiso Fakude")
+                }
+            }
+
+            scm {
+                connection.set(
+                    "scm:git:git://github.com/sifisofakude/filesystem.git"
+                )
+                developerConnection.set(
+                    "scm:git:ssh://github.com/sifisofakude/filesystem.git"
+                )
+                url.set("https://github.com/sifisofakude/filesystem")
+            }
+        }
+    }
+
     repositories {
         maven {
             name = "CentralStaging"
@@ -127,12 +127,12 @@ publishing {
         }
     }
 }
-// 
-// signing {
-// 		useInMemoryPgpKeys(
-//         providers.environmentVariable("GPG_SIGNING_KEY").orNull,
-//         providers.environmentVariable("GPG_PASSPHRASE").orNull
-//     )
-//     
-//     sign(publishing.publications)
-// }
+
+signing {
+		useInMemoryPgpKeys(
+        providers.environmentVariable("GPG_SIGNING_KEY").orNull,
+        providers.environmentVariable("GPG_PASSPHRASE").orNull
+    )
+    
+    sign(publishing.publications)
+}
