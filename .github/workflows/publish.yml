@@ -24,6 +24,11 @@ jobs:
           distribution: temurin
           java-version: "21"
 
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
 

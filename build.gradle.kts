@@ -70,21 +70,21 @@ kotlin {
     }
 }
 
-// val dokkaTask = tasks.named<DokkaGenerateTask>("dokkaGeneratePublicationHtml")
+val dokkaTask = tasks.named<DokkaGenerateTask>("dokkaGeneratePublicationHtml")
 // 
 publishing {
     publications.withType<MavenPublication>().configureEach {
     	val publicationName = name 
     	
-//       val uniqueJavadocJarTask = tasks.register("${publicationName}DokkaJavadocJar", Jar::class.java) {
-//         dependsOn(dokkaTask)
-//         archiveClassifier.set("javadoc")
-//         from(dokkaTask.flatMap { it.outputDirectory })
-//         
-//         destinationDirectory.set(layout.buildDirectory.dir("libs/javadoc/$publicationName"))
-//       }
-// 
-//     	artifact(uniqueJavadocJarTask)
+      val uniqueJavadocJarTask = tasks.register("${publicationName}DokkaJavadocJar", Jar::class.java) {
+        dependsOn(dokkaTask)
+        archiveClassifier.set("javadoc")
+        from(dokkaTask.flatMap { it.outputDirectory })
+        
+        destinationDirectory.set(layout.buildDirectory.dir("libs/javadoc/$publicationName"))
+      }
+
+    	artifact(uniqueJavadocJarTask)
 //         
         pom {
             name.set("filesystem")
