@@ -72,7 +72,7 @@ kotlin {
 
 // val dokkaTask = tasks.named<DokkaGenerateTask>("dokkaGeneratePublicationHtml")
 // 
-// publishing {
+publishing {
 //     publications.withType<MavenPublication>().configureEach {
 //     	val publicationName = name 
 //     	
@@ -120,13 +120,13 @@ kotlin {
 //         }
 //     }
 // 
-//     repositories {
-//         maven {
-//             name = "CentralStaging"
-//             url = uri(layout.buildDirectory.dir("central-staging"))
-//         }
-//     }
-// }
+    repositories {
+        maven {
+            name = "CentralStaging"
+            url = uri(layout.buildDirectory.dir("central-staging"))
+        }
+    }
+}
 // 
 // signing {
 // 		useInMemoryPgpKeys(
