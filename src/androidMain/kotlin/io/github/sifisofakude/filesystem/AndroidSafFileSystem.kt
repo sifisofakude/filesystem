@@ -279,6 +279,8 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 
 	override fun combinePath(parent: String, child: String): String	{
 		if(isSafUri(parent))	{
+			if(!isRelative(child)) return ""
+			
 			return if(parent.contains("||"))	{
 				"${parent.trim('/')}/${child.trim('/')}"
 			}else {
@@ -544,8 +546,8 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 				?: return emptyList()
 
 			val metadata = DocumentsContract.Document.COLUMN_DISPLAY_NAME
-			val children = getChildrenMetadata(Uri.parse(resolvedUri),listOf(metadata))
-			throw IllegalStateException("$children $resolvedUri")
+			// val children = getChildrenMetadata(Uri.parse(resolvedUri),listOf(metadata))
+			// throw IllegalStateException("$children $resolvedUri")
 			return getChildrenMetadata(Uri.parse(resolvedUri),listOf(metadata))
 				.mapNotNull { it[metadata] }
 		}
