@@ -147,7 +147,18 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	}
 
 	fun getDocumentMetadata(rootUri: Uri,metadata: List<String>): Map<String,String>	{
-		return getMetadata(rootUri,metadata).getOrNull(0) ?: emptyMap()
+		val uri = if(DocumentsContract.isDocumentUri(context,rootUri))	{
+			if(DocumentsContract.isTreeUri(rootUri))	{
+				rootUri
+			}else	{
+				val docId = DocumentsContract.getDocumentId(rootUri)
+				val treeUri = DocumentsContract.buildTreeDocumentUri(rootUri.authority,docId)
+				DocumentsContract.buildDocumentUriUsingTree(treeUri,docId)
+			}
+		}else	{
+			rootUri
+		}
+		return getMetadata(uri,metadata).getOrNull(0) ?: emptyMap()
 	}
 
 	fun getChildrenMetadata(rootUri: Uri, metadata: List<String>): List<Map<String, String>> {
