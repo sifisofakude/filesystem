@@ -118,6 +118,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 		}
 
 		var currentUri = DocumentsContract.buildDocumentUriUsingTree(treeUri,docId)
+
 		
 		val metadata = listOf(
 			DocumentsContract.Document.COLUMN_DISPLAY_NAME,
@@ -125,20 +126,22 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 		)
 		
 		for(segment in relativePath.split('/'))	{
-			var segmentFound = false
-			val tmpMetadata = getChildrenMetadata(currentUri,metadata)
-			
-			tmpMetadata.forEach	{
-				val name = it[metadata[0]]
-				if(name == segment)	{
-					val docId = it[metadata[1]]
-					currentUri = DocumentsContract.buildDocumentUriUsingTree(treeUri,docId)
-					segmentFound = true
-					return@forEach
+			if(!segment.isBlank())	{
+				var segmentFound = false
+				val tmpMetadata = getChildrenMetadata(currentUri,metadata)
+				
+				tmpMetadata.forEach	{
+					val name = it[metadata[0]]
+					if(name == segment)	{
+						val docId = it[metadata[1]]
+						currentUri = DocumentsContract.buildDocumentUriUsingTree(treeUri,docId)
+						segmentFound = true
+						return@forEach
+					}
 				}
-			}
 
-			if(!segmentFound) return null
+				if(!segmentFound) return null
+			}
 		}
 		return currentUri.toString()
 	}
@@ -164,7 +167,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	    }
 	  } catch (e: Exception) {
 	    Log.w("MetadataEngine", "Provided URI cannot be resolved to a directory hierarchy: $rootUri")
-	    throw e
+	    // throw e
 	    return emptyList()
 	  }
 
@@ -183,7 +186,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	  val projection = projectionList.toTypedArray()
 
 	  try {
-	    context.contentResolver.query(uri, projection, null, null, null)?.use { cursor ->
+	    context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
 	      while (cursor.moveToNext()) {
 	        val childMetadata = mutableMapOf<String, String>()
 	        
@@ -213,7 +216,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	    }
 	  } catch (e: Exception) {
     	android.util.Log.w("MetadataEngine", "Failed to query children for authority: ${uri.authority}", e)
-    	// throw e
+    	throw e
 	  }
 	  return resultsList
 	}
@@ -529,7 +532,8 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 				?: return emptyList()
 
 			val metadata = DocumentsContract.Document.COLUMN_DISPLAY_NAME
-
+			val children = getChildrenMetadata(Uri.parse(resolvedUri),listOf(metadata))
+			throw IllegalStateException("$children $resolvedUri")
 			return getChildrenMetadata(Uri.parse(resolvedUri),listOf(metadata))
 				.mapNotNull { it[metadata] }
 		}

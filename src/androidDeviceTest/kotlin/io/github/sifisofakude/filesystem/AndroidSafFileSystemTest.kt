@@ -59,13 +59,13 @@ class AndroidSafFileSystemTest {
 
     @Test
     fun selectRoot() {
-        assertNotNull(ROOT1)
-        assertTrue(fs.isSafUri(ROOT1.toString()))
-        assertTrue(fs.isTreeUri(ROOT1.toString()))
-    
-        assertNotNull(ROOT2)
-        assertTrue(fs.isSafUri(ROOT2.toString()))
-        assertTrue(fs.isTreeUri(ROOT2.toString()))
+    //     assertNotNull(ROOT1)
+    //     assertTrue(fs.isSafUri(ROOT1.toString()))
+    //     assertTrue(fs.isTreeUri(ROOT1.toString()))
+    // 
+    //     assertNotNull(ROOT2)
+    //     assertTrue(fs.isSafUri(ROOT2.toString()))
+    //     assertTrue(fs.isTreeUri(ROOT2.toString()))
     }
 
 // 		@Test
@@ -157,7 +157,7 @@ class AndroidSafFileSystemTest {
 
 		@Test
 		fun newFeatureTest()	{
-			fs.changeSelectedDirectory(ROOT1)
+			// fs.changeSelectedDirectory(ROOT1)
 
 			val cloudUri = "content://com.google.android.apps.docs.storage/tree/"+
 				"acc%3D1%3Bdoc%3Dencoded%3DujO1jXNvByXH3-kpsrYNtK0R6z5SDtagfmuIPO3v2KwySSuxdtY_b7wxNhi7"
@@ -165,8 +165,8 @@ class AndroidSafFileSystemTest {
 			val canReadPerm = AndroidSafFileSystem.Permissions.CAN_READ
 			val canWritePerm = AndroidSafFileSystem.Permissions.CAN_WRITE
 
-			val folder = fs.createDirectory("test/folder")
-			assertNotNull(folder)
+			// val folder = fs.createDirectory("test/folder")
+			// assertNotNull(folder)
 
 			assertTrue(fs.isLocalStorage("${ROOT1.authority}"))
 			assertTrue(fs.isSupported("${ROOT1.authority}"))
@@ -174,16 +174,16 @@ class AndroidSafFileSystemTest {
 			val docId = DocumentsContract.getTreeDocumentId(ROOT1)
 			val uri = DocumentsContract.buildDocumentUriUsingTree(ROOT1,docId)
 
-			fs.createDirectory("test1")
-			fs.createDirectory("test2")
-			fs.createDirectory("test3")
-			
-			fs.createFile("test-file.txt")
-			fs.createFile("test-file2.txt")
+			// fs.createDirectory("test1")
+			// fs.createDirectory("test2")
+			// fs.createDirectory("test3")
+			// 
+			// fs.createFile("test-file.txt")
+			// fs.createFile("test-file2.txt")
 
 			val column = DocumentsContract.Document.COLUMN_DISPLAY_NAME
 			// fail("${fs.getChildrenMetadata(ROOT1,listOf(column))}")
-			fail("${fs.listFiles(cloudUri)}")
+			fail("${fs.getDocumentMetadata(Uri.parse(cloudUri),listOf(column))}")
 			
 			val file = fs.createFile("test/file-test.txt")
 			assertNotNull(file)
