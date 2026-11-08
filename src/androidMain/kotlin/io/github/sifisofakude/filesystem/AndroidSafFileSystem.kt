@@ -156,7 +156,8 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 				DocumentsContract.buildDocumentUriUsingTree(treeUri,docId)
 			}
 		}else	{
-			rootUri
+			val docId = DocumentsContract.getTreeDocumentId(rootUri)
+			DocumentsContract.buildDocumentUriUsingTree(rootUri,docId)
 		}
 		return getMetadata(uri,metadata).getOrNull(0) ?: emptyMap()
 	}
