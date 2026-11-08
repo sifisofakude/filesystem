@@ -183,7 +183,7 @@ class AndroidSafFileSystemTest {
 
 			val column = DocumentsContract.Document.COLUMN_DISPLAY_NAME
 			// fail("${fs.getChildrenMetadata(ROOT1,listOf(column))}")
-			fail("${fs.getDocumentMetadata(ROOT1,listOf(column))}")
+			fail("${fs.getDocumentMetadata(Uri.parse(cloudUri),listOf(column))}")
 			
 			val file = fs.createFile("test/file-test.txt")
 			assertNotNull(file)
