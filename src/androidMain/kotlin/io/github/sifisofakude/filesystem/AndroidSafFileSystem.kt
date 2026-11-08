@@ -185,7 +185,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 		return getMetadata(childrenUri, metadata)
 	}
 
-	fun getMetadata(uri: Uri, metadata: List<String>): List<Map<String, String>>	{
+	private fun getMetadata(uri: Uri, metadata: List<String>): List<Map<String, String>>	{
     val resultsList = mutableListOf<Map<String, String>>()
 	  val requiresFlags = metadata.contains(Permissions.CAN_READ) || metadata.contains(Permissions.CAN_WRITE)
 	  val projectionList = metadata.filter { it != Permissions.CAN_WRITE && it != Permissions.CAN_READ }.toMutableList()
@@ -197,7 +197,7 @@ class AndroidSafFileSystem(context: Context) : JvmFileSystem()	{
 	  val projection = projectionList.toTypedArray()
 
 	  try {
-	    context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
+	    context.contentResolver.query(uri, projection, null, null, null)?.use { cursor ->
 	      while (cursor.moveToNext()) {
 	        val childMetadata = mutableMapOf<String, String>()
 	        
