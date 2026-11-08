@@ -159,6 +159,9 @@ class AndroidSafFileSystemTest {
 		fun newFeatureTest()	{
 			fs.changeSelectedDirectory(ROOT1)
 
+			val cloudUri = "content://com.google.android.apps.docs.storage/tree/"+
+				"acc%3D1%3Bdoc%3Dencoded%3DujO1jXNvByXH3-kpsrYNtK0R6z5SDtagfmuIPO3v2KwySSuxdtY_b7wxNhi7"
+
 			val canReadPerm = AndroidSafFileSystem.Permissions.CAN_READ
 			val canWritePerm = AndroidSafFileSystem.Permissions.CAN_WRITE
 
@@ -180,7 +183,7 @@ class AndroidSafFileSystemTest {
 
 			val column = DocumentsContract.Document.COLUMN_DISPLAY_NAME
 			// fail("${fs.getChildrenMetadata(ROOT1,listOf(column))}")
-			// fail("${fs.listFiles("$ROOT1")}")
+			fail("${fs.listFiles(cloudUri)}")
 			
 			val file = fs.createFile("test/file-test.txt")
 			assertNotNull(file)
